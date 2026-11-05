@@ -1,0 +1,4001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="build" content="2026-11-01T16:37+08:00">
+<title>MobilityPilot · 郑州城市出行多智能体调度</title>
+<script type="text/javascript">
+  /* 高德开放平台 · 安全密钥（须在加载 JS API 之前设置） */
+  window._AMapSecurityConfig = {
+    securityJsCode: '0d37cc2155875ea80f8622b58925ca81',
+  };
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=e18971dd7720f736a98e7d1701b09518&plugin=AMap.PlaceSearch,AMap.Driving,AMap.Geocoder,AMap.TileLayer.Traffic"></script>
+<style>
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --surface-2:#f8fafc; --surface-3:#eef2f7;
+  --border:#e4e9f0; --border-strong:#cfd8e3;
+  --ink:#0d1526; --ink-2:#4a5568; --ink-3:#8a97a8;
+  --brand:#2563eb; --brand-2:#1d4ed8; --brand-soft:#eef4ff;
+  --teal:#0d9488; --amber:#d97706; --rose:#e11d48; --violet:#7c3aed; --cyan:#0891b2;
+  --sidebar:#0a1120; --sidebar-2:#0e1a2e;
+  --r:12px; --r-sm:8px;
+  --sh:0 1px 2px rgba(13,21,38,.04), 0 2px 8px rgba(13,21,38,.05);
+  --sh-lg:0 8px 28px rgba(13,21,38,.10);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:13.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+::-webkit-scrollbar-track{background:transparent}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ---------- shell ---------- */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  width:236px;flex:0 0 236px;background:linear-gradient(175deg,#0a1120 0%,#0d1a30 62%,#0a1424 100%);
+  color:#c7d2e0;display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:-90px;left:-70px;width:320px;height:320px;pointer-events:none;
+  background:radial-gradient(circle,rgba(37,99,235,.34),transparent 62%);
+}
+.sidebar::after{
+  content:'';position:absolute;bottom:-120px;right:-90px;width:300px;height:300px;pointer-events:none;
+  background:radial-gradient(circle,rgba(13,148,136,.20),transparent 65%);
+}
+.side-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:18px 14px 14px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 6px 0}
+.brand-mark{
+  width:38px;height:38px;border-radius:11px;flex:0 0 38px;
+  background:linear-gradient(145deg,#3b82f6,#1d4ed8 55%,#0d9488);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 16px rgba(37,99,235,.38);
+}
+.brand-name{font-size:15px;font-weight:650;color:#fff;letter-spacing:.2px;line-height:1.2}
+.brand-sub{font-size:10.5px;color:#7d8ea6;letter-spacing:.4px;margin-top:2px}
+.side-rule{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);margin:16px 4px 4px}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px;overflow-y:auto;flex:1}
+.nav::-webkit-scrollbar{width:0}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:1.1px;color:#5c6d85;padding:14px 10px 6px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:#a8b6c8;
+  font-size:13px;text-align:left;transition:background .16s,color .16s;position:relative;
+}
+.nav-item svg{flex:0 0 16px;opacity:.85}
+.nav-item:hover{background:rgba(255,255,255,.055);color:#e2e8f0}
+.nav-item.active{background:linear-gradient(90deg,rgba(37,99,235,.24),rgba(37,99,235,.06));color:#fff;font-weight:560}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:9px;bottom:9px;width:2.5px;border-radius:2px;
+  background:linear-gradient(180deg,#60a5fa,#22d3ee);
+}
+.nav-item.active svg{opacity:1;color:#93c5fd}
+.nav-badge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.28);color:#bfdbfe;font-weight:600}
+.side-foot{border-top:1px solid rgba(255,255,255,.08);padding-top:12px;margin-top:10px}
+.clock-row{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px}
+.clock-row span{font-size:10.5px;color:#5c6d85;letter-spacing:.5px}
+.clock-row strong{font-size:19px;font-weight:600;color:#fff;font-family:var(--mono);letter-spacing:.5px}
+.sim-state{display:flex;align-items:center;gap:6px;padding:6px 4px 9px;font-size:11px;color:#7d8ea6}
+.dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);flex:0 0 6px}
+.dot.paused{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.16)}
+.sim-btn{
+  width:100%;padding:8px;border-radius:9px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.10);color:#dbe4f0;font-size:12px;font-weight:520;
+  transition:background .16s;
+}
+.sim-btn:hover{background:rgba(255,255,255,.13)}
+
+/* ---------- main ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg)}
+.topbar{
+  height:70px;flex:0 0 70px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);z-index:20;
+}
+.tb-left h1{font-size:16.5px;font-weight:640;letter-spacing:-.2px}
+.tb-left p{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.pill{
+  display:flex;align-items:center;gap:5px;padding:5px 10px;white-space:nowrap;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border);font-size:11.5px;color:var(--ink-2);
+  box-shadow:0 1px 1px rgba(13,21,38,.03);white-space:nowrap;
+}
+.pill b{font-weight:600;color:var(--ink)}
+.pill .dot{background:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.sel{
+  appearance:none;padding:6px 26px 6px 11px;border-radius:20px;border:1px solid var(--border);
+  background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 4l3 3 3-3' fill='none' stroke='%238a97a8' stroke-width='1.4' stroke-linecap='round'/></svg>") no-repeat right 10px center;
+  font-size:11.5px;color:var(--ink-2);outline:none;cursor:pointer;
+}
+.viewport{flex:1;min-height:0;position:relative}
+.module{display:none;position:absolute;inset:0;overflow:auto;padding:18px 22px 26px}
+.module.active{display:block}
+.module.no-pad{padding:0;overflow:hidden}
+
+/* ---------- generic card ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
+.card-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 15px 9px;border-bottom:1px solid var(--border)}
+.card-hd h3{font-size:13px;font-weight:620;letter-spacing:-.1px;display:flex;align-items:center;gap:7px}
+.card-hd h3::before{content:'';width:3px;height:12px;border-radius:2px;background:var(--brand)}
+.card-hd .muted{font-size:11px;color:var(--ink-3)}
+.card-bd{padding:13px 15px}
+.muted{color:var(--ink-3)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 7px;border-radius:6px;font-weight:560;letter-spacing:.2px}
+.tag.blue{background:#eef4ff;color:#1d4ed8}
+.tag.teal{background:#e7f7f5;color:#0d7d72}
+.tag.amber{background:#fdf4e6;color:#b45309}
+.tag.rose{background:#fdeaef;color:#be123c}
+.tag.violet{background:#f3eefe;color:#6d28d9}
+.tag.gray{background:#f1f4f8;color:#546176}
+
+/* ---------- KPI ---------- */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 12px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand);opacity:.85}
+.kpi.k-teal::after{background:var(--teal)} .kpi.k-amber::after{background:var(--amber)}
+.kpi.k-rose::after{background:var(--rose)} .kpi.k-violet::after{background:var(--violet)}
+.kpi-label{font-size:11px;color:var(--ink-3);letter-spacing:.2px;display:flex;align-items:center;gap:5px}
+.kpi-val{font-size:22px;font-weight:660;letter-spacing:-.8px;margin-top:3px;font-family:var(--mono)}
+.kpi-val span{font-size:12px;font-weight:500;color:var(--ink-3);margin-left:2px;letter-spacing:0}
+.kpi-sub{font-size:10.5px;color:var(--ink-3);margin-top:2px;display:flex;align-items:center;gap:4px}
+.kpi-sub.up{color:#0d9488} .kpi-sub.down{color:#e11d48}
+.spark{position:absolute;right:9px;top:11px;opacity:.26}
+
+/* ---------- overview grid ---------- */
+.ov-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:12px}
+.ov-grid .span2{grid-column:1/-1}
+.gap-row{display:flex;align-items:center;gap:9px;padding:5.5px 0}
+.gap-name{width:86px;font-size:12px;color:var(--ink-2);flex:0 0 86px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gap-bar{flex:1;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;position:relative}
+.gap-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.gap-val{width:42px;text-align:right;font-size:11.5px;font-family:var(--mono);color:var(--ink-2);flex:0 0 42px}
+.feed{max-height:262px;overflow-y:auto;padding:6px 15px 12px}
+.feed-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:12px}
+.feed-item:last-child{border-bottom:none}
+.feed-time{font-family:var(--mono);font-size:11px;color:var(--ink-3);flex:0 0 42px;padding-top:1px}
+.feed-text{color:var(--ink-2);line-height:1.5}
+.feed-text b{color:var(--ink);font-weight:600}
+.feed-dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex:0 0 6px}
+
+/* ---------- map ---------- */
+.map-shell{position:relative;height:100%;width:100%;background:#e8eef5}
+#map{position:absolute;inset:0}
+.map-shell .ol{position:absolute;z-index:10;pointer-events:none}
+.ol > *{pointer-events:auto}
+.ol-tl{top:14px;left:14px;display:flex;flex-direction:column;gap:8px}
+.ol-bc{bottom:14px;left:50%;transform:translateX(-50%)}
+.legend-h{display:flex;align-items:center;gap:13px;padding:7px 13px}
+.legend-sep{width:1px;height:12px;background:var(--border-strong)}
+.ds-title{font-size:10px;font-weight:650;letter-spacing:.8px;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.ds-tag{font-size:9px;letter-spacing:.2px;padding:1px 5px;border-radius:4px;background:#eef4ff;color:#1d4ed8;text-transform:none;font-weight:600}
+.ds-row{display:flex;align-items:center;gap:6px;padding:2.5px 0;font-size:11px;color:var(--ink-2)}
+.ds-dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;background:#cbd5e1}
+.ds-dot.on{background:#0d9488;box-shadow:0 0 0 2.5px rgba(13,148,136,.14)}
+.ds-dot.off{background:#d97706;box-shadow:0 0 0 2.5px rgba(217,119,6,.12)}
+.ds-name{flex:1;white-space:nowrap}
+.ds-val{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.layer-box{background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:10px;box-shadow:var(--sh-lg);padding:9px 11px}
+.layer-box .lb-title{font-size:10px;font-weight:650;letter-spacing:.8px;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px}
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;max-width:252px}
+.chip{
+  display:flex;align-items:center;gap:4px;font-size:11px;padding:3.5px 8px;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface);color:var(--ink-2);transition:all .15s;
+}
+.chip i{width:7px;height:7px;border-radius:50%;display:block;background:currentColor;opacity:.75}
+.chip.on{background:var(--brand-soft);border-color:#bfd4ff;color:var(--brand-2);font-weight:560}
+.chip.off{opacity:.55;text-decoration:line-through;text-decoration-thickness:1px}
+/* 车辆显示三档切换：全部 / 仅模拟 / 仅历史 */
+.seg{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:2px;width:max-content}
+.seg-btn{font-size:11px;padding:3.5px 9px;border-radius:6px;border:none;background:transparent;
+  color:var(--ink-3);cursor:pointer;transition:all .14s;white-space:nowrap;font-weight:520;line-height:1.5}
+.seg-btn:hover{color:var(--ink-2)}
+.seg-btn.on{background:#fff;color:var(--brand-2);font-weight:600;box-shadow:0 1px 2px rgba(13,21,38,.12)}
+.seg-btn .sg{display:inline-block;width:7px;height:7px;margin-right:4px;vertical-align:0;background:currentColor;opacity:.8}
+.seg-btn .sg.r{border-radius:50%}
+.seg-btn .sg.s{border-radius:1.5px}
+.legend{display:flex;flex-direction:column;gap:5px;width:max-content}
+.legend-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-2);white-space:nowrap;flex:0 0 auto}
+.legend-key{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:2px;flex:0 0 16px}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.legend-sq{width:8px;height:8px;border-radius:1.5px;flex:0 0 8px}
+.dispatch-panel{
+  position:absolute;top:14px;right:14px;bottom:14px;width:312px;z-index:12;
+  background:#ffffff;
+  border:1px solid var(--border);border-radius:13px;box-shadow:var(--sh-lg);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.dp-hd{padding:12px 14px 10px;border-bottom:1px solid var(--border)}
+.dp-hd .dp-kicker{font-size:10px;letter-spacing:1px;color:var(--ink-3);font-weight:650;text-transform:uppercase}
+.dp-hd .dp-title{font-size:14.5px;font-weight:640;margin-top:2px;display:flex;align-items:center;gap:7px}
+.dp-body{flex:1;overflow-y:auto;padding:12px 14px 14px}
+.dp-sec{margin-bottom:14px}
+.dp-sec-t{font-size:10.5px;font-weight:650;letter-spacing:.7px;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:4.5px 0;font-size:12px;border-bottom:1px dashed var(--border)}
+.kv:last-child{border-bottom:none}
+.kv span{color:var(--ink-3)}
+.kv b{font-weight:600;font-family:var(--mono);font-size:12px}
+.reason-box{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:9px 10px;font-size:12px;color:var(--ink-2);line-height:1.62}
+.reason-box ol{margin:0;padding-left:16px}
+.reason-box li{margin-bottom:3px}
+.reason-box li:last-child{margin-bottom:0}
+.cand-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+.cand-name{flex:0 0 78px;font-size:12px;color:var(--ink-2)}
+.cand-bar{flex:1;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden}
+.cand-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#60a5fa,#2563eb)}
+.cand-score{flex:0 0 34px;text-align:right;font-size:11px;font-family:var(--mono);color:var(--ink-2)}
+.cand-row.best .cand-name{color:var(--brand-2);font-weight:600}
+.cand-row.best .cand-bar i{background:linear-gradient(90deg,#34d399,#0d9488)}
+.chain-list{display:flex;flex-direction:column;gap:5px}
+.ch-item{display:flex;align-items:center;gap:7px;font-size:11.5px;padding:4px 0}
+.ch-item i{width:6px;height:6px;border-radius:50%;flex:0 0 6px}
+.ch-item b{font-weight:600;color:var(--ink);flex:0 0 62px}
+.ch-item span{color:var(--ink-3);font-family:var(--mono);font-size:11px;text-align:right;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-foot{border-top:1px solid var(--border);padding:9px 14px;display:flex;gap:7px;background:var(--surface-2)}
+.btn{flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:560;text-align:center;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);transition:all .15s}
+.btn:hover{border-color:var(--border-strong);color:var(--ink)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-2)}
+.map-loading{
+  position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(160deg,#eef4f9,#e3ecf4);color:#64748b;font-size:12px;letter-spacing:.3px;
+}
+.ml-ring{width:26px;height:26px;border-radius:50%;border:2.5px solid #cfe0f2;border-top-color:#2563eb;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.map-fallback{position:absolute;inset:0;background:linear-gradient(160deg,#eef4f9,#e3ecf4)}
+.map-fallback svg{width:100%;height:100%;display:block}
+.fb-note{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:11px;color:#64748b;background:rgba(255,255,255,.9);padding:5px 12px;border-radius:20px;border:1px solid var(--border);white-space:nowrap}
+
+/* ---------- graph ---------- */
+.graph-shell{height:100%;display:grid;grid-template-columns:1fr 320px;gap:0}
+.graph-canvas{position:relative;overflow:hidden;background:
+  radial-gradient(circle at 30% 20%,rgba(37,99,235,.045),transparent 55%),
+  linear-gradient(180deg,#fbfcfe,#f6f8fc);
+  background-size:100% 100%,100% 100%;
+}
+.graph-canvas::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(#d5dfeb 1px,transparent 1px);
+  background-size:24px 24px;opacity:.45;
+}
+.graph-svg{position:absolute;inset:0;width:100%;height:100%}
+.graph-toolbar{position:absolute;top:14px;left:16px;z-index:5;display:flex;gap:7px;align-items:center}
+.gt-btn{padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.95);border:1px solid var(--border);font-size:11.5px;color:var(--ink-2);box-shadow:var(--sh)}
+.gt-btn:hover{border-color:var(--border-strong)}
+.gt-btn.on{background:var(--brand-soft);border-color:#bfd4ff;color:var(--brand-2);font-weight:560}
+.graph-legend{position:absolute;bottom:14px;left:16px;z-index:5;display:flex;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:9px;padding:7px 11px;box-shadow:var(--sh)}
+.gl-item{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--ink-2)}
+.gl-sw{width:9px;height:9px;border-radius:3px}
+.graph-panel{border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden}
+.gp-hd{padding:13px 15px 11px;border-bottom:1px solid var(--border)}
+.gp-hd .kicker{font-size:10px;letter-spacing:1px;color:var(--ink-3);font-weight:650;text-transform:uppercase}
+.gp-hd h3{font-size:14px;font-weight:640;margin-top:3px}
+.gp-body{flex:1;overflow-y:auto;padding:13px 15px}
+.gp-empty{color:var(--ink-3);font-size:12px;line-height:1.7;text-align:center;padding:36px 8px}
+.gp-empty svg{opacity:.35;margin-bottom:10px}
+.gp-sec{margin-bottom:15px}
+.gp-sec-t{font-size:10px;font-weight:650;letter-spacing:.8px;color:var(--ink-3);text-transform:uppercase;margin-bottom:6px}
+.io-list{list-style:none;font-size:12px;color:var(--ink-2)}
+.io-list li{padding:4px 0 4px 13px;position:relative;line-height:1.5}
+.io-list li::before{content:'';position:absolute;left:2px;top:10px;width:4px;height:4px;border-radius:50%;background:var(--border-strong)}
+.metric-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mm{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
+.mm-l{font-size:10px;color:var(--ink-3)}
+.mm-v{font-size:15px;font-weight:640;font-family:var(--mono);letter-spacing:-.3px;margin-top:1px}
+
+/* svg graph */
+.gnode{cursor:pointer}
+.gnode .nrect{fill:#fff;stroke:#dbe3ee;stroke-width:1.3;transition:all .18s}
+.gnode:hover .nrect{stroke:#9db6d8;filter:drop-shadow(0 3px 8px rgba(13,21,38,.10))}
+.gnode .ntitle{font-size:12.5px;font-weight:620;fill:#16233a;font-family:inherit}
+.gnode .nsub{font-size:10.5px;fill:#8a97a8;font-family:inherit}
+.gnode .nbar{transition:opacity .18s}
+.gnode.sel .nrect{stroke:var(--brand);stroke-width:2;filter:drop-shadow(0 4px 12px rgba(37,99,235,.22))}
+.gnode.pulse .nrect{stroke-width:2.2}
+.gedge{fill:none;stroke:#93a9c4;stroke-width:1.7;transition:stroke .2s,stroke-width .2s}
+.gedge.flow{stroke:#93b4e8;stroke-dasharray:5 4;animation:dashmove 1s linear infinite}
+.gedge.hot{stroke:var(--brand);stroke-width:2.4;stroke-dasharray:none;filter:drop-shadow(0 0 3px rgba(37,99,235,.35))}
+.gedge.chain{stroke:#7d93b0;stroke-width:2.1}
+.gedge.feedback{stroke:#b7a4f5;stroke-width:1.6;stroke-dasharray:4 4}
+.gedge.feedback.hot{stroke:var(--violet);stroke-width:2.2;stroke-dasharray:4 4}
+@keyframes dashmove{to{stroke-dashoffset:-18}}
+.gcol-label{font-size:10px;font-weight:650;fill:#9aa8ba;letter-spacing:1.4px;font-family:inherit}
+
+/* ---------- agents ---------- */
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.ag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;box-shadow:var(--sh);transition:box-shadow .18s,transform .18s}
+.ag-card:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
+.ag-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ag-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:650;color:#fff;flex:0 0 34px;letter-spacing:.3px}
+.ag-name{font-size:12.8px;font-weight:620}
+.ag-meta{font-size:10.5px;color:var(--ink-3)}
+.ag-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:9px 0 10px}
+.ag-stat{background:var(--surface-2);border-radius:7px;padding:5px 7px}
+.ag-stat b{display:block;font-size:12.5px;font-family:var(--mono);font-weight:640}
+.ag-stat span{font-size:9.5px;color:var(--ink-3)}
+.ag-trait{display:flex;gap:5px;flex-wrap:wrap}
+.pref-bar{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3);margin-top:7px}
+.pref-track{flex:1;height:5px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.pref-track i{display:block;height:100%;border-radius:3px}
+/* ---------- agent cluster ---------- */
+.cl-wrap{display:grid;grid-template-columns:1.42fr 1fr;gap:14px;align-items:start}
+@media (max-width:1240px){.cl-wrap{grid-template-columns:1fr}}
+.cl-plot{width:100%;height:auto;display:block}
+.cl-grid{stroke:#eef2f7;stroke-width:1}
+.cl-tick{font-size:9.5px;fill:#a3aebd;font-family:var(--mono)}
+.cl-ax{font-size:10px;fill:#8a97a8}
+.cl-hull{transition:opacity .2s}
+.cl-pt{cursor:pointer;transition:opacity .18s}
+.cl-pt.dim{opacity:.20}
+.cl-pt .core{transition:stroke-width .18s,r .18s}
+.cl-pt.hot .core{stroke-width:3.4}
+.cl-pt text{font-size:9px;font-weight:700;fill:#fff;pointer-events:none;font-family:var(--mono)}
+.cl-pt text.lbl{fill:#546176;font-weight:600;font-size:9.5px;font-family:inherit}
+.cl-cent text{font-size:10px;font-weight:650}
+.cl-list{display:flex;flex-direction:column;gap:8px}
+.cl-item{border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:var(--surface-2);cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s}
+.cl-item:hover{border-color:var(--border-strong)}
+.cl-item.on{background:#fff;border-color:var(--brand);box-shadow:0 2px 10px rgba(37,99,235,.10)}
+.cl-item-hd{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.cl-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.cl-item-hd b{font-size:12px;font-weight:640}
+.cl-item-hd .cnt{margin-left:auto;font-size:10px;color:var(--ink-3);font-family:var(--mono)}
+.cl-kv{display:flex;gap:11px;font-size:10.5px;color:var(--ink-3);font-family:var(--mono);flex-wrap:wrap}
+.cl-kv b{color:var(--ink-2);font-weight:640}
+.cl-tip{margin-top:6px;font-size:10.5px;color:var(--ink-2);line-height:1.5;border-left:2px solid var(--border-strong);padding-left:8px}
+.ag-card.hot{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft),var(--sh-lg)}
+
+/* ---------- 历史数据标定 ---------- */
+.dt-sec{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.dt-sec-n{font-family:var(--mono);font-size:10px;font-weight:700;color:#fff;background:var(--ink);padding:2.5px 7px;border-radius:5px;letter-spacing:.6px;flex:0 0 auto}
+.dt-sec-wrap{display:flex;flex-direction:column;min-width:0}
+.dt-sec h4{font-size:13.5px;font-weight:650;letter-spacing:-.1px;line-height:1.32}
+.dt-sec p{font-size:10.8px;color:var(--ink-3);line-height:1.4}
+.dt-sec-src{margin-left:auto;font-size:10.3px;color:var(--ink-3);font-family:var(--mono);flex:0 0 auto}
+.dt-row-1{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:1280px){.dt-row-1{grid-template-columns:1fr}}
+.dt-note{font-size:10.4px;color:var(--ink-3);line-height:1.55;margin-top:8px;padding-left:8px;border-left:2px solid var(--border)}
+.dt-src{display:grid;grid-template-columns:1fr 290px;gap:22px;padding:15px 17px;margin-bottom:12px}
+.dt-src-l h3{font-size:15px;font-weight:650;margin:7px 0 6px;letter-spacing:-.2px}
+.dt-src-l p{font-size:11.8px;color:var(--ink-2);line-height:1.62;max-width:760px}
+.dt-src-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;color:#0d7d72;background:#e7f7f5;padding:2.5px 8px;border-radius:6px}
+.dt-src-meta{display:flex;gap:16px;margin-top:10px;font-size:10.8px;color:var(--ink-3);font-family:var(--mono);flex-wrap:wrap}
+.dt-src-meta b{color:var(--ink-2);font-weight:640}
+.dt-funnel{display:flex;flex-direction:column;gap:7px;justify-content:center}
+.dt-fn{font-size:10px;color:var(--ink-3);display:flex;justify-content:space-between}
+.dt-fn-bar{height:20px;border-radius:5px;background:var(--surface-3);position:relative;overflow:hidden;margin-top:2px}
+.dt-fn-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding:0 8px;color:#fff;font-size:9.5px;font-weight:650;font-family:var(--mono);white-space:nowrap;overflow:hidden}
+.dt-fn-bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding:0 8px;font-size:9.5px;font-family:var(--mono);color:#fff;font-weight:600}
+
+.dt-kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.dt-k{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;box-shadow:var(--sh)}
+.dt-k b{display:block;font-size:18.5px;font-weight:660;font-family:var(--mono);letter-spacing:-.5px;line-height:1.25}
+.dt-k b small{font-size:10.5px;font-weight:520;color:var(--ink-3);margin-left:2px;letter-spacing:0}
+.dt-k span{font-size:10.5px;color:var(--ink-3);display:block;margin-top:2px}
+.dt-k em{font-size:9.8px;color:var(--ink-3);font-style:normal;display:block;margin-top:5px;padding-top:5px;border-top:1px dashed var(--border)}
+
+.dt-row{display:grid;grid-template-columns:1.62fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:1280px){
+  .dt-row{grid-template-columns:1fr}
+  .dt-kpi{grid-template-columns:repeat(3,1fr)}
+  .dt-src{grid-template-columns:1fr}
+}
+.dt-svg{width:100%;height:auto;display:block}
+.dt-tick{font-size:9.5px;fill:#a3aebd;font-family:var(--mono)}
+.dt-axl{font-size:10px;fill:#8a97a8}
+.dt-grid{stroke:#eef2f7;stroke-width:1}
+.dt-hl{font-size:9.5px;font-weight:700;font-family:var(--mono)}
+.dt-cap{font-size:10.5px;color:var(--ink-3);margin-top:6px;line-height:1.5}
+.dt-legend{display:flex;gap:14px;font-size:10.5px;color:var(--ink-3);flex-wrap:wrap;margin-bottom:4px}
+.dt-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.dt-map-table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+.dt-map-table th{text-align:left;font-size:9.8px;font-weight:650;letter-spacing:.4px;color:var(--ink-3);padding:7px 6px;border-bottom:1px solid var(--border);text-transform:uppercase;background:var(--surface-2)}
+.dt-map-table td{padding:8px 6px;border-bottom:1px solid var(--border);color:var(--ink-2);vertical-align:top}
+.dt-map-table tr:last-child td{border-bottom:none}
+.dt-map-table td.n{font-family:var(--mono);white-space:nowrap}
+.dt-map-table td b{color:var(--ink);font-weight:620}
+.dt-grp td{background:var(--surface-2);font-size:9.3px;font-weight:700;color:var(--ink-3);letter-spacing:.6px;padding:5px 6px;text-transform:uppercase}
+.dt-live{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:650;color:var(--brand);background:var(--brand-soft);padding:1px 7px;border-radius:5px}
+.dt-live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--brand)}
+
+/* ---------- experiments ---------- */
+.exp-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+.exp-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.exp-table th:first-child,.exp-table td:first-child{width:33%}
+.exp-table th:not(:first-child),.exp-table td:not(:first-child){width:13.4%}
+.exp-table th{text-align:left;font-size:10px;font-weight:650;letter-spacing:.4px;color:var(--ink-3);padding:8px 7px;border-bottom:1px solid var(--border);text-transform:uppercase;background:var(--surface-2)}
+.exp-table td{padding:8px 7px;font-size:11.8px;border-bottom:1px solid var(--border);color:var(--ink-2)}
+.exp-table tr:last-child td{border-bottom:none}
+.exp-table tr.best td{background:#f0fdf9}
+.exp-table td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+.exp-table td.n.good{color:#0d9488;font-weight:600}
+.exp-table td.n.bad{color:#e11d48;font-weight:600}
+.bar-chart{display:flex;flex-direction:column;gap:14px;padding:6px 2px}
+.bc-group{}
+.bc-label{font-size:11px;color:var(--ink-2);margin-bottom:6px;display:flex;justify-content:space-between}
+.bc-bars{display:flex;gap:5px;align-items:flex-end;height:64px}
+.bc-bar{flex:1;border-radius:4px 4px 2px 2px;position:relative;transition:height .6s cubic-bezier(.4,0,.2,1);min-height:3px}
+.bc-bar span{position:absolute;top:-15px;left:0;right:0;text-align:center;font-size:9.5px;font-family:var(--mono);color:var(--ink-3)}
+
+/* ---------- about ---------- */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.about-hero{grid-column:1/-1;background:linear-gradient(120deg,#0d1b33,#122a4d 55%,#0d3b45);color:#e2ecf7;border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden}
+.about-hero::after{content:'';position:absolute;right:-40px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.25),transparent 65%)}
+.about-hero .k{font-size:10.5px;letter-spacing:1.6px;color:#7fa7c9;text-transform:uppercase}
+.about-hero h2{font-size:20px;font-weight:640;margin:5px 0 6px;letter-spacing:-.3px}
+.about-hero p{font-size:12.5px;color:#a9c2d8;line-height:1.65;max-width:640px}
+.about-hero .meta{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;position:relative;z-index:1}
+.about-hero .meta div{font-size:11.5px;color:#8fb0ca}
+.about-hero .meta b{display:block;color:#e8f2fa;font-weight:600;font-size:12.5px;margin-top:1px}
+.about-list{list-style:none;font-size:12.2px;color:var(--ink-2);line-height:1.62}
+.about-list li{padding:7px 0 7px 20px;position:relative;border-bottom:1px dashed var(--border)}
+.about-list li:last-child{border-bottom:none}
+.about-list li::before{content:'';position:absolute;left:3px;top:13px;width:5px;height:5px;border-radius:50%;background:var(--brand);opacity:.6}
+.about-list b{color:var(--ink);font-weight:620}
+
+@media (max-width:1280px){
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .graph-shell{grid-template-columns:1fr 280px}
+}
+
+/* ---------- 历史轨迹：导入面板 ---------- */
+.hist-box .hist-actions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}
+.hist-box .hist-actions .chip{cursor:pointer}
+.hist-meta{font-size:10.2px;color:var(--ink-3);line-height:1.52;font-family:var(--mono);max-width:222px}
+.hist-meta b{color:var(--ink-2);font-weight:640}
+.hist-meta .hi{color:#0d7d72}
+
+/* ---------- 历史轨迹：回放条 ---------- */
+.map-shell.rp-on .ol-bc{bottom:82px}
+.ol-replay{bottom:14px;left:14px;right:340px}
+.rp{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border:1px solid var(--border);border-radius:11px;box-shadow:var(--sh-lg);
+}
+.rp-tag{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fff;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:3px 7px;border-radius:5px;flex:0 0 auto}
+.rp-name{font-size:11px;color:var(--ink-2);max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+.rp-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;flex:0 0 28px;color:var(--ink-2);cursor:pointer;
+  transition:all .15s;font-size:11px;line-height:1;padding:0}
+.rp-btn:hover{background:var(--brand-soft);border-color:#bfd4ff;color:var(--brand-2)}
+.rp-btn.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.rp-btn.ghost{width:auto;border-radius:7px;padding:0 9px;font-size:11px;height:26px;flex:0 0 auto}
+.rp-track{flex:1;display:flex;align-items:center;gap:9px;min-width:110px}
+.rp-range{flex:1;min-width:60px;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
+  background:linear-gradient(90deg,#7c3aed var(--p,0%),#e2e8f0 var(--p,0%));outline:none;cursor:pointer}
+.rp-range::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:#fff;border:2px solid #7c3aed;box-shadow:0 1px 3px rgba(15,23,42,.2)}
+.rp-range::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid #7c3aed}
+.rp-time{font-family:var(--mono);font-size:11px;color:var(--ink-3);white-space:nowrap;flex:0 0 auto}
+.rp-time b{color:#4f46e5;font-weight:660;font-size:12px}
+.rp-time i{font-style:normal}
+.rp-speed{font-size:11px;border:1px solid var(--border);border-radius:7px;padding:3px 4px;
+  background:var(--surface);color:var(--ink-2);flex:0 0 auto;cursor:pointer}
+.rp-stat{font-size:10px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap;flex:0 0 auto}
+
+/* ---------- 历史轨迹：数据页统计 ---------- */
+.hist-stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;
+  font-size:12px;border-bottom:1px dashed var(--border)}
+.hist-stat-row:last-child{border-bottom:none}
+.hist-stat-row span{color:var(--ink-3)}
+.hist-stat-row b{font-weight:620;font-family:var(--mono);font-size:12px}
+.hist-code{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-2);line-height:1.62;white-space:pre;overflow:auto}
+.hist-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.hist-btns .btn{font-size:11.5px;padding:5px 11px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="side-inner">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/>
+            <path d="M8.2 18H14a4 4 0 0 0 0-8h-3a4 4 0 0 1 0-8h4.8" stroke-dasharray="2.4 2.2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">MobilityPilot</div>
+          <div class="brand-sub">郑州 · 多智能体调度</div>
+        </div>
+      </div>
+
+      <div class="side-rule"></div>
+
+      <nav class="nav">
+        <div class="nav-label">运行监控</div>
+        <button class="nav-item active" data-mod="overview">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span>态势总览</span>
+        </button>
+        <button class="nav-item" data-mod="map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+          <span>城市调度地图</span>
+          <em class="nav-badge">轨迹</em>
+        </button>
+        <button class="nav-item" data-mod="graph">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="12" r="2.2"/><path d="M7.2 6h4.4a3 3 0 0 1 3 3v.6M7.2 18h4.4a3 3 0 0 0 3-3v-.6"/></svg>
+          <span>决策图谱</span>
+        </button>
+
+        <div class="nav-label">智能体</div>
+        <button class="nav-item" data-mod="agents">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.5a3 3 0 0 1 0 5.6M17.5 20a5.4 5.4 0 0 0-2-4.2"/></svg>
+          <span>司机智能体</span>
+        </button>
+        <button class="nav-item" data-mod="exp">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <span>对比实验</span>
+        </button>
+
+        <div class="nav-label">系统</div>
+        <button class="nav-item" data-mod="data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v13c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-13"/><path d="M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3"/></svg>
+          <span>历史数据标定</span>
+          <em class="nav-badge">TLC</em>
+        </button>
+        <button class="nav-item" data-mod="about">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.2"/></svg>
+          <span>项目说明</span>
+        </button>
+      </nav>
+
+      <div class="side-foot">
+        <div class="clock-row"><span>仿真时钟</span><strong id="simClock">08:00</strong></div>
+        <div class="sim-state"><i class="dot" id="simDot"></i><span id="simStatus">运行中 · 第 1 轮</span></div>
+        <button class="sim-btn" id="btnToggleSim">暂停仿真</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <header class="topbar">
+      <div class="tb-left">
+        <h1 id="pageTitle">态势总览</h1>
+        <p id="pageDesc">郑州市主城区 · 出租车运力供需与调度效果实时监控</p>
+      </div>
+      <div class="tb-right">
+        <div class="pill"><i class="dot"></i>郑州市主城区</div>
+        <div class="pill">在线 <b id="tbVeh">—</b> 辆</div>
+        <div class="pill" id="weatherPill"><i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>天气 <b>—</b></div>
+        <div class="pill"><b>5 Agent 协同</b></div>
+        <select class="sel" id="speedSel">
+          <option value="1">仿真速度 1×</option>
+          <option value="2">仿真速度 2×</option>
+          <option value="4">仿真速度 4×</option>
+        </select>
+      </div>
+    </header>
+
+    <div class="viewport">
+      <!-- ===== OVERVIEW ===== -->
+      <section class="module active" data-mod="overview">
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="ov-grid">
+          <div class="card">
+            <div class="card-hd">
+              <h3>需求与运力时序</h3>
+              <span class="muted">郑州主城区 · 15 分钟粒度</span>
+            </div>
+            <div class="card-bd" id="demandChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <h3>区域供需缺口</h3>
+              <span class="muted">需求 − 运力</span>
+            </div>
+            <div class="card-bd" id="gapList" style="padding-top:8px"></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <h3>调度事件流</h3>
+              <span class="muted" id="feedCount">最近 12 条</span>
+            </div>
+            <div class="feed" id="eventFeed"></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <h3>本轮协同状态</h3>
+              <span class="muted" id="roundTag">第 1 轮</span>
+            </div>
+            <div class="card-bd" id="collabPanel"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== MAP ===== -->
+      <section class="module no-pad" data-mod="map">
+        <div class="map-shell">
+          <div id="map"></div>
+          <div class="map-loading" id="mapLoading">
+            <div class="ml-ring"></div>
+            <div>正在加载高德地图 · 郑州市…</div>
+          </div>
+          <div class="ol ol-tl">
+            <div class="layer-box" id="dsPanel">
+              <div class="ds-title">现实数据接口 <span class="ds-tag">高德开放平台</span></div>
+            </div>
+            <div class="layer-box">
+              <div class="lb-title">车辆显示</div>
+              <div class="seg" id="vehMode">
+                <button class="seg-btn on" data-mode="all">全部</button>
+                <button class="seg-btn" data-mode="sim"><i class="sg r"></i>仅模拟</button>
+                <button class="seg-btn" data-mode="hist"><i class="sg s"></i>仅历史</button>
+              </div>
+              <div class="lb-title" style="margin-top:10px">图层</div>
+              <div class="chip-row">
+                <button class="chip on" data-layer="zone"><i style="color:#2563eb"></i>区域需求</button>
+                <button class="chip on" data-layer="veh"><i style="color:#0d9488"></i>模拟车辆</button>
+                <button class="chip on" data-layer="traj"><i style="color:#7c3aed"></i>调度轨迹</button>
+                <button class="chip on" data-layer="label"><i style="color:#d97706"></i>区域标注</button>
+                <button class="chip on" data-layer="hist"><i style="color:#0ea5e9"></i>历史轨迹</button>
+              </div>
+            </div>
+            <div class="layer-box hist-box">
+              <div class="lb-title">历史轨迹数据</div>
+              <div class="hist-actions">
+                <button class="chip on" id="btnHistDemo"><i style="color:#7c3aed"></i>内置示例</button>
+                <label class="chip" for="histFile"><i style="color:#0891b2"></i>导入 CSV/JSON</label>
+                <input type="file" id="histFile" accept=".csv,.json,.txt,.tsv" hidden>
+              </div>
+              <div class="hist-meta" id="histMeta">未加载 · 支持「车牌, 时间, 经度, 纬度」四列</div>
+            </div>
+          </div>
+          <div class="ol ol-bc" id="mapLegend">
+            <div class="layer-box legend-h">
+              <div class="legend-row"><i class="legend-dot" style="background:rgba(225,29,72,.55);box-shadow:0 0 0 3px rgba(225,29,72,.14)"></i>缺口大</div>
+              <div class="legend-row"><i class="legend-dot" style="background:rgba(217,119,6,.55);box-shadow:0 0 0 3px rgba(217,119,6,.14)"></i>基本平衡</div>
+              <div class="legend-row"><i class="legend-dot" style="background:rgba(13,148,136,.55);box-shadow:0 0 0 3px rgba(13,148,136,.14)"></i>运力充足</div>
+              <div class="legend-sep"></div>
+              <div class="legend-row"><i class="legend-key" style="border-top-color:#7c3aed"></i>调度轨迹</div>
+              <div class="legend-sep"></div>
+              <div class="legend-row"><i class="legend-dot" style="background:#0d9488;box-shadow:0 0 0 2px #fff inset"></i>空闲</div>
+              <div class="legend-row"><i class="legend-dot" style="background:#d97706;box-shadow:0 0 0 2px #fff inset"></i>载客</div>
+              <div class="legend-row"><i class="legend-dot" style="background:#e11d48;box-shadow:0 0 0 2px #fff inset"></i>前往</div>
+              <div class="legend-sep"></div>
+              <div class="legend-row"><i class="legend-sq" style="background:#0284c7"></i>历史轨迹</div>
+            </div>
+          </div>
+          <div class="ol ol-replay" id="replayBar" style="display:none">
+            <div class="rp">
+              <span class="rp-tag">轨迹回放</span>
+              <span class="rp-name" id="rpName">—</span>
+              <button class="rp-btn" id="rpPlay" title="播放 / 暂停">▶</button>
+              <div class="rp-track">
+                <input class="rp-range" id="rpSeek" type="range" min="0" max="1000" value="0" step="1" aria-label="回放进度">
+                <div class="rp-time"><b id="rpCur">--:--</b><i> / </i><i id="rpEnd">--:--</i></div>
+              </div>
+              <select class="rp-speed" id="rpSpeed" aria-label="回放倍速">
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+                <option value="4">4×</option>
+              </select>
+              <span class="rp-stat" id="rpStat">—</span>
+              <button class="rp-btn ghost" id="rpClose">重置</button>
+            </div>
+          </div>
+          <aside class="dispatch-panel">
+            <div class="dp-hd">
+              <div class="dp-kicker">Dispatch Decision</div>
+              <div class="dp-title" id="dpTitle">豫A·T0231 <span class="tag blue">空闲</span></div>
+            </div>
+            <div class="dp-body" id="dpBody"></div>
+            <div class="dp-foot">
+              <button class="btn" id="btnPrevVeh">上一辆</button>
+              <button class="btn primary" id="btnTraceGraph">查看决策图谱</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===== GRAPH ===== -->
+      <section class="module no-pad" data-mod="graph">
+        <div class="graph-shell">
+          <div class="graph-canvas">
+            <svg class="graph-svg" id="decisionGraph" viewBox="0 0 940 700" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="graph-toolbar">
+              <button class="gt-btn on" id="gtFlow">协作链高亮</button>
+              <button class="gt-btn" id="gtReplay">重放本轮协作</button>
+              <button class="gt-btn" id="gtFocus">只看主链路</button>
+            </div>
+            <div class="graph-legend">
+              <div class="gl-item"><i class="gl-sw" style="background:#0ea5e9"></i>A0 天气</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#2563eb"></i>A1 态势感知</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#0891b2"></i>A2 路径规划</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#7c3aed"></i>A3 调度派单</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#d97706"></i>A4 司机执行</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#64748b"></i>结果 / 反馈</div>
+            </div>
+          </div>
+          <aside class="graph-panel">
+            <div class="gp-hd">
+              <div class="kicker">Node Inspector</div>
+              <h3 id="gpTitle">点击图中节点查看详情</h3>
+            </div>
+            <div class="gp-body" id="gpBody">
+              <div class="gp-empty">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h4.5a2.5 2.5 0 0 1 2.5 2.5v1M7 18h4.5a2.5 2.5 0 0 0 2.5-2.5v-1"/></svg>
+                <div>图中展示 <b>5 个智能体</b>如何接力完成一次调度：<br>
+                <b style="color:#0ea5e9">A0 天气</b> 提供环境修正，<br>
+                <b style="color:#2563eb">A1 态势感知</b> → <b style="color:#0891b2">A2 路径规划</b> →
+                <b style="color:#7c3aed">A3 调度派单</b> → <b style="color:#d97706">A4 司机执行</b>，<br>
+                结果回写后闭环回到 A1。点击任意节点查看输入、输出与指标。</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===== AGENTS ===== -->
+      <section class="module" data-mod="agents">
+        <div class="ag-grid" id="agentGrid"></div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="card-hd">
+            <h3>司机智能体聚类</h3>
+            <span class="muted">K-Means · k=3 · 特征：收益敏感度 / 接受阈值 / 平均接单距离</span>
+          </div>
+          <div class="card-bd">
+            <div class="cl-wrap">
+              <div>
+                <svg class="cl-plot" id="clPlot" viewBox="0 0 660 360" preserveAspectRatio="xMidYMid meet" role="img" aria-label="司机智能体聚类散点图"></svg>
+                <div class="muted" style="font-size:10.5px;margin-top:4px;text-align:center">
+                  颜色 = 聚类簇 · 菱形 = 簇心 · 虚线椭圆 = 簇分布范围（1.75σ）· 点击节点或右侧簇卡片，联动高亮并显示簇名
+                </div>
+              </div>
+              <div class="cl-list" id="clList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-hd">
+            <h3>司机 Agent 行为日志</h3>
+            <span class="muted">响应记录 · 拒绝原因可解释</span>
+          </div>
+          <div class="feed" id="agentLog" style="max-height:230px"></div>
+        </div>
+      </section>
+
+      <!-- ===== EXPERIMENTS ===== -->
+      <section class="module" data-mod="exp">
+        <div class="exp-wrap">
+          <div class="card">
+            <div class="card-hd"><h3>策略对比 · 相同订单流</h3><span class="muted">郑州主城区 · <span id="expFleet">—</span> 车 · 6 小时</span></div>
+            <div style="overflow:auto">
+              <table class="exp-table" id="expTable"></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h3>核心指标对比</h3><span class="muted">原始指标</span></div>
+            <div class="card-bd bar-chart" id="barChart"></div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <div class="card-hd"><h3>实验结论</h3><span class="muted">指标以最终实验结果为准</span></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li><b>多智能体协同</b>相较需求热点推荐，订单完成率提升约 <b>6.8 个百分点</b>，主要来自对"多车同向聚集"的抑制。</li>
+                <li>引入司机 Agent 的差异化响应后，<b>空驶距离</b>下降明显，但收益公平性（基尼系数）需在推荐权重中显式约束。</li>
+                <li>当推荐接受率低于 45% 时，闭环反馈的收益开始收敛；此时应降低单轮推荐强度，避免震荡。</li>
+                <li>指标以仿真实验为准，不预设真实场景的提升幅度，后续接入公开出行数据后重新标定。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DATA / 历史数据标定 ===== -->
+      <section class="module" data-mod="data">
+        <div class="dt-sec">
+          <span class="dt-sec-n">01</span>
+          <div class="dt-sec-wrap">
+            <h4>郑州本地公开数据</h4>
+            <p>巡游出租车与网约车的官方口径规模、运营指标</p>
+          </div>
+          <span class="dt-sec-src">郑州市交通运输局 · 政务公开</span>
+        </div>
+
+        <div class="card dt-src">
+          <div class="dt-src-l">
+            <span class="dt-src-tag">官方公开数据 · 政府信息公开</span>
+            <h3>郑州市出租汽车行业运行数据</h3>
+            <p>郑州市交通运输局在政务公开答复与《郑州市网约车市场经营风险提示》中定期披露行业规模与运行指标。
+               建成区现有巡游出租汽车 <b>11,875 台</b>（46 家公司 + 5 个个体联队），从业驾驶员约 2 万人，年客运量约 <b>2.9 亿人次</b>；
+               网约车发放运输证 3.5 万本、平台 39 家，单车日均订单与流水由市出租汽车监管平台按季度监测。本页收录三期。</p>
+            <div class="dt-src-meta">
+              <span>口径 <b>郑州主城区</b></span>
+              <span>最新 <b>2026-06</b></span>
+              <span>期次 <b>3 期</b></span>
+              <span>来源 <b>zzjt.zhengzhou.gov.cn</b></span>
+            </div>
+          </div>
+          <div class="dt-funnel" id="zzMix"></div>
+        </div>
+
+        <div class="dt-kpi" id="zzKpi"></div>
+
+        <div class="dt-row-1">
+          <div class="card">
+            <div class="card-hd"><h3>网约车运营指标（三期）</h3><span class="muted">市出租汽车监管平台监测</span></div>
+            <div class="card-bd" style="padding:0 12px 10px">
+              <table class="dt-map-table" id="zzTable"></table>
+              <div class="dt-note">运营车辆占比 × 持证总量（3.54 万）与披露的日均运营车辆数自洽；2026-06 客单均价由「日均流水 ÷ 日均订单」推算。</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h3>巡游 vs 网约</h3><span class="muted">日均客运量结构（推算）</span></div>
+            <div class="card-bd"><svg class="dt-svg" id="zzStruct" viewBox="0 0 340 200" preserveAspectRatio="xMidYMid meet"></svg>
+              <div class="dt-note">巡游按年客运量 ÷ 365 折算；网约按日均运营车辆 × 单车日均订单 × 1.35 人/单折算。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dt-sec" style="margin-top:16px">
+          <span class="dt-sec-n">02</span>
+          <div class="dt-sec-wrap">
+            <h4>时段形状标定</h4>
+            <p>郑州无公开的分时订单数据，时间维度改用开源逐笔行程记录标定</p>
+          </div>
+          <span class="dt-sec-src">NYC TLC · 2024-01</span>
+        </div>
+
+        <div class="card dt-src">
+          <div class="dt-src-l">
+            <span class="dt-src-tag">开源历史数据 · Public Domain</span>
+            <h3>NYC TLC · Yellow Taxi Trip Records</h3>
+            <p>纽约市出租车与豪华轿车委员会（TLC）公开的逐笔行程记录，含上下车时间、里程、金额、支付方式与上下车片区。
+               本页取 <b>2024 年 1 月</b>全月数据，按「时长 1 分钟~3 小时、里程 &gt; 0、金额 &gt; 0、速度 1~110 km/h」清洗后，
+               用于标定郑州仿真的<b>时段订单强度、行程距离分布与平均行驶速度</b>。</p>
+            <div class="dt-src-meta">
+              <span>许可 <b>Public Domain</b></span>
+              <span>覆盖 <b>31 天</b></span>
+              <span>单位 <b>英里 → 公里</b></span>
+              <span>脚本 <b>build_taxi_history.py</b></span>
+            </div>
+          </div>
+          <div class="dt-funnel" id="dtFunnel"></div>
+        </div>
+
+        <div class="dt-kpi" id="dtKpi"></div>
+
+        <div class="dt-row">
+          <div class="card">
+            <div class="card-hd"><h3>24 小时时段画像</h3><span class="muted">订单占比 与 平均行驶速度</span></div>
+            <div class="card-bd"><svg class="dt-svg" id="dtCurve" viewBox="0 0 640 262" preserveAspectRatio="xMidYMid meet"></svg>
+              <div class="dt-cap">蓝色面积为该小时订单占全天比重，琥珀虚线为该小时载客平均速度。两者呈明显反向：速度最低的 15~17 时正是订单最密集的时段。</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h3>行程分布</h3><span class="muted">距离 / 时长</span></div>
+            <div class="card-bd">
+              <div class="dt-legend"><span><i style="background:#2563eb"></i>行程距离 km</span></div>
+              <svg class="dt-svg" id="dtDist" viewBox="0 0 340 150" preserveAspectRatio="xMidYMid meet"></svg>
+              <div class="dt-legend" style="margin-top:10px"><span><i style="background:#0891b2"></i>行程时长 min</span></div>
+              <svg class="dt-svg" id="dtDur" viewBox="0 0 340 150" preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="dt-row">
+          <div class="card">
+            <div class="card-hd"><h3>星期 × 小时 订单热力</h3><span class="muted">按全月峰值归一 · 白框为当前仿真时刻</span></div>
+            <div class="card-bd"><svg class="dt-svg" id="dtHeat" viewBox="0 0 640 212" preserveAspectRatio="xMidYMid meet"></svg></div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h3>标定到郑州仿真</h3><span class="muted">双层：水平 ← 郑州 · 形状 ← 开源</span></div>
+            <div class="card-bd" style="padding:0 12px 10px">
+              <table class="dt-map-table" id="dtMap"></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="dt-sec" style="margin-top:16px">
+          <span class="dt-sec-n">03</span>
+          <div class="dt-sec-wrap">
+            <h4>逐车轨迹导入与回放</h4>
+            <p>把逐车 GPS 轨迹导入地图模块，按时间轴插值回放车辆位置</p>
+          </div>
+          <span class="dt-sec-src">CSV / JSON · 浏览器本地解析</span>
+        </div>
+
+        <div class="dt-row-1">
+          <div class="card">
+            <div class="card-hd"><h3>导入格式</h3><span class="muted">UTF-8 · 表头自动识别</span></div>
+            <div class="card-bd" style="padding:0 12px 12px">
+              <table class="dt-map-table" id="histFmtTable"></table>
+              <div class="dt-note">
+                CSV 表头可写 <b>车牌 / 时间 / 经度 / 纬度</b>，也可写 <b>plate, time, lng, lat</b>；
+                无表头时按此四列顺序解析，第五列可选 <b>speed</b>。时间支持 <b>YYYY-MM-DD HH:mm:ss</b>、
+                <b>HH:mm:ss</b>、10/13 位时间戳。JSON 支持
+                <b>{"tracks":[{"id":…,"points":[[lng,lat,时间],…]}]}</b> 或扁平行数组。
+              </div>
+              <div class="hist-btns">
+                <button class="btn primary" id="btnHistDemo2">加载内置示例</button>
+                <button class="btn" id="btnHistFile2">导入文件</button>
+                <button class="btn" id="btnHistDl">下载示例 CSV</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h3>当前数据集</h3><span class="muted">回放状态</span></div>
+            <div class="card-bd" id="histStat"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ABOUT ===== -->
+      <section class="module" data-mod="about">
+        <div class="about-grid">
+          <div class="about-hero">
+            <div class="k">郑州大学首届 AI 智能体创新应用大赛 · 自主命题</div>
+            <h2>MobilityPilot：面向城市出行的多智能体协同决策与动态调度系统</h2>
+            <p>面向郑州市出租车运营场景，构建"环境感知 → 智能推荐 → 行为响应 → 反馈优化"的闭环调度机制。系统由<b>天气环境、态势感知、路径规划、调度派单、司机执行</b>五个智能体接力完成一次调度，接入高德开放平台的 POI 检索、实时路径规划与路况数据，在动态供需下为空闲车辆推荐候客区域，并抑制多车同向聚集造成的局部运力浪费。</p>
+            <div class="meta">
+              <div>负责人<b>陈尚瑞</b></div>
+              <div>成员<b>李佳阳</b></div>
+              <div>指导教师<b>仵训练</b></div>
+              <div>单位<b>计算机与人工智能学院</b></div>
+              <div>应用区域<b>郑州市主城区</b></div>
+              <div>数据接口<b>高德开放平台</b></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>五个智能体</h3><span class="muted">决策链</span></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li><b style="color:#0ea5e9">A0 天气环境智能体</b>：取郑州实时天气，换算需求影响系数，作为环境输入修正 A1 需求与 A2 的 ETA。</li>
+                <li><b style="color:#2563eb">A1 态势感知智能体</b>：融合高德 POI 热度、实时路况、车辆 GPS 与订单流，输出区域供需缺口。</li>
+                <li><b style="color:#0891b2">A2 路径规划智能体</b>：调用高德 Driving 接口做真实路网规划，输出距离、ETA 与空驶成本。</li>
+                <li><b style="color:#7c3aed">A3 调度派单智能体</b>：综合评分并做车辆-订单匹配，向司机下发派单指令与推荐路线。</li>
+                <li><b style="color:#d97706">A4 司机执行智能体</b>：代表司机与车辆确认接单，沿规划路线行驶、送达并结算。</li>
+                <li>A1 → A2 → A3 → A4 首尾相接形成闭环：执行结果回写为区域权重与司机阈值，供下一轮 A1 / A3 使用。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>系统模块</h3></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li><b>态势总览</b>：订单完成率、等待时间、空驶率、司机收益与区域供需缺口的实时监控。</li>
+                <li><b>城市调度地图</b>：郑州市主城区地图，展示区域需求强度、车辆分布与调度轨迹回放，并标注高德接口的实时接入状态。</li>
+                <li><b>决策图谱</b>：以有向图呈现 5 个智能体的接力协作与各自内部步骤，支持节点下钻查看输入、输出与指标。</li>
+                <li><b>历史数据标定</b>：郑州本地官方口径数据定规模水平，开源逐笔行程数据定时段形状，双层标定后实时驱动仿真参数。</li>
+                <li><b>司机智能体</b>：不同收益偏好与接受阈值的司机 Agent 群体及其行为日志。</li>
+                <li><b>对比实验</b>：随机调度 / 热点推荐 / 无反馈调度 / 多智能体协同四组策略的指标对比。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>技术路线</h3></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li><b>仿真环境</b>：Python 构建订单生成、车辆移动、供需状态更新与路网成本计算。</li>
+                <li><b>现实数据接口</b>：高德 JS API 2.0 —— PlaceSearch 校准片区坐标、Driving 做真实路径规划、TileLayer.Traffic 提供实时路况。</li>
+                <li><b>调度 Agent</b>：基于 Qwen 等开源大模型，结合工具调用与结构化决策输出。</li>
+                <li><b>工具层</b>：需求预测、路径成本（高德 ETA）、收益评估三类可调用工具。</li>
+                <li><b>司机 Agent</b>：以收益敏感度、区域偏好、接受阈值刻画差异化响应。</li>
+                <li><b>双层数据标定</b>：郑州巡游车 11,875 台、年客运量 2.9 亿人次、网约车三期运营指标来自市交通运输局公开数据，用于定规模水平；时段强度、行程距离与速度分布来自 NYC TLC 逐笔行程记录（2024-01，271 万条），用于定形状。</li>
+                <li><b>可视化</b>：本页面为交互式原型，地图与图谱共享同一份仿真状态。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>创新点</h3></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li><b>从静态推荐到闭环决策</b>：把"推荐对司机行为与后续供需的影响"纳入决策依据。</li>
+                <li><b>多智能体行为交互</b>：探索个体最优与系统整体效率之间的张力。</li>
+                <li><b>大模型推理 + 交通仿真</b>：形成可交互、可验证、可解释的实验平台。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><h3>数据与合规</h3></div>
+            <div class="card-bd">
+              <ul class="about-list">
+                <li>行业规模与运营指标来自<b>郑州市交通运输局</b>政务公开答复与《郑州市网约车市场经营风险提示》（2024-05、2025-04、2026-06 三期），均为官方公开口径。</li>
+                <li>郑州未公开逐笔行程与分时订单数据，因此时段形状、行程距离与速度分布改用 <b>NYC TLC Yellow Taxi Trip Records</b>（2024 年 1 月，Public Domain）标定，形成「郑州定水平、开源定形状」的双层标定。</li>
+                <li>NYC TLC 数据为纽约市公开发布的行程记录，<b>不含乘客身份信息</b>；仅取其分布特征，不做个体轨迹复现。</li>
+                <li>车辆位置、订单与收益等运行态数据为<b>仿真生成</b>，不含任何真实个人信息与轨迹。</li>
+                <li>地图底图、路径规划与路况数据来自<b>高德开放平台</b>，符合国内地图数据合规要求。</li>
+                <li>高德 Key 与安全密钥由团队自行申请，当前仅用于原型演示；正式部署将配置域名白名单，服务类请求由后端代理，避免前端明文暴露。</li>
+                <li>区域划分与坐标均为郑州市主城区近似位置，仅用于演示。</li>
+                <li>后续如接入真实运营数据，将进行脱敏处理并遵循个人信息保护相关要求。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   MobilityPilot · 郑州城市出行多智能体调度（交互原型）
+   数据全部为模拟数据，坐标取郑州市主城区近似位置
+   ============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/* ---------------- 区域（郑州市主城区） ---------------- */
+/* ---------------- 郑州本地官方公开数据 ----------------
+   来源：郑州市交通运输局政务公开答复 + 《郑州市网约车市场经营风险提示》各期。
+   巡游车规模为建成区口径；网约车指标由市出租汽车监管平台监测，按季度/半年度披露。 */
+const ZZ_TAXI = {
+  cruise: {
+    cars: 11875, companies: 46, unions: 5, drivers: 20000,
+    annualPax: 290000000,          /* 年客运量约 2.9 亿人次 */
+    note: '约 80% 为个体挂靠经营'
+  },
+  ridehail: {
+    platforms: 39, certs: 35000,
+    series: [
+      { p: '2024-05', op: 29100, share: 83.0, hours: 9.5, orders: 13.0, gross: 200.00,  avg: 15.5, pub: '2024-08-13' },
+      { p: '2025-04', op: 29300, share: 83.7, hours: 9.5, orders: 14.0, gross: 210.00,  avg: 15.0, pub: '2025-05-09' },
+      { p: '2026-06', op: 29100, share: 82.2, hours: 9.4, orders: 12.4, gross: 153.76, avg: null, pub: '2026-07-07' }
+    ]
+  }
+};
+
+/* ---------------- 开源历史出租车数据（NYC TLC 2024-01） ----------------
+   由 dashboard/build_taxi_history.py 从 yellow_tripdata_2024-01.parquet 聚合而来，
+   原始 2,964,624 条 -> 清洗后 2,712,501 条，单位已由英里换算为公里。 */
+const TAXI_HISTORY = {"source":{"name":"NYC TLC Yellow Taxi Trip Records","period":"2024-01","page":"https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page","file":"yellow_tripdata_2024-01.parquet","license":"Public Domain (NYC Open Data)","rows_raw":2964624,"rows_clean":2712501,"keep_ratio":91.5,"days":31,"unit_note":"原始单位为英里，已按 1 mile = 1.609344 km 换算"},"kpi":{"trips":2712501,"trips_per_day":87500.03,"avg_dist_km":5.31,"median_dist_km":2.74,"p90_dist_km":13.95,"avg_dur_min":14.96,"median_dur_min":11.65,"avg_speed_kmh":18.5,"median_speed_kmh":15.52,"avg_total_usd":27.36,"median_total_usd":20.15,"tip_ratio":12.69,"avg_pax":1.35,"avg_fare_usd":18.39},"hourly":[{"h":0,"trips":68790,"share":2.54,"speed":23.66,"dist":6.27},{"h":1,"trips":45083,"share":1.66,"speed":22.26,"dist":5.24},{"h":2,"trips":31727,"share":1.17,"speed":22.21,"dist":4.87},{"h":3,"trips":20366,"share":0.75,"speed":24.32,"dist":5.59},{"h":4,"trips":12638,"share":0.47,"speed":28.96,"dist":7.75},{"h":5,"trips":15462,"share":0.57,"speed":31.57,"dist":10.09},{"h":6,"trips":35396,"share":1.3,"speed":25.66,"dist":7.62},{"h":7,"trips":73997,"share":2.73,"speed":20.76,"dist":5.7},{"h":8,"trips":104747,"share":3.86,"speed":17.69,"dist":4.9},{"h":9,"trips":118930,"share":4.38,"speed":17.64,"dist":4.9},{"h":10,"trips":129536,"share":4.78,"speed":17.38,"dist":4.91},{"h":11,"trips":140738,"share":5.19,"speed":16.51,"dist":4.68},{"h":12,"trips":153047,"share":5.64,"speed":16.57,"dist":4.8},{"h":13,"trips":158435,"share":5.84,"speed":16.7,"dist":5.09},{"h":14,"trips":170532,"share":6.29,"speed":16.41,"dist":5.38},{"h":15,"trips":176216,"share":6.5,"speed":15.94,"dist":5.28},{"h":16,"trips":177649,"share":6.55,"speed":16.39,"dist":5.49},{"h":17,"trips":190547,"share":7.02,"speed":15.89,"dist":4.93},{"h":18,"trips":195269,"share":7.2,"speed":16.68,"dist":4.62},{"h":19,"trips":169955,"share":6.27,"speed":18.78,"dist":5.12},{"h":20,"trips":148712,"share":5.48,"speed":20.5,"dist":5.44},{"h":21,"trips":147875,"share":5.45,"speed":21.28,"dist":5.6},{"h":22,"trips":130003,"share":4.79,"speed":22.04,"dist":5.96},{"h":23,"trips":96851,"share":3.57,"speed":23.62,"dist":6.56}],"weekday_hour":[[29.33,22.1,18.59,13.14,8.17,8.36,16.68,31.78,43.9,48.26,50.95,54.78,60.3,63.82,70.34,71.56,71.19,75.1,75.86,63.43,55.22,48.73,36.49,26.23],[16.19,6.54,3.3,2.32,2.63,7.65,19.54,42.91,58.89,62.48,64.45,68.86,69.62,72.17,79.76,81.71,80.17,89.92,91.19,77.66,68.95,69.65,51.23,30.38],[17.3,6.92,4.21,2.74,3.04,8.09,20.27,46.3,62.88,66.64,65.49,69.16,74.28,76.35,82.36,84.76,84.54,95.04,100.0,86.28,79.24,75.44,61.99,38.99],[14.87,6.86,3.79,2.66,2.57,6.25,16.49,35.93,51.42,54.46,54.45,55.84,59.55,60.98,66.97,72.27,72.73,83.21,89.86,77.48,70.09,72.58,63.04,42.7],[23.17,12.59,6.9,4.35,3.33,6.36,15.49,32.87,45.19,48.6,52.63,53.42,56.38,59.48,66.25,68.43,68.85,74.69,76.53,70.81,57.0,59.2,64.63,55.65],[46.77,35.36,24.72,15.24,7.84,3.85,7.01,12.06,21.22,33.54,43.64,52.59,63.47,63.89,65.16,69.64,74.34,72.56,73.74,68.23,56.3,60.95,64.98,61.43],[49.9,39.08,29.59,18.03,8.71,3.82,6.15,10.62,17.26,27.5,40.34,49.46,55.84,58.23,58.82,57.6,58.28,56.6,53.5,44.11,40.21,38.05,30.93,22.72]],"dist_bins":[{"label":"0-1","share":8.36,"n":226864},{"label":"1-2","share":26.03,"n":706146},{"label":"2-3","share":20.31,"n":550806},{"label":"3-5","share":20.09,"n":544878},{"label":"5-8","share":9.28,"n":251734},{"label":"8-12","share":4.38,"n":118853},{"label":"12-20","share":5.88,"n":159585},{"label":"20+","share":5.66,"n":153635}],"dur_bins":[{"label":"0-5","share":11.59,"n":314309},{"label":"5-10","share":29.72,"n":806267},{"label":"10-15","share":22.78,"n":617870},{"label":"15-20","share":13.85,"n":375700},{"label":"20-30","share":12.82,"n":347785},{"label":"30-45","share":6.16,"n":167039},{"label":"45-60","share":2.08,"n":56484},{"label":"60+","share":1.0,"n":27047}],"pay":[{"label":"信用卡","share":83.62},{"label":"现金","share":15.27},{"label":"争议","share":0.79},{"label":"免单","share":0.33}],"pax":[{"n":1,"share":78.38},{"n":2,"share":14.5},{"n":3,"share":3.27},{"n":4,"share":1.82},{"n":5,"share":1.22},{"n":6,"share":0.81}],"top_zones":[{"id":132,"name":"JFK Airport","share":4.99},{"id":237,"name":"Upper East Side South","share":4.98},{"id":161,"name":"Midtown Center","share":4.96},{"id":236,"name":"Upper East Side North","share":4.71},{"id":162,"name":"Midtown East","share":3.72},{"id":186,"name":"Penn Station/Madison Sq West","share":3.66},{"id":230,"name":"Times Sq/Theatre District","share":3.63},{"id":142,"name":"Lincoln Square East","share":3.59}],"split":{"weekday_per_day":88046.0,"weekend_per_day":85930.38}};
+
+const ZONES = [
+  { id: 'erqi',     name: '二七广场',   lat: 34.7480, lng: 113.6270, demand: 94, supply: 71, lb: [-0.011, 0.000] },
+  { id: 'cbd',      name: '郑东CBD',    lat: 34.7722, lng: 113.7333, demand: 88, supply: 76, lb: [0.010, 0.004] },
+  { id: 'huayuan',  name: '花园路商圈', lat: 34.7880, lng: 113.6650, demand: 79, supply: 82, lb: [0.011, 0.000] },
+  { id: 'dongzhan', name: '郑州东站',   lat: 34.7560, lng: 113.7750, demand: 91, supply: 64, lb: [-0.011, 0.002] },
+  { id: 'gaoxin',   name: '高新区',     lat: 34.8120, lng: 113.5350, demand: 58, supply: 74, lb: [0.013, -0.026] },
+  { id: 'bishagang',name: '碧沙岗',     lat: 34.7520, lng: 113.6050, demand: 63, supply: 69, lb: [0.011, -0.004] },
+  { id: 'longzihu', name: '龙子湖',     lat: 34.8080, lng: 113.7820, demand: 71, supply: 52, lb: [0.011, 0.000] },
+  { id: 'jingkai',  name: '经开区',     lat: 34.7250, lng: 113.7550, demand: 67, supply: 58, lb: [0.011, 0.000] },
+  { id: 'huiji',    name: '惠济区',     lat: 34.8600, lng: 113.6250, demand: 52, supply: 66, lb: [0.011, 0.000] },
+  { id: 'hangkong', name: '航空港区',   lat: 34.5350, lng: 113.8420, demand: 46, supply: 61, lb: [0.011, 0.000] }
+];
+const ZMAP = Object.fromEntries(ZONES.map(z => [z.id, z]));
+
+/* ---------------- 车辆与调度轨迹 ----------------
+   车队规模 FLEET_SIZE 辆，是郑州 11,875 台巡游车的抽样样本（抽样比见「历史数据标定」页）。
+   前 8 辆为手工标定的示范车辆，号牌与司机智能体 A01~A08 一一对应；
+   其余按区域需求权重程序化生成起终点，路径为片区间折线 + 法向弯曲，避免出现笔直对角线。 */
+const FLEET_SIZE = 240;
+
+const SEED_VEHICLES = [
+  { id: 'V1', plate: '豫A·T0231', status: 'idle',    from: 'erqi',      to: 'cbd',
+    path: [[34.7480,113.6270],[34.7465,113.6440],[34.7500,113.6620],[34.7545,113.6900],[34.7565,113.7150],[34.7620,113.7300],[34.7722,113.7333]] },
+  { id: 'V2', plate: '豫A·T0458', status: 'busy',    from: 'dongzhan',  to: 'huayuan',
+    path: [[34.7560,113.7750],[34.7570,113.7600],[34.7562,113.7420],[34.7560,113.7250],[34.7580,113.7050],[34.7620,113.6850],[34.7720,113.6720],[34.7880,113.6650]] },
+  { id: 'V3', plate: '豫A·T0772', status: 'enroute', from: 'gaoxin',    to: 'bishagang',
+    path: [[34.8120,113.5350],[34.8040,113.5560],[34.7940,113.5760],[34.7830,113.5940],[34.7700,113.6060],[34.7600,113.6100],[34.7520,113.6050]] },
+  { id: 'V4', plate: '豫A·T0316', status: 'idle',    from: 'huayuan',   to: 'dongzhan',
+    path: [[34.7880,113.6650],[34.7890,113.6820],[34.7895,113.7020],[34.7900,113.7220],[34.7840,113.7420],[34.7750,113.7580],[34.7620,113.7700],[34.7560,113.7750]] },
+  { id: 'V5', plate: '豫A·T0509', status: 'enroute', from: 'huiji',     to: 'erqi',
+    path: [[34.8600,113.6250],[34.8420,113.6320],[34.8220,113.6420],[34.8020,113.6520],[34.7860,113.6600],[34.7700,113.6550],[34.7560,113.6420],[34.7480,113.6270]] },
+  { id: 'V6', plate: '豫A·T0688', status: 'busy',    from: 'longzihu',  to: 'dongzhan',
+    path: [[34.8080,113.7820],[34.7960,113.7800],[34.7820,113.7780],[34.7680,113.7760],[34.7560,113.7750]] },
+  { id: 'V7', plate: '豫A·T0125', status: 'idle',    from: 'jingkai',   to: 'erqi',
+    path: [[34.7250,113.7550],[34.7285,113.7400],[34.7320,113.7220],[34.7360,113.7020],[34.7400,113.6820],[34.7440,113.6550],[34.7480,113.6270]] },
+  { id: 'V8', plate: '豫A·T0913', status: 'idle',    from: 'bishagang', to: 'cbd',
+    path: [[34.7520,113.6050],[34.7520,113.6280],[34.7530,113.6500],[34.7545,113.6750],[34.7560,113.7000],[34.7600,113.7200],[34.7680,113.7300],[34.7722,113.7333]] }
+];
+
+/* 片区间路网折线：在中点附近施加法向偏移，形态接近绕行而不是直线 */
+function roadPath(a, b, k) {
+  const dx = b.lng - a.lng, dy = b.lat - a.lat;
+  const len = Math.hypot(dx, dy) || 1e-6;
+  const nx = -dy / len, ny = dx / len;
+  const out = [];
+  for (let i = 0; i <= k; i++) {
+    const r = i / k;
+    const bend = Math.sin(Math.PI * r) * (0.10 + Math.random() * 0.16) * len;
+    out.push([a.lat + dy * r + ny * bend, a.lng + dx * r + nx * bend]);
+  }
+  out[0] = [a.lat, a.lng];
+  out[k] = [b.lat, b.lng];
+  return out;
+}
+
+function plateOf(i) {
+  return '豫A·T' + String(1000 + ((i * 7919 + 137) % 8999)).padStart(4, '0');
+}
+
+const VEHICLES = SEED_VEHICLES.slice();
+(function buildFleet() {
+  const ids = ZONES.map(z => z.id);
+  const wsum = ZONES.reduce((s, z) => s + z.demand, 0);
+  /* 目的地区按需求加权：需求越高的片区越容易被选为终点 */
+  const pickDest = () => {
+    let r = Math.random() * wsum;
+    for (let i = 0; i < ZONES.length; i++) { r -= ZONES[i].demand; if (r <= 0) return ZONES[i].id; }
+    return ZONES[0].id;
+  };
+  const used = new Set(SEED_VEHICLES.map(v => v.plate));
+  for (let i = SEED_VEHICLES.length; i < FLEET_SIZE; i++) {
+    const from = ids[Math.floor(Math.random() * ids.length)];
+    let to = pickDest(), g = 0;
+    while (to === from && g++ < 8) to = pickDest();
+    if (to === from) to = ids[(ids.indexOf(from) + 3) % ids.length];
+    let plate = plateOf(i), guard = 0;
+    while (used.has(plate) && guard++ < 60) plate = plateOf(i + guard * 17);
+    used.add(plate);
+    const r = Math.random();
+    VEHICLES.push({
+      id: 'V' + (i + 1), plate,
+      status: r < 0.46 ? 'idle' : r < 0.80 ? 'busy' : 'enroute',
+      from, to,
+      path: roadPath(ZMAP[from], ZMAP[to], 5 + ((i * 3) % 4))
+    });
+  }
+})();
+
+VEHICLES.forEach((v, i) => {
+  v.t = (i * 0.1373) % 1;            /* 轨迹进度 0~1，整体均匀铺开 */
+  v.speed = 0.0014 + Math.random() * 0.0016;
+  v.conf = 0.72 + Math.random() * 0.24;
+  v.gain = 0;
+  v.cands = null;
+});
+
+/* ---------------- 司机智能体 ---------------- */
+const AGENTS = [
+  { id:'A01', name:'司机 A01', plate:'豫A·T0231', type:'收益激进型', color:'#2563eb', sens:0.86, pref:'郑东CBD', thr:0.42, acc:0.78, earn:186.5, runs:14, mood:'专注', dist:5.8 },
+  { id:'A02', name:'司机 A02', plate:'豫A·T0458', type:'稳健通勤型', color:'#0d9488', sens:0.54, pref:'花园路商圈', thr:0.66, acc:0.61, earn:152.0, runs:11, mood:'平稳', dist:2.6 },
+  { id:'A03', name:'司机 A03', plate:'豫A·T0772', type:'价格敏感型', color:'#7c3aed', sens:0.92, pref:'二七广场', thr:0.35, acc:0.84, earn:203.2, runs:16, mood:'活跃', dist:6.4 },
+  { id:'A04', name:'司机 A04', plate:'豫A·T0316', type:'保守观望型', color:'#d97706', sens:0.44, pref:'郑州东站', thr:0.72, acc:0.37, earn:118.4, runs:8,  mood:'观望', dist:2.9 },
+  { id:'A05', name:'司机 A05', plate:'豫A·T0509', type:'路线熟手型', color:'#0891b2', sens:0.71, pref:'惠济区', thr:0.50, acc:0.72, earn:171.8, runs:13, mood:'专注', dist:4.2 },
+  { id:'A06', name:'司机 A06', plate:'豫A·T0688', type:'均衡型',     color:'#e11d48', sens:0.63, pref:'龙子湖', thr:0.58, acc:0.66, earn:164.3, runs:12, mood:'平稳', dist:3.1 },
+  { id:'A07', name:'司机 A07', plate:'豫A·T0125', type:'收益激进型', color:'#1d4ed8', sens:0.81, pref:'经开区', thr:0.45, acc:0.74, earn:178.9, runs:13, mood:'活跃', dist:5.2 },
+  { id:'A08', name:'司机 A08', plate:'豫A·T0913', type:'稳健通勤型', color:'#0f766e', sens:0.57, pref:'碧沙岗', thr:0.62, acc:0.58, earn:149.6, runs:10, mood:'平稳', dist:2.2 }
+];
+
+/* ---------------- 决策图结构 ---------------- */
+const AGENTS4 = [
+  { id: 'perception', name: '态势感知智能体', en: 'Perception Agent', color: '#2563eb', code: 'A1',
+    duty: '融合高德 POI 热度、实时路况、车辆 GPS 与订单流，输出区域供需缺口' },
+  { id: 'routing', name: '路径规划智能体', en: 'Routing Agent', color: '#0891b2', code: 'A2',
+    duty: '调用高德 Driving 接口做真实路网规划，输出距离、ETA 与空驶成本' },
+  { id: 'dispatch', name: '调度派单智能体', en: 'Dispatch Agent', color: '#7c3aed', code: 'A3',
+    duty: '综合评分并做车辆-订单匹配，向司机下发派单指令与推荐路线' },
+  { id: 'driver', name: '司机执行智能体', en: 'Execution Agent', color: '#d97706', code: 'A4',
+    duty: '代表司机与车辆，确认接单、沿规划路线行驶、送达并结算' }
+];
+const AGENT_MAP = Object.fromEntries(AGENTS4.map(a => [a.id, a]));
+
+const KIND_COLOR = Object.fromEntries(AGENTS4.map(a => [a.id, a.color]));
+KIND_COLOR.result = '#64748b';
+KIND_COLOR.weather = '#0ea5e9';
+
+const COLX = [20, 250, 480, 710];
+const CW = 210, AGENT_Y = 152, AGENT_H = 74, ROWY = [262, 330, 398], STEP_H = 54;
+
+function mkAgent(col, id) {
+  const a = AGENT_MAP[id];
+  return { id: id + '_agent', col, row: -1, x: COLX[col], y: AGENT_Y, w: CW, h: AGENT_H,
+           kind: id, label: a.name, sub: a.en, isAgent: true, code: a.code };
+}
+function mkStep(col, row, id, agent, label, sub) {
+  return { id, col, row, x: COLX[col], y: ROWY[row], w: CW, h: STEP_H, kind: agent, label, sub };
+}
+
+const GNODES = [
+  mkAgent(0, 'perception'),
+  mkStep(0, 0, 'p1', 'perception', '多源数据接入', 'POI · 路况 · GPS · 订单'),
+  mkStep(0, 1, 'p2', 'perception', '区域热度融合', '需求强度加权计算'),
+  mkStep(0, 2, 'p3', 'perception', '供需缺口输出', '需求 − 运力'),
+
+  mkAgent(1, 'routing'),
+  mkStep(1, 0, 'r1', 'routing', '候选区域生成', 'Top-K（K = 4）'),
+  mkStep(1, 1, 'r2', 'routing', '高德路径规划', 'Driving 实时路网'),
+  mkStep(1, 2, 'r3', 'routing', 'ETA / 成本输出', '距离 · 耗时 · 空驶'),
+
+  mkAgent(2, 'dispatch'),
+  mkStep(2, 0, 'd1', 'dispatch', '候选综合评分', '收益 − 成本 − 聚集惩罚'),
+  mkStep(2, 1, 'd2', 'dispatch', '车辆-订单匹配', '距离 + 接受倾向'),
+  mkStep(2, 2, 'd3', 'dispatch', '派单下发', '指令 + 推荐路线'),
+
+  mkAgent(3, 'driver'),
+  mkStep(3, 0, 'e1', 'driver', '接单确认', '接受 / 拒绝 / 部分接受'),
+  mkStep(3, 1, 'e2', 'driver', '按路线行驶', '沿规划路径行进'),
+  mkStep(3, 2, 'e3', 'driver', '送达结算', '订单 · 收益 · 空驶'),
+
+  { id: 'weather_agent', x: 20, y: 34, w: 920, h: 66, kind: 'weather', isAgent: true, wide: true,
+    code: 'A0', label: '天气智能体', sub: 'Weather Agent · 环境输入层' },
+
+  { id: 'result', x: 250, y: 494, w: 440, h: 58, kind: 'result', label: '执行结果汇总',
+    sub: '订单完成 · 收益 · 空驶 · 等待时长' },
+  { id: 'feedback', x: 250, y: 584, w: 440, h: 54, kind: 'result', label: '策略记忆回写',
+    sub: '区域权重 · 司机阈值 · 下一轮决策' }
+];
+const GMAP = Object.fromEntries(GNODES.map(n => [n.id, n]));
+
+const GEDGES = [
+  /* 环境输入：天气智能体向 A1 / A2 注入修正 */
+  { from: 'weather_agent', to: 'perception_agent', fp: 'bottom@0.114', tp: 'top' },
+  { from: 'weather_agent', to: 'routing_agent',    fp: 'bottom@0.364', tp: 'top' },
+  /* 智能体主链 */
+  { from: 'perception_agent', to: 'routing_agent',  fp: 'right', tp: 'left', chain: true },
+  { from: 'routing_agent',    to: 'dispatch_agent', fp: 'right', tp: 'left', chain: true },
+  { from: 'dispatch_agent',   to: 'driver_agent',   fp: 'right', tp: 'left', chain: true },
+  /* 各智能体内部步骤 */
+  { from: 'perception_agent', to: 'p1', fp: 'bottom', tp: 'top' },
+  { from: 'p1', to: 'p2', fp: 'bottom', tp: 'top' },
+  { from: 'p2', to: 'p3', fp: 'bottom', tp: 'top' },
+  { from: 'routing_agent', to: 'r1', fp: 'bottom', tp: 'top' },
+  { from: 'r1', to: 'r2', fp: 'bottom', tp: 'top' },
+  { from: 'r2', to: 'r3', fp: 'bottom', tp: 'top' },
+  { from: 'dispatch_agent', to: 'd1', fp: 'bottom', tp: 'top' },
+  { from: 'd1', to: 'd2', fp: 'bottom', tp: 'top' },
+  { from: 'd2', to: 'd3', fp: 'bottom', tp: 'top' },
+  { from: 'driver_agent', to: 'e1', fp: 'bottom', tp: 'top' },
+  { from: 'e1', to: 'e2', fp: 'bottom', tp: 'top' },
+  { from: 'e2', to: 'e3', fp: 'bottom', tp: 'top' },
+  /* 结果汇聚 */
+  { from: 'p3', to: 'result', fp: 'bottom', tp: 'top' },
+  { from: 'd3', to: 'result', fp: 'bottom', tp: 'top' },
+  { from: 'e3', to: 'result', fp: 'bottom', tp: 'top' },
+  { from: 'result', to: 'feedback', fp: 'bottom', tp: 'top' },
+  /* 闭环 */
+  { from: 'feedback', to: 'perception_agent', fp: 'left', tp: 'left', type: 'feedback', label: '策略回写' }
+];
+
+const NODE_DETAIL = {
+  weather_agent: { phase: 'A0 · 天气智能体', desc: '负责"看清天"。通过高德天气接口获取郑州实时天气，折算成需求影响系数与 ETA 修正因子，注入态势感知与路径规划。',
+    inputs: ['高德天气接口（实时 / 预报）', '行政区划 adcode 410100'],
+    outputs: ['天气现象 / 温度 / 风力 / 湿度', '需求影响系数', 'ETA 修正因子'],
+    metrics: [['接口', 'AMap.Weather'], ['影响系数', '×1.04']] },
+
+  perception_agent: { phase: 'A1 · 态势感知智能体', desc: '负责"看清城市"。把高德 POI 检索结果、实时路况、车辆 GPS 与订单流融合成区域级的供需状态，是整条决策链的输入源。',
+    inputs: ['高德 POI 检索（商圈 / 枢纽 / 园区）', '高德实时路况图层', '车辆位置与载客状态', '订单流与上车点'],
+    outputs: ['10 个片区的需求强度', '区域供需缺口', '可调度车辆集合'],
+    metrics: [['覆盖片区', '10'], ['刷新', '1 min']] },
+  p1: { phase: 'A1 · 数据接入', desc: '并发调用高德 PlaceSearch 校准 10 个片区的真实坐标，同时接收车辆 GPS 与订单队列。',
+    inputs: ['PlaceSearch 关键词检索', '仿真环境订单队列'], outputs: ['片区真实坐标', '网格级订单计数'],
+    metrics: [['POI 命中', '10/10'], ['采样', '10 s']] },
+  p2: { phase: 'A1 · 特征融合', desc: '按 POI 热度 0.4、订单密度 0.4、路况通行指数 0.2 的权重合成区域需求强度，并与可用运力做差。',
+    inputs: ['POI 热度', '订单密度', '路况指数', '可用运力'], outputs: ['需求强度 0~100', '供需缺口'],
+    metrics: [['权重', '0.4/0.4/0.2'], ['归一化', 'min-max']] },
+  p3: { phase: 'A1 · 输出', desc: '输出缺口排名与重点引导队列，交给路径规划智能体作为候选区域来源。',
+    inputs: ['融合后的区域状态'], outputs: ['缺口排名', '重点引导区域'],
+    metrics: [['缺口最大', '郑州东站'], ['失衡度', '0.37']] },
+
+  routing_agent: { phase: 'A2 · 路径规划智能体', desc: '负责"算清路"。对候选区域调用高德 Driving 接口做真实路网规划，得到真实距离、耗时与空驶成本，而不是直线估算。',
+    inputs: ['候选区域', '车辆当前位置', '高德路网与实时路况'], outputs: ['真实行驶路径', '距离 / ETA', '空驶成本'],
+    metrics: [['接口', 'AMap.Driving'], ['策略', 'LEAST_TIME']] },
+  r1: { phase: 'A2 · 候选生成', desc: '按缺口与收益初筛出 Top-K 候选区域（K=4），控制后续路径规划的调用量。',
+    inputs: ['缺口排名', '历史收益'], outputs: ['4 个候选区域'],
+    metrics: [['K', '4'], ['去重', '4']] },
+  r2: { phase: 'A2 · 真实路径规划', desc: '对每个候选区域调用高德 Driving，返回真实路网路径点、行驶距离与预计耗时；地图上以青色实线绘制。',
+    inputs: ['起点经纬度', '候选区域中心'], outputs: ['路径点序列', 'distance / time'],
+    metrics: [['接口', 'Driving'], ['调用', '按需']] },
+  r3: { phase: 'A2 · 成本输出', desc: '把距离与耗时折算为空驶成本（油耗 + 时间机会成本），供派单智能体评分使用。',
+    inputs: ['distance', 'time'], outputs: ['空驶成本（元）', 'ETA（min）'],
+    metrics: [['油耗系数', '0.62 元/km'], ['时间成本', '0.35 元/min']] },
+
+  dispatch_agent: { phase: 'A3 · 调度派单智能体', desc: '负责"派对人"。综合净收益、空驶成本与区域聚集惩罚做评分，选出最优车辆-区域组合，并向司机下发派单。',
+    inputs: ['候选区域 + ETA + 成本', '车辆状态与接受倾向', '区域在途车辆数'], outputs: ['派单指令', '推荐路线', '置信度与解释'],
+    metrics: [['模型', 'Qwen 开源系列'], ['置信度', '0.86']] },
+  d1: { phase: 'A3 · 综合评分', desc: '评分 = 预期净收益 − 空驶成本 − 聚集惩罚，聚集惩罚随同向在途车辆数上升，抑制多车扎堆。',
+    inputs: ['预期净收益', '空驶成本', '在途车辆数'], outputs: ['候选得分'],
+    metrics: [['聚集惩罚', 'λ = 0.28'], ['候选', '4']] },
+  d2: { phase: 'A3 · 车辆匹配', desc: '在可调度车辆中按距离、当前状态与司机接受倾向匹配，避免把远车派给低收益订单。',
+    inputs: ['车辆位置', '司机画像', '候选得分'], outputs: ['车辆-区域匹配对'],
+    metrics: [['匹配维度', '3'], ['耗时', '120 ms']] },
+  d3: { phase: 'A3 · 派单下发', desc: '生成派单指令：目标区域、推荐路线、预期收益与自然语言解释，下发给司机执行智能体。',
+    inputs: ['匹配结果'], outputs: ['派单指令单'],
+    metrics: [['下发', '即时'], ['解释', '结构化 + 文本']] },
+
+  driver_agent: { phase: 'A4 · 司机执行智能体', desc: '负责"跑完单"。代表司机与车辆，确认接单后沿高德规划的路线行驶，接到乘客、送达目的地并完成结算。',
+    inputs: ['派单指令', '推荐路线', '司机偏好与阈值'], outputs: ['接单结果', '实际行驶轨迹', '订单与收益'],
+    metrics: [['在线车辆', String(FLEET_SIZE)], ['接受率', '68%']] },
+  e1: { phase: 'A4 · 接单确认', desc: '司机按收益敏感度与接受阈值判断是否响应派单；拒绝时把原因回写为偏好权重。',
+    inputs: ['派单指令', '司机阈值'], outputs: ['接受 / 拒绝 / 部分接受'],
+    metrics: [['阈值区间', '0.35~0.72'], ['响应', '< 5 s']] },
+  e2: { phase: 'A4 · 按路线行驶', desc: '沿路径规划智能体给出的真实路网路径行驶，地图上实时更新车辆位置与已行驶轨迹。',
+    inputs: ['规划路径点', '车辆速度'], outputs: ['实时位置', '行驶轨迹'],
+    metrics: [['轨迹点', '8 / 车'], ['更新', '1 s']] },
+  e3: { phase: 'A4 · 送达结算', desc: '完成订单后结算收益，记录空驶距离与等待时长，作为执行结果回流。',
+    inputs: ['订单完成事件'], outputs: ['收益', '空驶距离', '等待时长'],
+    metrics: [['平均客单', '¥18.6'], ['空驶', '2.1 km']] },
+
+  result: { phase: '结果汇总', desc: '汇总一轮多智能体协作的产出：订单完成情况、司机收益、空驶距离与乘客等待时长。',
+    inputs: ['四个智能体的输出'], outputs: ['本轮指标快照'],
+    metrics: [['订单', '7 单'], ['完成率', '92.4%']] },
+  feedback: { phase: '反馈优化', desc: '把执行结果回写为区域权重与司机阈值修正，抑制多车同向聚集，供下一轮态势感知与派单使用。',
+    inputs: ['执行结果', '区域占用度'], outputs: ['区域权重更新', '策略记忆'],
+    metrics: [['更新频率', '每轮'], ['权重衰减', '0.92']] }
+};
+
+/* ---------------- 指标 / 实验 ---------------- */
+const KPIS = [
+  { label:'订单完成率', val:'92.4', unit:'%', sub:'+2.1 vs 热点推荐', dir:'up',   color:'', spark:[72,76,74,80,83,81,86,88,90,92] },
+  { label:'平均等待时间', val:'4.2', unit:'min', sub:'-0.9 min 同比', dir:'up', color:'k-teal', spark:[9,8.4,8.1,7.2,6.6,6.1,5.4,4.9,4.5,4.2] },
+  { label:'车辆空驶率', val:'18.6', unit:'%', sub:'-3.4 pt', dir:'up', color:'k-amber', spark:[28,27,25,24,23,22,21,20,19,18.6] },
+  { label:'司机平均时薪', val:'38.5', unit:'元', sub:'+4.2 元', dir:'up', color:'k-violet', spark:[29,30,31,33,34,35,36,37,38,38.5] },
+  { label:'区域供需失衡度', val:'0.37', unit:'', sub:'目标 < 0.40', dir:'up', color:'k-rose', spark:[0.62,0.58,0.55,0.51,0.48,0.45,0.43,0.40,0.38,0.37] }
+];
+
+const EXP_ROWS = [
+  { name:'随机调度',       done:81.2, wait:7.8, dead:26.4, earn:31.2, fair:0.42, cls:'' },
+  { name:'需求热点推荐',   done:85.6, wait:6.1, dead:23.1, earn:34.4, fair:0.38, cls:'' },
+  { name:'无反馈调度',     done:88.1, wait:5.2, dead:20.8, earn:36.1, fair:0.35, cls:'' },
+  { name:'多智能体协同',   done:92.4, wait:4.2, dead:18.6, earn:38.5, fair:0.33, cls:'best' }
+];
+
+const EVENT_POOL = [
+  { t:'c-blue',  txt:'调度 Agent 为 <b>{plate}</b> 推荐 <b>{zone}</b>，置信度 <b>{conf}</b>' },
+  { t:'c-teal',  txt:'<b>{plate}</b> 接受建议，前往 <b>{zone}</b>（预计 6 分钟到达）' },
+  { t:'c-amber', txt:'<b>{zone}</b> 区域在途车辆达 5 辆，触发聚集抑制，推荐权重下调' },
+  { t:'c-violet',txt:'需求预测工具返回 15 min 曲线，<b>{zone}</b> 需求上行 <b>+{pct}%</b>' },
+  { t:'c-blue',  txt:'<b>{plate}</b> 完成订单，收益 <b>¥{money}</b>，空驶 1.8 km' },
+  { t:'c-rose',  txt:'<b>{plate}</b> 拒绝建议（司机阈值 0.72 &gt; 置信度 {conf}），保持原区域' },
+  { t:'c-teal',  txt:'策略记忆更新：<b>{zone}</b> 区域权重 × 0.92，反馈写入完成' },
+  { t:'c-amber', txt:'<b>{zone}</b> 供需缺口升至 <b>0.{gap}</b>，进入重点引导队列' }
+];
+
+/* ============================================================
+   工具函数
+   ============================================================ */
+function fmtClock(min) {
+  const m = ((min % 1440) + 1440) % 1440;
+  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0');
+}
+/* 车辆位置：优先沿高德路径规划返回的真实路径插值推演，无真实路径时退回内置轨迹 */
+function posAt(v) {
+  if (v.realPath && v.realPath.length > 1) {
+    const rp = v.realPath, n = rp.length - 1;
+    const f = clamp(v.t, 0, 0.9999) * n;
+    const i = Math.floor(f), r = f - i;
+    const a = rp[i], b = rp[i + 1];              /* realPath 为 [lng, lat] */
+    return [a[1] + (b[1] - a[1]) * r, a[0] + (b[0] - a[0]) * r];
+  }
+  const p = v.path, n = p.length - 1;
+  const f = clamp(v.t, 0, 0.9999) * n;
+  const i = Math.floor(f), r = f - i;
+  const a = p[Math.min(i, n)], b = p[Math.min(i + 1, n)];
+  return [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];
+}
+/* 车辆行驶路线（高德格式 [lng,lat]），供地图绘制使用 */
+function routeOf(v) {
+  if (v.realPath && v.realPath.length > 1) return v.realPath;
+  return v.path.map(p => [p[1], p[0]]);
+}
+function routeSource(v) {
+  return (v.realPath && v.realPath.length > 1) ? 'plan' : 'sim';
+}
+function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+
+const STATUS_TEXT = { idle: '空闲待客', busy: '载客中', enroute: '调度前往' };
+const STATUS_COLOR = { idle: '#0d9488', busy: '#d97706', enroute: '#e11d48' };
+const STATUS_TAG = { idle: 'teal', busy: 'amber', enroute: 'rose' };
+
+/* ============================================================
+   调度建议数据
+   ============================================================ */
+function genCands(v) {
+  const target = ZMAP[v.to];
+  const others = shuffle(ZONES.filter(z => z.id !== v.to)).slice(0, 3);
+  const list = others.map(z => ({ z, score: rnd(0.38, 0.72) }));
+  list.push({ z: target, score: 0.84 + Math.random() * 0.12 });
+  list.sort((a, b) => b.score - a.score);
+  v.cands = list;
+  v.conf = list[0].score;
+  return list;
+}
+VEHICLES.forEach(genCands);
+
+/* ============================================================
+   高德地图 + 现实数据接口（郑州市）
+   ------------------------------------------------------------
+   - 底图 / 路况：AMap JS API 2.0
+   - 区域坐标：AMap.PlaceSearch 实时检索校准（失败则用内置近似坐标）
+   - 调度路线：AMap.Driving 实时路径规划（失败则用直线插值）
+   ============================================================ */
+const AMAP_KEY = 'e18971dd7720f736a98e7d1701b09518';
+const MAP_CENTER = { lng: 113.6880, lat: 34.7620 };
+let map = null, mapReady = false, useFallback = false;
+let ovZone = null, ovTraj = null, ovVeh = null, ovLabel = null, ovRoute = null, trafficLayer = null;
+let vehMarkers = {}, realRoute = null, selLine = null;
+
+/* 历史轨迹回放状态（导入 / 解析 / 回放的具体实现见下方「历史出租车轨迹」段） */
+const HIST = {
+  loaded: false, name: '—', source: '—',
+  tracks: [], t0: 0, t1: 0, pts: 0, bad: 0, raw: 0,
+  cur: 0, playing: false, speed: 1, sel: null
+};
+const HIST_MAX_TRACKS = 160, HIST_MAX_PTS = 600, HIST_DRAW_PTS = 110;
+let ovHist = null, histMarkers = {}, histTimer = null, histLines = [];
+
+/* 现实数据接口状态 */
+const RD = {
+  map: false, traffic: false, poi: false, route: false, weather: false,
+  veh: false, vehHit: 0, vehTotal: 0,
+  poiHit: 0, poiTotal: 0, routeMsg: '待调用', lastRoute: null, errors: []
+};
+
+/* 天气智能体状态 */
+const WEATHER = {
+  ok: false, city: '郑州', text: '—', temp: '—', wind: '—', humidity: '—',
+  impact: 1.0, src: '待接入', report: ''
+};
+const WEATHER_IMPACT = {
+  '晴': 1.00, '多云': 1.04, '阴': 1.08, '小雨': 1.20, '中雨': 1.30,
+  '大雨': 1.44, '暴雨': 1.55, '雷阵雨': 1.32, '小雪': 1.38, '中雪': 1.48,
+  '大雪': 1.56, '雾': 1.14, '霾': 1.10
+};
+function weatherImpact(text) {
+  for (const k of Object.keys(WEATHER_IMPACT)) {
+    if (text && text.indexOf(k) >= 0) return WEATHER_IMPACT[k];
+  }
+  return 1.0;
+}
+
+/* 未选中车辆用单个 10px 圆点（车队规模上百辆，DOM 越轻越好）；
+   选中车辆才展开成带光晕的大号标记。 */
+function carMarkerHtml(color, active) {
+  if (!active) {
+    return `<div style="width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 0 1.6px #fff"></div>`;
+  }
+  return `<div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center">
+    <span style="position:absolute;inset:-4px;border:1.5px solid ${color};border-radius:50%;opacity:.45"></span>
+    <span style="position:absolute;inset:2px;border-radius:50%;background:${color};opacity:.16"></span>
+    <span style="position:relative;width:11px;height:11px;border-radius:50%;background:${color};box-shadow:0 0 0 2.2px #fff"></span>
+  </div>`;
+}
+
+function zoneRadius(z) { return 430 + z.demand * 16; }
+function zoneColor(z) {
+  const gap = z.demand - z.supply;
+  if (gap >= 18) return { fill: '#e11d48', border: '#e11d48', op: 0.15 };
+  if (gap >= 8) return { fill: '#d97706', border: '#d97706', op: 0.14 };
+  return { fill: '#0d9488', border: '#0d9488', op: 0.12 };
+}
+
+/* ---------- 数据源状态面板 ---------- */
+function updateDataSourceUI() {
+  const el = $('#dsPanel');
+  if (!el) return;
+  const row = (ok, name, val) => `<div class="ds-row">
+      <i class="ds-dot ${ok ? 'on' : 'off'}"></i>
+      <span class="ds-name">${name}</span>
+      <span class="ds-val">${val}</span>
+    </div>`;
+  el.innerHTML = `
+    <div class="ds-title">现实数据接口 <span class="ds-tag">高德开放平台</span></div>
+    ${row(RD.map, '地图底图', RD.map ? '已连通' : '未连通')}
+    ${row(RD.traffic, '实时路况', RD.traffic ? '实时刷新' : '未启用')}
+    ${row(RD.poi, 'POI 检索', RD.poi ? `${RD.poiHit}/${RD.poiTotal} 命中` : '降级坐标')}
+    ${row(RD.route, '路径规划', RD.routeMsg)}
+    ${row(RD.veh, '车辆位置', RD.veh ? `路径推演 ${RD.vehHit}/${RD.vehTotal}` : '仿真轨迹')}
+    ${row(RD.weather, '天气接口', RD.weather ? `${WEATHER.text} ${WEATHER.temp}` : '降级模拟')}`;
+}
+
+/* ---------- 初始化地图 ---------- */
+function initMap() {
+  if (mapReady || useFallback) return;
+  if (typeof AMap === 'undefined' || !AMap.Map) { initFallback(); return; }
+  try {
+    map = new AMap.Map('map', {
+      zoom: 11.6,
+      center: [MAP_CENTER.lng, MAP_CENTER.lat],
+      viewMode: '2D',
+      resizeEnable: true,
+      showLabel: true
+    });
+    map.on('complete', () => { RD.map = true; updateDataSourceUI(); });
+
+    buildOverlays();
+
+    /* 实时路况图层 */
+    try {
+      trafficLayer = new AMap.TileLayer.Traffic({ autoRefresh: true, interval: 180, zIndex: 5 });
+      map.add(trafficLayer);
+      RD.traffic = true;
+    } catch (e) { RD.errors.push('traffic: ' + e.message); }
+
+    mapReady = true;
+    const ld = $('#mapLoading');
+    if (ld) ld.remove();
+    updateDataSourceUI();
+    syncMap(true);
+
+    /* 异步接入现实数据 */
+    loadWeather();
+    loadRealPOI();
+    planRealRoute();
+    if (HIST.loaded) setTimeout(() => renderHistLayer(), 150);
+  } catch (e) {
+    console.warn('[MobilityPilot] 高德地图初始化失败，切换离线底图', e);
+    RD.errors.push('map: ' + e.message);
+    initFallback();
+  }
+}
+
+/* 用当前 ZONES / VEHICLES 数据重建全部覆盖物
+   车队规模上百辆，轨迹按 OD 对去重（同一「起点片区 → 终点片区」只画一条），
+   否则数百条线会糊成一片，既看不清也拖慢渲染。 */
+function buildOverlays() {
+  if (!map) return;
+  map.remove([ovZone, ovTraj, ovVeh, ovLabel, selLine].filter(Boolean));
+  selLine = null;
+
+  /* 区域需求圈 */
+  ovZone = new AMap.OverlayGroup();
+  ZONES.forEach(z => {
+    const c = zoneColor(z);
+    const circle = new AMap.Circle({
+      center: [z.lng, z.lat],
+      radius: zoneRadius(z),
+      fillColor: c.fill, fillOpacity: c.op,
+      strokeColor: c.border, strokeOpacity: 0.55, strokeWeight: 1.2,
+      bubble: true, cursor: 'pointer', zIndex: 20
+    });
+    circle.on('click', () => {
+      pushEvent(EVENT_POOL[7].txt, { zone: z.name, gap: String(Math.round(z.demand - z.supply)).padStart(2, '0') });
+    });
+    ovZone.addOverlay(circle);
+  });
+  map.add(ovZone);
+
+  /* 区域标注 */
+  ovLabel = new AMap.OverlayGroup();
+  ZONES.forEach(z => {
+    const t = new AMap.Text({
+      text: `${z.name} 需${Math.round(z.demand)}`,
+      position: [z.lng + (z.lb ? z.lb[1] : 0), z.lat + (z.lb ? z.lb[0] : 0.011)],
+      anchor: 'bottom-center',
+      zIndex: 130,
+      style: {
+        'background-color': 'rgba(255,255,255,.94)',
+        'border': '1px solid rgba(148,163,184,.45)',
+        'border-radius': '5px',
+        'padding': '2px 7px',
+        'font-size': '11px',
+        'color': '#1e2a3d',
+        'white-space': 'nowrap',
+        'box-shadow': '0 1px 3px rgba(13,21,38,.10)'
+      }
+    });
+    ovLabel.addOverlay(t);
+  });
+  map.add(ovLabel);
+
+  /* 调度轨迹：每个 OD 对只画一条，优先取已由高德规划的路径作代表 */
+  ovTraj = new AMap.OverlayGroup();
+  const reps = new Map();
+  VEHICLES.forEach(v => {
+    const key = v.from + '>' + v.to;
+    const cur = reps.get(key);
+    if (!cur || (!cur.realPath && v.realPath)) reps.set(key, v);
+  });
+  reps.forEach(v => {
+    const line = new AMap.Polyline({
+      path: routeOf(v),
+      strokeColor: '#7c3aed',
+      strokeWeight: 1.6,
+      strokeOpacity: 0.24,
+      lineJoin: 'round', lineCap: 'round',
+      zIndex: 40
+    });
+    ovTraj.addOverlay(line);
+  });
+  map.add(ovTraj);
+
+  /* 车辆：全部用轻量圆点，选中车辆由 applySelection() 单独放大 */
+  ovVeh = new AMap.OverlayGroup();
+  vehMarkers = {};
+  VEHICLES.forEach(v => {
+    const p = posAt(v);
+    const sel = v.id === S.selVeh;
+    const m = new AMap.Marker({
+      position: [p[1], p[0]],
+      content: carMarkerHtml(sel ? '#2563eb' : STATUS_COLOR[v.status], sel),
+      offset: new AMap.Pixel(sel ? -15 : -5, sel ? -15 : -5),
+      zIndex: sel ? 200 : 150,
+      extData: { id: v.id }
+    });
+    m.on('click', () => selectVehicle(v.id));
+    vehMarkers[v.id] = m;
+    ovVeh.addOverlay(m);
+  });
+  map.add(ovVeh);
+  applySelection(null);
+  applyLayerVisibility();
+}
+
+/* 只更新选中态，不重建整层——选车时若重建 240 个 marker 会明显卡顿 */
+function applySelection(prevId) {
+  if (!map || !mapReady || useFallback) return;
+  const paint = id => {
+    if (!id) return;
+    const v = VEHICLES.find(x => x.id === id);
+    const m = vehMarkers[id];
+    if (!v || !m) return;
+    const sel = id === S.selVeh;
+    m.setContent(carMarkerHtml(sel ? '#2563eb' : STATUS_COLOR[v.status], sel));
+    m.setOffset(new AMap.Pixel(sel ? -15 : -5, sel ? -15 : -5));
+    m.setzIndex(sel ? 200 : 150);
+  };
+  paint(prevId);
+  paint(S.selVeh);
+
+  if (selLine) { map.remove(selLine); selLine = null; }
+  const v = VEHICLES.find(x => x.id === S.selVeh);
+  if (v) {
+    selLine = new AMap.Polyline({
+      path: routeOf(v),
+      strokeColor: '#7c3aed', strokeWeight: 5, strokeOpacity: 0.95,
+      lineJoin: 'round', lineCap: 'round', showDir: true, zIndex: 60
+    });
+    map.add(selLine);
+    applyLayerVisibility();   /* 选车后高亮线要跟随「模拟车辆」层的显隐 */
+  }
+}
+
+/* 图层开关：按 S.layers 同步各 OverlayGroup 的显隐 */
+function applyLayerVisibility() {
+  if (!mapReady || !map) return;
+  const L = { zone: ovZone, veh: ovVeh, traj: ovTraj, label: ovLabel, hist: ovHist };
+  Object.keys(L).forEach(k => {
+    const ov = L[k];
+    if (!ov) return;
+    if (S.layers[k] === false) ov.hide(); else ov.show();
+  });
+  if (selLine) { S.layers.veh === false ? selLine.hide() : selLine.show(); }
+  const emph = S.layers.veh === false && S.layers.hist !== false;
+  if (HIST._emph !== emph) { HIST._emph = emph; setHistEmphasis(emph); }
+}
+
+/* ---------- 车辆显示三档：全部 / 仅模拟 / 仅历史 ---------- */
+const VEH_MODE = { mode: 'all' };
+const VEH_MODE_TEXT = {
+  all: '车辆显示：模拟车辆 + 历史车辆',
+  sim: '车辆显示：仅模拟车辆（240 辆仿真车队）',
+  hist: '车辆显示：仅历史车辆（导入的逐车轨迹）',
+  none: '车辆显示：两类车辆均已隐藏'
+};
+
+function syncLayerChips() {
+  $$('.chip[data-layer]').forEach(b => {
+    const on = S.layers[b.dataset.layer] !== false;
+    b.classList.toggle('on', on);
+    b.classList.toggle('off', !on);
+  });
+}
+
+/* 由当前图层状态反推三档按钮的高亮，手工点 chip 也能保持一致 */
+function refreshVehMode() {
+  const v = S.layers.veh !== false, h = S.layers.hist !== false;
+  VEH_MODE.mode = (v && h) ? 'all' : (!v && h) ? 'hist' : (v && !h) ? 'sim' : 'none';
+  $$('#vehMode .seg-btn').forEach(b => b.classList.toggle('on', b.dataset.mode === VEH_MODE.mode));
+}
+
+function setVehMode(m) {
+  if (m === 'hist' && !HIST.loaded) {
+    loadHistDemo();                                  /* 没有历史数据时先装内置示例 */
+    if (HIST.loaded) pushEvent('车辆显示：尚未导入历史轨迹，已自动加载内置示例', {});
+  }
+  S.layers.veh = m !== 'hist';
+  S.layers.traj = m !== 'hist';                      /* 调度轨迹属于仿真车队，跟随模拟车辆 */
+  S.layers.hist = m !== 'sim';
+  syncLayerChips();
+  refreshVehMode();
+  applyLayerVisibility();
+  if (mapReady) syncMap(true);                       /* 重新显示时立刻校正位置，避免停在旧坐标 */
+  if (useFallback) initFallback();
+  pushEvent(VEH_MODE_TEXT[m] || '', {});
+}
+
+function syncMap(force) {
+  if (useFallback) { updateFallback(); return; }
+  if (!mapReady || !map) return;
+  if (S.layers.veh !== false) {
+    for (let i = 0; i < VEHICLES.length; i++) {
+      const v = VEHICLES[i];
+      const m = vehMarkers[v.id];
+      if (!m) continue;
+      const p = posAt(v);
+      m.setPosition([p[1], p[0]]);
+    }
+  }
+  if (HIST.loaded) syncHist();
+}
+
+/* ============================================================
+   现实数据接口 ①：POI 检索校准区域坐标
+   ============================================================ */
+const POI_QUERY = {
+  erqi: '二七广场',
+  cbd: '郑州国际会展中心',
+  huayuan: '花园路国贸360',
+  dongzhan: '郑州东站',
+  gaoxin: '郑州高新区',
+  bishagang: '碧沙岗公园',
+  longzihu: '龙子湖大学城',
+  jingkai: '郑州经开区',
+  huiji: '惠济万达广场',
+  hangkong: '新郑国际机场'
+};
+
+function loadRealPOI() {
+  if (typeof AMap === 'undefined' || !AMap.PlaceSearch) return;
+  let ids = Object.keys(POI_QUERY);
+  RD.poiTotal = ids.length;
+  let idx = 0, hit = 0, pass = 0;
+
+  /* 单个关键词检索；失败自动换下一个关键词（区域名兜底） */
+  function trySearch(keywords, cb) {
+    if (!keywords.length) { cb(null); return; }
+    const ps = new AMap.PlaceSearch({ city: '郑州', citylimit: true, pageSize: 1, extensions: 'base' });
+    ps.search(keywords[0], (status, result) => {
+      let poi = null;
+      try {
+        const list = result && result.poiList && result.poiList.pois;
+        if (status === 'complete' && list && list.length && list[0].location) poi = list[0];
+      } catch (e) { RD.errors.push('poi: ' + e.message); }
+      if (poi) cb(poi);
+      else setTimeout(() => trySearch(keywords.slice(1), cb), 130);
+    });
+  }
+
+  function next() {
+    if (idx >= ids.length) { finish(); return; }
+    const id = ids[idx++];
+    const z = ZMAP[id];
+    trySearch([POI_QUERY[id], z.name], poi => {
+      if (poi) {
+        z.lat = Number(poi.location.lat);
+        z.lng = Number(poi.location.lng);
+        z.realName = poi.name;
+        z.real = true;
+        hit++;
+      }
+      setTimeout(next, pass === 0 ? 150 : 420);
+    });
+  }
+
+  function finish() {
+    /* 漏检重试：第二轮只重跑未命中的片区，间隔放宽避免限流 */
+    const missed = ids.filter(id => !ZMAP[id].real);
+    if (pass === 0 && missed.length) {
+      pass = 1;
+      ids = missed;
+      idx = 0;
+      setTimeout(next, 600);
+      return;
+    }
+    RD.poi = hit > 0;
+    RD.poiHit = hit;
+    updateDataSourceUI();
+    if (hit > 0) {
+      rebuildVehiclePaths();
+      buildOverlays();
+      syncMap(true);
+      pushEvent(`态势感知智能体：高德 POI 接口返回 <b>${hit}/${RD.poiTotal}</b> 个片区真实坐标，区域基准已校准`, {});
+    } else {
+      pushEvent('态势感知智能体：POI 接口未返回结果，沿用内置近似坐标（不影响演示）', {});
+    }
+    /* 坐标就绪后，用路径规划推演每辆车的位置 */
+    planVehicleRoutes();
+  }
+
+  next();
+}
+
+/* 坐标被真实 POI 替换后，按新坐标重算车辆轨迹路径点 */
+function rebuildVehiclePaths() {
+  VEHICLES.forEach(v => {
+    const from = ZMAP[v.from], to = ZMAP[v.to];
+    if (!from || !to) return;
+    const n = v.path.length;
+    v.path = v.path.map((p, i) => {
+      const t = i / (n - 1);
+      /* 以真实起终点为锚，保留原路径的弯曲形态 */
+      const dLat = (from.lat + (to.lat - from.lat) * t) - p[0];
+      const dLng = (from.lng + (to.lng - from.lng) * t) - p[1];
+      return [p[0] + dLat * 0.85, p[1] + dLng * 0.85];
+    });
+  });
+}
+
+/* ============================================================
+   现实数据接口 ②：Driving 实时路径规划
+   ============================================================ */
+function planRealRoute() {
+  if (typeof AMap === 'undefined') return;
+  AMap.plugin(['AMap.Driving'], () => {
+    const v = VEHICLES.find(x => x.id === S.selVeh);
+    if (!v) return;
+    const best = v.cands && v.cands[0];
+    if (!best) return;
+    const from = posAt(v), to = best.z;
+    const driving = new AMap.Driving({ policy: AMap.DrivingPolicy.LEAST_TIME, hideMarkers: true, showTraffic: false });
+    driving.search(
+      new AMap.LngLat(from[1], from[0]),
+      new AMap.LngLat(to.lng, to.lat),
+      (status, result) => {
+        if (status === 'complete' && result.routes && result.routes.length) {
+          const r = result.routes[0];
+          const path = [];
+          (r.steps || []).forEach(st => (st.path || []).forEach(pt => path.push([pt.lng, pt.lat])));
+          realRoute = { distance: r.distance, time: r.time, path, target: to.name, plate: v.plate };
+          RD.route = true;
+          RD.routeMsg = `${(r.distance / 1000).toFixed(1)} km / ${Math.round(r.time / 60)} min`;
+          RD.lastRoute = realRoute;
+          drawRealRoute(path);
+          updateDataSourceUI();
+          renderDispatchPanel();
+        } else {
+          RD.route = false;
+          RD.routeMsg = '调用失败·降级估算';
+          updateDataSourceUI();
+          renderDispatchPanel();
+        }
+      }
+    );
+  });
+}
+
+/* ============================================================
+   天气智能体：AMap.Weather → REST v3 → 内置模拟，三级兜底
+   ============================================================ */
+function loadWeather() {
+  if (typeof AMap === 'undefined') { applyWeatherFallback(); return; }
+  AMap.plugin(['AMap.Weather'], () => {
+    if (!AMap.Weather) { fetchWeatherRest(); return; }
+    try {
+      const w = new AMap.Weather();
+      w.getLive('郑州市', (err, data) => {
+        if (!err && data && data.weather) {
+          applyWeather({
+            text: data.weather,
+            temp: (data.temperature || '--') + '°',
+            wind: (data.windDirection || '') + (data.windPower || '') + ' 级',
+            humidity: (data.humidity || '--') + '%',
+            report: data.reportTime || '',
+            src: 'AMap.Weather'
+          });
+        } else { fetchWeatherRest(); }
+      });
+    } catch (e) { fetchWeatherRest(); }
+  });
+}
+
+function fetchWeatherRest() {
+  const url = `https://restapi.amap.com/v3/weather/weatherInfo?key=${AMAP_KEY}&city=410100&extensions=base`;
+  fetch(url).then(r => r.json()).then(d => {
+    const l = d && d.lives && d.lives[0];
+    if (l && l.weather) {
+      applyWeather({
+        text: l.weather,
+        temp: (l.temperature || '--') + '°',
+        wind: (l.winddirection || '') + (l.windpower || '') + ' 级',
+        humidity: (l.humidity || '--') + '%',
+        report: l.reporttime || '',
+        src: 'REST v3'
+      });
+    } else { applyWeatherFallback(); }
+  }).catch(() => applyWeatherFallback());
+}
+
+function applyWeather(w) {
+  WEATHER.ok = true;
+  Object.assign(WEATHER, w);
+  WEATHER.impact = weatherImpact(w.text);
+  RD.weather = true;
+  renderWeather();
+  updateDataSourceUI();
+  if (S.mod === 'graph' && graphDrawn) drawGraph();
+  pushEvent(`天气智能体：${w.text} ${w.temp}，需求影响系数 <b>×${WEATHER.impact.toFixed(2)}</b>，已同步至态势感知与路径规划`, {});
+}
+
+function applyWeatherFallback() {
+  WEATHER.ok = false;
+  WEATHER.text = '多云'; WEATHER.temp = '24°';
+  WEATHER.wind = '东南风 2 级'; WEATHER.humidity = '56%';
+  WEATHER.impact = 1.04; WEATHER.src = '内置模拟';
+  RD.weather = false;
+  renderWeather();
+  updateDataSourceUI();
+}
+
+function renderWeather() {
+  const el = $('#weatherPill');
+  if (el) {
+    el.innerHTML = `<i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>${WEATHER.text} <b>${WEATHER.temp}</b>`;
+  }
+  const card = $('#weatherCard');
+  if (card) {
+    card.innerHTML = `
+      <div class="wx-top">
+        <div class="wx-icon">${weatherIcon(WEATHER.text)}</div>
+        <div class="wx-main">
+          <div class="wx-temp">${WEATHER.temp}<span>${WEATHER.text}</span></div>
+          <div class="wx-sub">${WEATHER.city} · ${WEATHER.wind} · 湿度 ${WEATHER.humidity}</div>
+        </div>
+        <div class="wx-impact">
+          <div class="wx-iv">×${WEATHER.impact.toFixed(2)}</div>
+          <div class="wx-il">需求影响</div>
+        </div>
+      </div>
+      <div class="wx-foot">
+        <span class="tag ${WEATHER.impact > 1.15 ? 'rose' : 'blue'}">${WEATHER.impact > 1.15 ? '雨天需求上行' : '需求平稳'}</span>
+        <span class="muted">来源 ${WEATHER.src}${WEATHER.report ? ' · ' + WEATHER.report : ''}</span>
+      </div>`;
+  }
+}
+
+function weatherIcon(text) {
+  const rain = /雨|雪/.test(text), cloud = /云|阴|雾|霾/.test(text);
+  if (rain) return `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.7" stroke-linecap="round"><path d="M6 15a4 4 0 0 1 .6-7.96A5 5 0 0 1 16.5 8.2A3.6 3.6 0 0 1 17 15"/><path d="M8 18.5l-1 2M12 18.5l-1 2M16 18.5l-1 2"/></svg>`;
+  if (cloud) return `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.7" stroke-linecap="round"><path d="M7 17a4.2 4.2 0 0 1 .4-8.38A5.4 5.4 0 0 1 17.4 9.4A3.7 3.7 0 0 1 17 17z"/></svg>`;
+  return `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>`;
+}
+
+/* ============================================================
+   用路径规划数据推演车辆位置（无实时 GPS 时的替代方案）
+   ============================================================ */
+function planVehicleRoutes() {
+  if (typeof AMap === 'undefined' || !map) return;
+  AMap.plugin(['AMap.Driving'], () => {
+    /* 车队上百辆：按 OD 对去重，只对使用量最高的若干 OD 对调用路径规划，
+       规划结果回填给该 OD 上的所有车辆，避免几百次接口调用把配额打满。 */
+    const groups = new Map();
+    VEHICLES.forEach(v => {
+      const k = v.from + '>' + v.to;
+      if (!groups.has(k)) groups.set(k, { from: v.from, to: v.to, vs: [] });
+      groups.get(k).vs.push(v);
+    });
+    const all = Array.from(groups.values()).sort((a, b) => b.vs.length - a.vs.length);
+    const PLAN_MAX = 28;
+    const targets = all.slice(0, PLAN_MAX);
+
+    RD.vehTotal = VEHICLES.length;
+    RD.vehHit = 0;
+    RD.veh = false;
+    let queue = targets.slice(), idx = 0, pass = 0;
+
+    const finish = () => {
+      let assigned = 0;
+      targets.forEach(g => {
+        if (!g.path) return;
+        g.vs.forEach(v => {
+          if (!v.realPath) { v.realPath = g.path; v.routeInfo = g.info; }
+        });
+        assigned += g.vs.length;
+      });
+      RD.veh = assigned > 0;
+      RD.vehHit = assigned;
+      updateDataSourceUI();
+      buildOverlays();
+      syncMap(true);
+      pushEvent(assigned
+        ? `路径规划智能体：无实时 GPS，已用 <b>${targets.length}</b> 个 OD 对的高德规划路径推演 <b>${assigned}</b> 辆车位置（其余 ${VEHICLES.length - assigned} 辆沿用仿真折线）`
+        : `路径规划智能体：规划接口无返回，<b>${VEHICLES.length}</b> 辆车全部沿用仿真折线推演`, {});
+    };
+
+    const next = () => {
+      if (idx >= queue.length) {
+        const missed = targets.filter(g => !g.path);
+        if (pass === 0 && missed.length) { pass = 1; queue = missed; idx = 0; setTimeout(next, 900); return; }
+        finish();
+        return;
+      }
+      const g = queue[idx++];
+      const from = ZMAP[g.from], to = ZMAP[g.to];
+      if (!from || !to) { setTimeout(next, 40); return; }
+      const driving = new AMap.Driving({
+        policy: AMap.DrivingPolicy.LEAST_TIME,
+        hideMarkers: true, showTraffic: false
+      });
+      driving.search(
+        new AMap.LngLat(from.lng, from.lat),
+        new AMap.LngLat(to.lng, to.lat),
+        (status, result) => {
+          try {
+            if (status === 'complete' && result.routes && result.routes.length) {
+              const r = result.routes[0];
+              const path = [];
+              (r.steps || []).forEach(st => (st.path || []).forEach(pt => path.push([pt.lng, pt.lat])));
+              if (path.length > 1) { g.path = path; g.info = { distance: r.distance, time: r.time }; }
+            }
+          } catch (e) { RD.errors.push('route: ' + e.message); }
+          setTimeout(next, pass === 0 ? 170 : 420);
+        }
+      );
+    };
+    next();
+  });
+}
+
+function drawRealRoute(path) {
+  if (!map) return;
+  if (ovRoute) { map.remove(ovRoute); ovRoute = null; }
+  if (!path || !path.length) return;
+  const glow = new AMap.Polyline({
+    path, strokeColor: '#0d9488', strokeWeight: 11, strokeOpacity: 0.16,
+    lineJoin: 'round', lineCap: 'round', zIndex: 70
+  });
+  const line = new AMap.Polyline({
+    path, strokeColor: '#0d9488', strokeWeight: 4, strokeOpacity: 0.95,
+    lineJoin: 'round', lineCap: 'round', showDir: true, zIndex: 72
+  });
+  ovRoute = new AMap.OverlayGroup([glow, line]);
+  map.add(ovRoute);
+}
+
+/* ---------- 离线示意底图（SDK 不可用时） ---------- */
+const FB = { lng0: 113.46, lng1: 113.90, lat0: 34.90, lat1: 34.50, W: 1000, H: 640 };
+const fbX = lng => ((lng - FB.lng0) / (FB.lng1 - FB.lng0)) * FB.W;
+const fbY = lat => ((FB.lat0 - lat) / (FB.lat0 - FB.lat1)) * FB.H;
+
+function initFallback() {
+  useFallback = true;
+  const ld0 = $('#mapLoading');
+  if (ld0) ld0.remove();
+  const host = $('#map');
+  host.innerHTML = `<div class="map-fallback">
+    <svg id="fbSvg" viewBox="0 0 ${FB.W} ${FB.H}" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="fb-note">地图服务未连通 · 已切换离线示意底图（区域与轨迹为郑州市主城区近似位置）</div>
+  </div>`;
+  const svg = $('#fbSvg');
+  let html = `<defs>
+    <linearGradient id="fbBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef5f9"/><stop offset="55%" stop-color="#e6eef6"/><stop offset="100%" stop-color="#dfe9f2"/>
+    </linearGradient></defs>
+    <rect width="${FB.W}" height="${FB.H}" fill="url(#fbBg)"/>`;
+
+  /* 粗略路网（主城区干道示意） */
+  const roads = [
+    [[34.7465,113.6000],[34.7470,113.6300],[34.7500,113.6600],[34.7540,113.6900],[34.7560,113.7300],[34.7570,113.7700]],
+    [[34.7890,113.6100],[34.7895,113.6500],[34.7900,113.7000],[34.7880,113.7500],[34.7840,113.7900]],
+    [[34.7320,113.6100],[34.7330,113.6600],[34.7345,113.7100],[34.7360,113.7700]],
+    [[34.7000,113.7250],[34.7400,113.7250],[34.7800,113.7260],[34.8300,113.7270],[34.8700,113.7280]],
+    [[34.7500,113.6650],[34.7800,113.6650],[34.8100,113.6650],[34.8500,113.6660]],
+    [[34.7200,113.6350],[34.7600,113.6350],[34.8000,113.6360],[34.8400,113.6370]]
+  ];
+  html += roads.map(r => {
+    const d = r.map((p, i) => `${i ? 'L' : 'M'}${fbX(p[1]).toFixed(1)},${fbY(p[0]).toFixed(1)}`).join(' ');
+    return `<path d="${d}" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".9"/>
+            <path d="${d}" fill="none" stroke="#cfdce8" stroke-width="1.2" stroke-linecap="round"/>`;
+  }).join('');
+
+  /* 区域 */
+  if (S.layers.zone !== false) html += ZONES.map(z => {
+    const c = zoneColor(z), r = zoneRadius(z) / 62;
+    return `<circle cx="${fbX(z.lng).toFixed(1)}" cy="${fbY(z.lat).toFixed(1)}" r="${r.toFixed(1)}"
+      fill="${c.fill}" fill-opacity="${c.op * 1.6}" stroke="${c.border}" stroke-width="1.2" stroke-opacity=".5"/>`;
+  }).join('');
+  /* 调度轨迹：按 OD 对去重，选中车辆单独描一条高亮线 */
+  if (S.layers.traj !== false) {
+    const fbReps = new Map();
+    VEHICLES.forEach(v => {
+      const k = v.from + '>' + v.to;
+      const cur = fbReps.get(k);
+      if (!cur || (!cur.realPath && v.realPath)) fbReps.set(k, v);
+    });
+    html += Array.from(fbReps.values()).map(v => {
+      const d = routeOf(v).map((p, i) => `${i ? 'L' : 'M'}${fbX(p[0]).toFixed(1)},${fbY(p[1]).toFixed(1)}`).join(' ');
+      return `<path d="${d}" fill="none" stroke="rgba(124,58,237,0.26)" stroke-width="1.5" stroke-linecap="round"/>`;
+    }).join('');
+    const selV = VEHICLES.find(x => x.id === S.selVeh);
+    if (selV) {
+      const d = routeOf(selV).map((p, i) => `${i ? 'L' : 'M'}${fbX(p[0]).toFixed(1)},${fbY(p[1]).toFixed(1)}`).join(' ');
+      html += `<path d="${d}" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round"/>`;
+    }
+  }
+  /* 标签 */
+  if (S.layers.label !== false) html += ZONES.map(z => {
+    const dx = (z.lb ? z.lb[1] : 0) * 2500, dy = (z.lb ? -z.lb[0] : 0.011) * 1700;
+    return `<text x="${(fbX(z.lng) + dx).toFixed(1)}" y="${(fbY(z.lat) + dy).toFixed(1)}" font-size="11"
+      fill="#334155" text-anchor="middle" font-weight="500">${z.name}</text>`;
+  }).join('');
+  /* 历史轨迹（若已导入） */
+  if (HIST.loaded && S.layers.hist !== false) {
+    const op = S.layers.veh === false ? '.45' : '.26';
+    html += HIST.tracks.map(tr => {
+      const d = tr.pts.map((p, i) => `${i ? 'L' : 'M'}${fbX(p.lng).toFixed(1)},${fbY(p.lat).toFixed(1)}`).join(' ');
+      return `<path d="${d}" fill="none" stroke="#0ea5e9" stroke-width="1.1" stroke-opacity="${op}" stroke-linecap="round"/>`;
+    }).join('');
+  }
+  html += `<g id="fbHist"></g>`;
+  html += `<g id="fbVeh"></g>`;
+  svg.innerHTML = html;
+  updateFallback();
+}
+
+function updateFallback() {
+  const g = $('#fbVeh');
+  if (g) {
+    g.innerHTML = (S.layers.veh === false) ? '' : VEHICLES.map(v => {
+      const p = posAt(v), x = fbX(p[1]), y = fbY(p[0]);
+      const sel = v.id === S.selVeh;
+      return `<g><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 13 : 6}" fill="${STATUS_COLOR[v.status]}" fill-opacity=".16"/>
+        ${sel ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="15" fill="none" stroke="#2563eb" stroke-width="1.4" opacity=".6"/>` : ''}
+        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 6 : 3.4}" fill="${sel ? '#2563eb' : STATUS_COLOR[v.status]}" stroke="#fff" stroke-width="1.8"/></g>`;
+    }).join('');
+  }
+  paintHistFallback();
+}
+
+/* ============================================================
+   历史出租车轨迹：导入 · 解析 · 回放
+   ------------------------------------------------------------
+   支持两种输入：
+     ① CSV / TSV：车牌, 时间, 经度, 纬度（表头自动识别，第五列可选 speed）
+     ② JSON：{"tracks":[{"id":"豫A·T0231","points":[[lng,lat,时间], …]}]}
+        或扁平行数组 [{"id":…,"t":…,"lng":…,"lat":…}]
+   回放按时间戳线性插值，与仿真主循环互不干扰；车辆在两次行程之间的等客区间原地停留。
+   ============================================================ */
+const HIST_COL = {
+  id:  ['id', 'taxiid', 'carid', 'car', 'plate', 'plateno', 'vehicle', 'vehicleid',
+        'device', 'deviceid', 'terminal', '车辆', '车牌', '车牌号', '设备号', '终端号'],
+  time:['time', 'ts', 'timestamp', 'datetime', 'gpstime', 'localtime',
+        '采集时间', '时间', '定位时间', '上报时间', '日期时间'],
+  lng: ['lng', 'lon', 'long', 'longitude', '经度', 'gpslng', 'gpslon', 'x'],
+  lat: ['lat', 'latitude', '纬度', 'gpslat', 'y'],
+  spd: ['speed', 'spd', 'velocity', '速度', '车速']
+};
+const normCol = s => String(s).toLowerCase().replace(/[\s_\-./()（）:]/g, '');
+
+function matchCols(headers) {
+  const h = headers.map(normCol);
+  const res = { id: -1, time: -1, lng: -1, lat: -1, spd: -1 };
+  Object.keys(HIST_COL).forEach(k => {
+    const keys = HIST_COL[k].map(normCol);
+    let idx = h.findIndex(x => keys.indexOf(x) >= 0);
+    /* 精确匹配失败再做包含匹配，短键（id / x / y）不参与，避免误命中 */
+    if (idx < 0) idx = h.findIndex(x => keys.some(y => y.length >= 3 && x.indexOf(y) >= 0));
+    res[k] = idx;
+  });
+  return res;
+}
+
+function parseTs(v) {
+  if (v == null) return NaN;
+  const s = String(v).trim().replace(/^["']|["']$/g, '');
+  if (!s) return NaN;
+  if (/^\d{10}$/.test(s)) return Number(s) * 1000;
+  if (/^\d{13}$/.test(s)) return Number(s);
+  if (/^\d{16,19}$/.test(s)) return Math.round(Number(s) / 1000);   /* 微秒时间戳 */
+  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(s)) {                         /* 纯时刻，按当天零点起算 */
+    const a = s.split(':').map(Number);
+    return ((a[0] * 60 + a[1]) * 60 + (a[2] || 0)) * 1000;
+  }
+  const d = new Date(s.replace(/\//g, '-').replace('T', ' ').replace(/Z$/, ''));
+  return isNaN(d.getTime()) ? NaN : d.getTime();
+}
+
+function fmtTs(ms) {
+  if (!isFinite(ms)) return '--:--';
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function parseHistCsv(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+  if (!lines.length) throw new Error('文件内容为空');
+  const head = lines[0];
+  const cnt = c => (head.split(c).length - 1);
+  const delim = (cnt('\t') > 0 && cnt('\t') >= cnt(',')) ? '\t' : (cnt(';') > cnt(',') ? ';' : ',');
+  const first = lines[0].split(delim).map(c => c.trim().replace(/^["']|["']$/g, ''));
+  let cols = matchCols(first), start = 1;
+  if (cols.id < 0 || cols.time < 0 || cols.lng < 0 || cols.lat < 0) {
+    if (first.length < 4) throw new Error('列数不足：至少需要 车牌、时间、经度、纬度 四列');
+    cols = { id: 0, time: 1, lng: 2, lat: 3, spd: first.length > 4 ? 4 : -1 };
+    start = 0;   /* 无表头，按固定列序解析 */
+  }
+  const out = new Map();
+  let bad = 0;
+  for (let i = start; i < lines.length; i++) {
+    const c = lines[i].split(delim);
+    if (c.length < 4) { bad++; continue; }
+    const id = String(c[cols.id] == null ? '' : c[cols.id]).trim().replace(/^["']|["']$/g, '');
+    const t = parseTs(c[cols.time]);
+    const lng = parseFloat(c[cols.lng]);
+    const lat = parseFloat(c[cols.lat]);
+    if (!id || !isFinite(t) || !isFinite(lng) || !isFinite(lat)) { bad++; continue; }
+    if (lng < 72 || lng > 136 || lat < 3 || lat > 54) { bad++; continue; }   /* 中国境内坐标校验 */
+    if (!out.has(id)) out.set(id, []);
+    out.get(id).push({ t, lng, lat });
+  }
+  if (!out.size) throw new Error('未解析到有效记录，请检查列顺序与经纬度范围');
+  out.bad = bad;
+  return out;
+}
+
+function parseHistJson(text) {
+  let j;
+  try { j = JSON.parse(text); } catch (e) { throw new Error('JSON 格式错误：' + e.message); }
+  const arr = Array.isArray(j) ? j : (j.tracks || j.data || j.rows || j.records || []);
+  if (!Array.isArray(arr) || !arr.length) throw new Error('JSON 中没有找到轨迹数组（tracks / data / rows）');
+  const out = new Map();
+  let bad = 0;
+  const push = (id, t, lng, lat) => {
+    if (!id || !isFinite(t) || !isFinite(lng) || !isFinite(lat)) { bad++; return; }
+    if (lng < 72 || lng > 136 || lat < 3 || lat > 54) { bad++; return; }
+    if (!out.has(id)) out.set(id, []);
+    out.get(id).push({ t, lng, lat });
+  };
+  const nested = arr[0] && (arr[0].points || arr[0].path || arr[0].track);
+  if (nested) {
+    arr.forEach(tr => {
+      const id = String(tr.id || tr.plate || tr.taxi_id || tr.car_id || 'T');
+      (tr.points || tr.path || tr.track || []).forEach(p => {
+        if (Array.isArray(p)) push(id, parseTs(p[2] != null ? p[2] : p[3]), +p[0], +p[1]);
+        else push(id, parseTs(p.t != null ? p.t : (p.time != null ? p.time : p.ts)),
+                  +(p.lng != null ? p.lng : p.lon), +(p.lat != null ? p.lat : p.latitude));
+      });
+    });
+  } else {
+    arr.forEach(r => {
+      const id = String(r.id || r.plate || r.taxi_id || r.car_id || 'T');
+      push(id, parseTs(r.t != null ? r.t : (r.time != null ? r.time : r.ts)),
+           +(r.lng != null ? r.lng : (r.lon != null ? r.lon : r.longitude)),
+           +(r.lat != null ? r.lat : r.latitude));
+    });
+  }
+  if (!out.size) throw new Error('未解析到有效轨迹点');
+  out.bad = bad;
+  return out;
+}
+
+function parseHistText(text) {
+  const s = String(text).replace(/^\ufeff/, '').trim();
+  if (!s) throw new Error('文件内容为空');
+  if (s[0] === '{' || s[0] === '[') return parseHistJson(s);
+  return parseHistCsv(s);
+}
+
+/* ---------- 装载数据集 ---------- */
+function applyHist(rawMap, name, source) {
+  let tracks = [], pts = 0;
+  const bad = rawMap.bad || 0;
+  rawMap.forEach((arr, id) => {
+    if (!arr || arr.length < 2) return;
+    arr.sort((a, b) => a.t - b.t);
+    let p = arr;
+    if (p.length > HIST_MAX_PTS) {                     /* 等距抽稀，控制渲染量 */
+      const step = (p.length - 1) / (HIST_MAX_PTS - 1);
+      const q = [];
+      for (let i = 0; i < HIST_MAX_PTS; i++) q.push(p[Math.round(i * step)]);
+      p = q;
+    }
+    tracks.push({ id, pts: p, _i: 0, _vis: null });
+  });
+  if (!tracks.length) throw new Error('没有解析到有效轨迹（每辆车至少需要 2 个定位点）');
+  tracks.sort((a, b) => b.pts.length - a.pts.length);
+  if (tracks.length > HIST_MAX_TRACKS) tracks = tracks.slice(0, HIST_MAX_TRACKS);
+
+  let t0 = Infinity, t1 = -Infinity;
+  pts = 0;
+  tracks.forEach(tr => {
+    tr.t0 = tr.pts[0].t;
+    tr.t1 = tr.pts[tr.pts.length - 1].t;
+    if (tr.t0 < t0) t0 = tr.t0;
+    if (tr.t1 > t1) t1 = tr.t1;
+    pts += tr.pts.length;
+  });
+  if (!isFinite(t0) || !isFinite(t1) || t1 <= t0) throw new Error('时间戳无法解析，或时间跨度为 0');
+
+  HIST.loaded = true;
+  HIST.name = name; HIST.source = source;
+  HIST.tracks = tracks; HIST.t0 = t0; HIST.t1 = t1;
+  HIST.pts = pts; HIST.bad = bad; HIST.sel = null;
+  HIST.cur = t0;
+  const sp = $('#rpSpeed');
+  HIST.speed = sp ? Number(sp.value) || 1 : 1;
+
+  setHistPlaying(false);
+  S.layers.hist = true;                 /* 新导入的数据默认可见，否则用户会以为没加载成功 */
+  syncLayerChips();
+  refreshVehMode();
+  renderHistLayer();
+  renderHistUI();
+  pushEvent(`轨迹回放：导入 <b>${tracks.length}</b> 辆车 / <b>${pts.toLocaleString('en-US')}</b> 个定位点（${source}）`, {});
+}
+
+/* ---------- 位置插值 ---------- */
+function histPosAt(tr, t) {
+  const p = tr.pts, n = p.length;
+  if (t <= p[0].t) return p[0];
+  if (t >= p[n - 1].t) return p[n - 1];
+  let i = tr._i || 0;
+  if (i < 0 || i > n - 2) i = 0;
+  while (i < n - 2 && p[i + 1].t <= t) i++;
+  while (i > 0 && p[i].t > t) i--;
+  tr._i = i;
+  const a = p[i], b = p[i + 1];
+  const span = b.t - a.t;
+  const r = span > 0 ? (t - a.t) / span : 0;
+  return { lng: a.lng + (b.lng - a.lng) * r, lat: a.lat + (b.lat - a.lat) * r };
+}
+
+function drawPathOf(tr) {
+  const p = tr.pts;
+  if (p.length <= HIST_DRAW_PTS) return p.map(q => [q.lng, q.lat]);
+  const step = (p.length - 1) / (HIST_DRAW_PTS - 1);
+  const out = [];
+  for (let i = 0; i < HIST_DRAW_PTS; i++) {
+    const q = p[Math.round(i * step)];
+    out.push([q.lng, q.lat]);
+  }
+  return out;
+}
+
+/* 历史轨迹车辆画成小方块，和仿真车辆的圆点在形状上区分开 */
+function histDotHtml(sel) {
+  const c = sel ? '#f97316' : '#0284c7';
+  const s = sel ? 10 : 7;
+  return `<div style="width:${s}px;height:${s}px;border-radius:${sel ? 2.5 : 1.5}px;background:${c};box-shadow:0 0 0 1.4px #fff"></div>`;
+}
+
+/* ---------- 图层渲染 ---------- */
+function renderHistLayer() {
+  if (!HIST.loaded) return;
+  if (useFallback) { initFallback(); return; }
+  if (!mapReady || !map) return;
+  if (ovHist) { map.remove(ovHist); ovHist = null; }
+  histMarkers = {};
+  histLines = [];
+  HIST._emph = null;                       /* 重建后强制重算强调态 */
+  ovHist = new AMap.OverlayGroup();
+  HIST.tracks.forEach(tr => {
+    const line = new AMap.Polyline({
+      path: drawPathOf(tr),
+      strokeColor: '#0ea5e9', strokeWeight: 1.1, strokeOpacity: 0.13,
+      lineJoin: 'round', lineCap: 'round', zIndex: 32
+    });
+    histLines.push(line);
+    ovHist.addOverlay(line);
+    const m = new AMap.Marker({
+      position: [tr.pts[0].lng, tr.pts[0].lat],
+      content: histDotHtml(false),
+      offset: new AMap.Pixel(-3.5, -3.5),
+      zIndex: 172,
+      extData: { id: tr.id }
+    });
+    m.on('click', () => selectHistTrack(tr.id));
+    histMarkers[tr.id] = m;
+    ovHist.addOverlay(m);
+  });
+  map.add(ovHist);
+  syncHist(true);
+  applyLayerVisibility();
+}
+
+/* 只看历史车辆时，仿真车队不再抢视线，历史路线可以画得更实一点 */
+function setHistEmphasis(on) {
+  histLines.forEach(l => {
+    if (l.setOptions) l.setOptions({ strokeOpacity: on ? 0.30 : 0.13, strokeWeight: on ? 1.6 : 1.1 });
+  });
+}
+
+function selectHistTrack(id) {
+  const tr = HIST.tracks.find(x => x.id === id);
+  if (!tr) return;
+  HIST.sel = id;
+  Object.keys(histMarkers).forEach(k => {
+    const m = histMarkers[k];
+    if (m) m.setContent(histDotHtml(k === id));
+  });
+  const p = histPosAt(tr, HIST.cur);
+  const st = $('#rpStat');
+  if (st) st.textContent = `选中 ${id} · ${tr.pts.length} 点`;
+  pushEvent(`轨迹回放：选中 <b>${id}</b>，共 <b>${tr.pts.length}</b> 个定位点，当前坐标 (${p.lng.toFixed(4)}, ${p.lat.toFixed(4)})`, {});
+}
+
+function syncHist(force) {
+  if (!HIST.loaded) return;
+  if (useFallback) { paintHistFallback(); updateReplayProgress(); return; }
+  if (!mapReady || !map) return;
+  const t = HIST.cur;
+  for (let i = 0; i < HIST.tracks.length; i++) {
+    const tr = HIST.tracks[i];
+    const m = histMarkers[tr.id];
+    if (!m) continue;
+    const vis = t >= tr.t0 - 1 && t <= tr.t1 + 1;
+    if (tr._vis !== vis) { tr._vis = vis; vis ? m.show() : m.hide(); }
+    if (!vis) continue;
+    const p = histPosAt(tr, t);
+    m.setPosition([p.lng, p.lat]);
+  }
+  updateReplayProgress();
+}
+
+function paintHistFallback() {
+  const g = $('#fbHist');
+  if (!g) return;
+  if (!HIST.loaded || S.layers.hist === false) { g.innerHTML = ''; return; }
+  const t = HIST.cur;
+  let s = '';
+  for (let i = 0; i < HIST.tracks.length; i++) {
+    const tr = HIST.tracks[i];
+    if (t < tr.t0 || t > tr.t1) continue;
+    const p = histPosAt(tr, t);
+    s += `<rect x="${(fbX(p.lng) - 2.4).toFixed(1)}" y="${(fbY(p.lat) - 2.4).toFixed(1)}" width="4.8" height="4.8" rx="1" fill="#0284c7" stroke="#fff" stroke-width="1"/>`;
+  }
+  g.innerHTML = s;
+}
+
+/* ---------- 回放控制 ---------- */
+function histTick() {
+  if (!HIST.playing || !HIST.loaded) return;
+  const span = Math.max(1000, HIST.t1 - HIST.t0);
+  /* 1× 时整段约 60 秒播完；每 120ms 推进一次 */
+  HIST.cur += span * HIST.speed / 500;
+  if (HIST.cur >= HIST.t1) { HIST.cur = HIST.t1; setHistPlaying(false); }
+  syncHist();
+}
+
+function setHistPlaying(v) {
+  HIST.playing = !!v;
+  const b = $('#rpPlay');
+  if (b) { b.textContent = v ? '❚❚' : '▶'; b.classList.toggle('on', !!v); }
+  if (v) {
+    if (histTimer) clearInterval(histTimer);
+    histTimer = setInterval(histTick, 120);
+  } else if (histTimer) {
+    clearInterval(histTimer);
+    histTimer = null;
+  }
+}
+
+function updateReplayProgress() {
+  if (!HIST.loaded) return;
+  const span = Math.max(1, HIST.t1 - HIST.t0);
+  const p = clamp((HIST.cur - HIST.t0) / span, 0, 1);
+  const seek = $('#rpSeek');
+  if (seek) {
+    seek.value = String(Math.round(p * 1000));
+    seek.style.setProperty('--p', (p * 100).toFixed(1) + '%');
+  }
+  const c = $('#rpCur');
+  if (c) c.textContent = fmtTs(HIST.cur);
+  const s = $('#histStat');
+  if (s && HIST.loaded) {
+    const row = s.querySelector('[data-live="cur"]');
+    if (row) row.textContent = fmtTs(HIST.cur);
+  }
+}
+
+function renderHistUI() {
+  const bar = $('#replayBar');
+  if (bar) bar.style.display = HIST.loaded ? '' : 'none';
+  const shell = $('.map-shell');
+  if (shell) shell.classList.toggle('rp-on', !!HIST.loaded);
+  const nm = $('#rpName');
+  if (nm) nm.textContent = HIST.loaded ? HIST.name : '—';
+  const en = $('#rpEnd');
+  if (en) en.textContent = HIST.loaded ? fmtTs(HIST.t1) : '--:--';
+  const st = $('#rpStat');
+  if (st) st.textContent = HIST.loaded ? `${HIST.tracks.length} 车 · ${HIST.pts} 点` : '—';
+  const meta = $('#histMeta');
+  if (meta) {
+    meta.innerHTML = HIST.loaded
+      ? `<span class="hi">已加载</span> ${HIST.name}<br>${HIST.tracks.length} 车 · ${HIST.pts.toLocaleString('en-US')} 点 · ${fmtTs(HIST.t0)}–${fmtTs(HIST.t1)}`
+      : '未加载 · 支持「车牌, 时间, 经度, 纬度」四列';
+  }
+  updateReplayProgress();
+  renderHistStat();
+}
+
+function renderHistStat() {
+  const el = $('#histStat');
+  if (el) {
+    const span = HIST.loaded ? (HIST.t1 - HIST.t0) / 60000 : 0;
+    el.innerHTML = HIST.loaded ? `
+      <div class="hist-stat-row"><span>数据集</span><b>${HIST.name}</b></div>
+      <div class="hist-stat-row"><span>来源</span><b>${HIST.source}</b></div>
+      <div class="hist-stat-row"><span>车辆数</span><b>${HIST.tracks.length}</b></div>
+      <div class="hist-stat-row"><span>定位点</span><b>${HIST.pts.toLocaleString('en-US')}</b></div>
+      <div class="hist-stat-row"><span>时间跨度</span><b>${fmtTs(HIST.t0)} – ${fmtTs(HIST.t1)} · ${span.toFixed(0)} min</b></div>
+      <div class="hist-stat-row"><span>当前进度</span><b data-live="cur">${fmtTs(HIST.cur)}</b></div>
+      ${HIST.bad ? `<div class="hist-stat-row"><span>丢弃记录</span><b>${HIST.bad}</b></div>` : ''}
+      <div class="dt-note">导入后在地图模块底部出现回放条：可拖动进度、切换倍速。轨迹按时间戳线性插值，车辆在两次行程之间的等客区间原地停留。</div>`
+      : `<div class="dt-note">尚未导入轨迹数据。点击下方「加载内置示例」可载入一份按郑州路网与开源时段特征合成的逐车轨迹，用于演示导入与回放流程；也可以导入自有 CSV / JSON。</div>`;
+  }
+  const t = $('#histFmtTable');
+  if (t) {
+    t.innerHTML = `<thead><tr><th style="width:28%">字段</th><th style="width:40%">CSV 列名（任一）</th><th style="width:32%">示例</th></tr></thead><tbody>
+      <tr><td><b>车辆标识</b></td><td>车牌 / plate / taxi_id / id</td><td class="n">豫A·T0231</td></tr>
+      <tr><td><b>时间戳</b></td><td>时间 / time / ts / timestamp</td><td class="n">2024-01-15 08:00:00</td></tr>
+      <tr><td><b>经度</b></td><td>经度 / lng / lon / x</td><td class="n">113.627000</td></tr>
+      <tr><td><b>纬度</b></td><td>纬度 / lat / y</td><td class="n">34.748000</td></tr>
+      <tr><td><b>速度</b>（可选）</td><td>速度 / speed</td><td class="n">18.5</td></tr>
+    </tbody>`;
+  }
+}
+
+/* ---------- 内置示例：按郑州路网与时段特征合成 ---------- */
+const DEMO_HOUR_W = [0.42,0.30,0.24,0.20,0.18,0.22,0.44,0.72,0.86,0.92,0.96,1.00,
+                     1.02,1.04,1.10,1.14,1.16,1.20,1.22,1.08,0.94,0.92,0.86,0.72];
+
+function makeDemoHist() {
+  let seed = 20260115;
+  const rs = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const base = new Date(2024, 0, 15, 6, 0, 0).getTime();
+  const HOURS = 6, N = 120;
+  const map = new Map();
+  for (let i = 0; i < N; i++) {
+    const id = '豫A·T' + String(1000 + (i * 37) % 8999).padStart(4, '0');
+    const pts = [];
+    let t = base + Math.floor(rs() * 100) * 60000;
+    let cur = ZONES[Math.floor(rs() * ZONES.length)];
+    pts.push({ t, lng: cur.lng, lat: cur.lat });
+    let guard = 0;
+    while (t < base + HOURS * 3600e3 && guard++ < 80) {
+      const w = DEMO_HOUR_W[new Date(t).getHours()] || 0.8;
+      t = Math.round(t + (3 + rs() * 11) * 60000 / Math.max(0.5, w));       /* 等客 */
+      if (t >= base + HOURS * 3600e3) break;
+      pts.push({ t, lng: cur.lng, lat: cur.lat });                          /* 等客结束仍在原地 */
+      const dst = ZONES[Math.floor(rs() * ZONES.length)];
+      const distKm = 2.2 + rs() * 8.5;
+      const kmh = 26 - 10 * Math.min(1, w) + rs() * 8;                      /* 高峰更堵 */
+      const durMs = Math.max(180e3, distKm / Math.max(8, kmh) * 3600e3);
+      const seg = 6 + Math.floor(rs() * 5);
+      /* 施加法向弯曲，让轨迹看起来像沿路网绕行而不是笔直的射线 */
+      const dx = dst.lng - cur.lng, dy = dst.lat - cur.lat;
+      const len = Math.hypot(dx, dy) || 1e-6;
+      const nx = -dy / len, ny = dx / len;
+      const bend = (0.12 + rs() * 0.20) * (rs() < 0.5 ? -1 : 1) * len;
+      for (let k = 1; k <= seg; k++) {
+        const r = k / seg;
+        const off = Math.sin(Math.PI * r) * bend;
+        pts.push({
+          t: Math.round(t + durMs * r),
+          lng: cur.lng + dx * r + nx * off + (rs() - 0.5) * 0.0016,
+          lat: cur.lat + dy * r + ny * off + (rs() - 0.5) * 0.0016
+        });
+      }
+      t = Math.round(t + durMs);
+      cur = dst;
+    }
+    if (pts.length > 3) map.set(id, pts);
+  }
+  return map;
+}
+
+function loadHistDemo() {
+  try {
+    applyHist(makeDemoHist(), '郑州主城区 · 早高峰逐车轨迹', '内置示例（合成）');
+    if (S.mod !== 'map') switchModule('map');
+  } catch (e) {
+    pushEvent(`轨迹示例加载失败：<b>${e.message}</b>`, {});
+  }
+}
+
+function downloadHistCsv() {
+  if (!HIST.loaded) loadHistDemo();
+  if (!HIST.loaded) return;
+  const p2 = n => String(n).padStart(2, '0');
+  const rows = ['plate,time,lng,lat'];
+  HIST.tracks.forEach(tr => tr.pts.forEach(p => {
+    const d = new Date(p.t);
+    const ts = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+    rows.push(`${tr.id},${ts},${p.lng.toFixed(6)},${p.lat.toFixed(6)}`);
+  }));
+  const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zz_taxi_tracks_sample.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  pushEvent(`轨迹回放：已导出示例 CSV，共 <b>${(rows.length - 1).toLocaleString('en-US')}</b> 行`, {});
+}
+
+function onHistFile(f) {
+  if (!f) return;
+  if (f.size > 48 * 1024 * 1024) { alert('文件过大（>48 MB），请先抽样或压缩后再导入'); return; }
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const map = parseHistText(String(rd.result));
+      applyHist(map, f.name, '本地文件');
+      if (S.mod !== 'map') switchModule('map');
+    } catch (e) {
+      alert('导入失败：' + e.message);
+      pushEvent(`轨迹导入失败：<b>${e.message}</b>`, {});
+    }
+  };
+  rd.onerror = () => alert('文件读取失败，请重试');
+  rd.readAsText(f, 'utf-8');
+}
+
+/* ---------- 车辆选择 / 调度面板 ---------- */
+function selectVehicle(id) {
+  const prev = S.selVeh;
+  S.selVeh = id;
+  const v = VEHICLES.find(x => x.id === id);
+  if (!v) return;
+  if (!v.cands) genCands(v);
+  RD.lastRoute = null;
+  RD.routeMsg = '规划中…';
+  if (ovRoute && map) { map.remove(ovRoute); ovRoute = null; }
+  renderDispatchPanel();
+  if (useFallback) { initFallback(); return; }
+  if (!mapReady) return;
+  applySelection(prev);
+  syncMap(true);
+  planRealRoute();
+}
+
+function renderDispatchPanel() {
+  const v = VEHICLES.find(x => x.id === S.selVeh);
+  if (!v) return;
+  const best = v.cands[0];
+  const z = best.z;
+  const gap = Math.round(z.demand - z.supply);
+  const bodyEl = $('#dpBody');
+  const keepTop = bodyEl ? bodyEl.scrollTop : 0;
+
+  const rl = (RD.lastRoute && RD.lastRoute.plate === v.plate) ? RD.lastRoute : null;
+  const cur = posAt(v);
+  const dist = rl ? rl.distance / 1000
+    : (Math.abs(z.lat - cur[0]) + Math.abs(z.lng - cur[1])) * 95;
+  const eta = rl ? Math.max(1, Math.round(rl.time / 60)) : Math.max(1, Math.round(dist * 2.1));
+  const routeSrc = rl ? '高德实时' : '估算';
+  const statusNow = v.status === 'busy' ? '载客中' : v.status === 'enroute' ? '前往中' : '待派单';
+
+  $('#dpTitle').innerHTML = `${v.plate} <span class="tag ${STATUS_TAG[v.status]}">${STATUS_TEXT[v.status]}</span>`;
+
+  $('#dpBody').innerHTML = `
+    <div class="dp-sec">
+      <div class="dp-sec-t"><span>派单建议</span><span class="tag blue">第 ${S.round} 轮</span></div>
+      <div style="display:flex;align-items:center;gap:9px;background:linear-gradient(120deg,#eef4ff,#f6f9ff);border:1px solid #dbe7ff;border-radius:10px;padding:10px 11px">
+        <div style="width:30px;height:30px;border-radius:8px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex:0 0 30px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:650;letter-spacing:-.2px">前往 ${z.name}</div>
+          <div style="font-size:10.5px;color:#64748b;margin-top:1px">
+            ${dist.toFixed(1)} km · ETA ${eta} min · <span style="color:${rl ? '#0d9488' : '#94a3b8'}">${routeSrc}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="num" style="font-size:16px;font-weight:660;color:#1d4ed8;letter-spacing:-.5px">${v.conf.toFixed(2)}</div>
+          <div style="font-size:9.5px;color:#94a3b8">置信度</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dp-sec">
+      <div class="dp-sec-t"><span>智能体链路</span><span class="tag violet">4 Agent</span></div>
+      <div class="chain-list">
+        <div class="ch-item"><i style="background:#2563eb"></i><b>态势感知</b><span>缺口 ${gap > 0 ? '+' : ''}${gap} · 需${Math.round(z.demand)}</span></div>
+        <div class="ch-item"><i style="background:#0891b2"></i><b>路径规划</b><span>${dist.toFixed(1)}km / ${eta}min</span></div>
+        <div class="ch-item"><i style="background:#7c3aed"></i><b>调度派单</b><span>${z.name} · ${best.score.toFixed(2)}</span></div>
+        <div class="ch-item"><i style="background:#d97706"></i><b>司机执行</b><span>${statusNow}</span></div>
+      </div>
+    </div>
+
+    <div class="dp-sec">
+      <div class="dp-sec-t"><span>候选区域评分</span><span>${v.cands.length} 个候选</span></div>
+      ${v.cands.map((c, i) => `
+        <div class="cand-row ${i === 0 ? 'best' : ''}">
+          <div class="cand-name">${c.z.name}</div>
+          <div class="cand-bar"><i style="width:${(c.score * 100).toFixed(0)}%"></i></div>
+          <div class="cand-score">${c.score.toFixed(2)}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="dp-sec">
+      <div class="dp-sec-t"><span>关键指标</span></div>
+      <div class="kv"><span>区域供需缺口</span><b style="color:${gap > 15 ? '#e11d48' : '#0d9488'}">${gap > 0 ? '+' : ''}${gap}</b></div>
+      <div class="kv"><span>预计净收益</span><b>¥${(best.score * 28 + 4).toFixed(1)}</b></div>
+      <div class="kv"><span>该区域在途车辆</span><b>${2 + Math.round(z.demand / 26)} 辆</b></div>
+      <div class="kv"><span>空驶成本</span><b>¥${(dist * 0.62).toFixed(1)}</b></div>
+      <div class="kv"><span>路径来源</span><b style="color:${rl ? '#0d9488' : '#94a3b8'}">${rl ? 'AMap.Driving' : '内置估算'}</b></div>
+    </div>
+
+    <div class="dp-sec" style="margin-bottom:0">
+      <div class="dp-sec-t"><span>决策依据</span><span class="tag violet">A3 推理</span></div>
+      <div class="reason-box">
+        <ol>
+          <li><b>${z.name}</b> 未来 15 min 需求上行 ${(6 + Math.round(z.demand) % 9).toFixed(1)}%，供需缺口 ${gap > 0 ? '+' : ''}${gap}。</li>
+          <li>高德路径规划返回 ${dist.toFixed(1)} km / ${eta} min，空驶成本约 ¥${(dist * 0.62).toFixed(1)}，低于预期净收益。</li>
+          <li>该区域在途车辆 ${2 + Math.round(z.demand / 26)} 辆，未触发聚集惩罚，派单不会造成运力扎堆。</li>
+        </ol>
+      </div>
+    </div>`;
+  if (bodyEl) bodyEl.scrollTop = keepTop;
+}
+
+/* ============================================================
+   决策图谱
+   ============================================================ */
+const CHAIN = ['weather_agent', 'perception_agent', 'p1', 'p2', 'p3',
+               'routing_agent', 'r1', 'r2', 'r3',
+               'dispatch_agent', 'd1', 'd2', 'd3',
+               'driver_agent', 'e1', 'e2', 'e3',
+               'result', 'feedback'];
+let graphStep = 0, graphTimer = null, graphDrawn = false;
+
+function port(n, p) {
+  if (typeof p === 'string' && p.indexOf('@') > 0) {
+    const dir = p.slice(0, p.indexOf('@'));
+    const f = Number(p.slice(p.indexOf('@') + 1));
+    if (dir === 'bottom') return [n.x + n.w * f, n.y + n.h];
+    if (dir === 'top') return [n.x + n.w * f, n.y];
+  }
+  if (p === 'right') return [n.x + n.w, n.y + n.h / 2];
+  if (p === 'left') return [n.x, n.y + n.h / 2];
+  if (p === 'bottom') return [n.x + n.w / 2, n.y + n.h];
+  return [n.x + n.w / 2, n.y];
+}
+
+function edgeD(a, b, fp, tp) {
+  const [x1, y1] = port(a, fp), [x2, y2] = port(b, tp);
+  if (fp === 'left' && tp === 'left') {
+    const xo = Math.min(x1, x2) - 38;
+    return `M${x1},${y1} C${xo},${y1} ${xo},${y2} ${x2},${y2}`;
+  }
+  if (fp === 'right' && tp === 'left') {
+    if (Math.abs(y1 - y2) < 2) return `M${x1},${y1} L${x2},${y2}`;
+    const mx = (x1 + x2) / 2;
+    return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+  }
+  if (Math.abs(x1 - x2) < 2) return `M${x1},${y1} L${x2},${y2}`;
+  const my = (y1 + y2) / 2;
+  return `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`;
+}
+
+function drawGraph() {
+  const svg = $('#decisionGraph');
+  if (!svg) return;
+
+  let html = `<defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#93a9c4"/></marker>
+    <marker id="arwHot" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="arwFb" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b7a4f5"/></marker>`;
+
+  /* 泳道渐变 */
+  AGENTS4.forEach((a, i) => {
+    html += `<linearGradient id="lg${i}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${a.color}" stop-opacity=".10"/>
+      <stop offset="100%" stop-color="${a.color}" stop-opacity=".02"/></linearGradient>`;
+  });
+  html += `</defs>`;
+
+  /* 泳道背景 */
+  AGENTS4.forEach((a, i) => {
+    html += `<rect x="${COLX[i] - 4}" y="134" width="${CW + 8}" height="340" rx="14"
+      fill="url(#lg${i})" stroke="${a.color}" stroke-opacity=".20" stroke-width="1.1"/>`;
+  });
+
+  /* 列标题 */
+  AGENTS4.forEach((a, i) => {
+    html += `<text class="gcol-label" x="${COLX[i] + 2}" y="126" fill="${a.color}">${a.code} · ${a.name}</text>`;
+  });
+
+  /* 边 */
+  GEDGES.forEach((e, i) => {
+    const a = GMAP[e.from], b = GMAP[e.to];
+    if (!a || !b) return;
+    const isFb = e.type === 'feedback';
+    html += `<path class="gedge ${isFb ? 'feedback' : ''} ${e.chain ? 'chain' : ''}"
+      data-e="${i}" data-from="${e.from}" data-to="${e.to}"
+      d="${edgeD(a, b, e.fp || 'right', e.tp || 'left')}"
+      marker-end="url(#${isFb ? 'arwFb' : 'arw'})"/>`;
+  });
+
+  /* 节点 */
+  GNODES.forEach(n => {
+    const c = KIND_COLOR[n.kind] || '#64748b';
+    if (n.isAgent && n.wide) {
+      const w1 = WEATHER.text, w2 = WEATHER.temp, w3 = '×' + WEATHER.impact.toFixed(2);
+      html += `<g class="gnode agent-node" data-id="${n.id}" transform="translate(${n.x},${n.y})">
+        <rect class="nrect" width="${n.w}" height="${n.h}" rx="13" fill="#ffffff" stroke="${c}" stroke-opacity=".34"/>
+        <rect x="0" y="10" width="3.6" height="${n.h - 20}" rx="2" fill="${c}"/>
+        <text x="${n.w - 14}" y="20" text-anchor="end" font-size="9.5" font-weight="700"
+          fill="${c}" fill-opacity=".55" font-family="inherit">${n.code} · ENV INPUT</text>
+        <text class="ntitle" x="16" y="32" fill="#0d1526">${n.label}</text>
+        <text class="nsub" x="16" y="50" fill="${c}" fill-opacity=".75">${n.sub}</text>
+        <g transform="translate(16,${n.h - 12})">
+          <circle cx="3" cy="3" r="2.6" fill="${c}">
+            <animate attributeName="opacity" values="1;.25;1" dur="1.9s" repeatCount="indefinite"/></circle>
+          <text x="10" y="6" font-size="8" fill="${c}" fill-opacity=".62" font-family="inherit">polling · ${WEATHER.src}</text>
+        </g>
+        <g transform="translate(${n.w - 600},0)">
+          <line x1="0" y1="14" x2="0" y2="${n.h - 14}" stroke="${c}" stroke-opacity=".18"/>
+          <text x="20" y="30" font-size="9" fill="#8a97a8" font-family="inherit">实时天气</text>
+          <text x="20" y="50" font-size="15" font-weight="650" fill="#0d1526" font-family="inherit">${w1}</text>
+          <line x1="137" y1="14" x2="137" y2="${n.h - 14}" stroke="${c}" stroke-opacity=".12"/>
+          <text x="157" y="30" font-size="9" fill="#8a97a8" font-family="inherit">温度 / 湿度</text>
+          <text x="157" y="50" font-size="15" font-weight="650" fill="#0d1526" font-family="inherit">${w2} · ${WEATHER.humidity}</text>
+          <line x1="274" y1="14" x2="274" y2="${n.h - 14}" stroke="${c}" stroke-opacity=".12"/>
+          <text x="294" y="30" font-size="9" fill="#8a97a8" font-family="inherit">需求影响系数</text>
+          <text x="294" y="50" font-size="15" font-weight="650" fill="${WEATHER.impact > 1.15 ? '#e11d48' : '#0d9488'}" font-family="inherit">${w3}</text>
+          <line x1="411" y1="14" x2="411" y2="${n.h - 14}" stroke="${c}" stroke-opacity=".12"/>
+          <text x="431" y="30" font-size="9" fill="#8a97a8" font-family="inherit">影响对象</text>
+          <text x="431" y="50" font-size="11.5" fill="#4a5568" font-family="inherit">A1 需求 / A2 ETA</text>
+        </g>
+      </g>`;
+      return;
+    }
+    if (n.isAgent) {
+      html += `<g class="gnode agent-node" data-id="${n.id}" transform="translate(${n.x},${n.y})">
+        <rect class="nrect" width="${n.w}" height="${n.h}" rx="12" fill="#ffffff" stroke="${c}" stroke-opacity=".38"/>
+        <rect x="0" y="10" width="3.6" height="${n.h - 20}" rx="2" fill="${c}"/>
+        <text x="${n.w - 12}" y="20" text-anchor="end" font-size="9.5" font-weight="700"
+          fill="${c}" fill-opacity=".55" font-family="inherit">${n.code}</text>
+        <text class="ntitle" x="14" y="32" fill="#0d1526">${n.label}</text>
+        <text class="nsub" x="14" y="50" fill="${c}" fill-opacity=".72">${n.sub}</text>
+        <g transform="translate(14,${n.h - 14})">
+          <circle cx="3" cy="3" r="2.6" fill="${c}">
+            <animate attributeName="opacity" values="1;.25;1" dur="1.9s" repeatCount="indefinite"/></circle>
+          <text x="10" y="6" font-size="8" fill="${c}" fill-opacity=".62" font-family="inherit">running</text>
+        </g>
+      </g>`;
+      return;
+    }
+    const big = n.id === 'result' || n.id === 'feedback';
+    html += `<g class="gnode" data-id="${n.id}" transform="translate(${n.x},${n.y})">
+      <rect class="nrect" width="${n.w}" height="${n.h}" rx="9"/>
+      <rect class="nbar" x="0" y="9" width="3.2" height="${n.h - 18}" rx="2" fill="${c}"/>
+      <text class="ntitle" x="14" y="${big ? 25 : 23}">${n.label}</text>
+      <text class="nsub" x="14" y="${big ? 43 : 40}">${n.sub}</text>
+      ${big ? `<text x="${n.w - 14}" y="${n.h / 2 + 4}" text-anchor="end" font-size="9"
+        fill="${c}" fill-opacity=".55" font-family="inherit">${n.id === 'result' ? 'RESULT' : 'MEMORY'}</text>` : ''}
+    </g>`;
+  });
+
+  svg.innerHTML = html;
+  graphDrawn = true;
+
+  $$('.gnode', svg).forEach(g => {
+    g.addEventListener('click', () => selectNode(g.dataset.id));
+    if (S.selNode && g.dataset.id === S.selNode) g.classList.add('sel');
+  });
+  if (S.focusMain) applyFocus(true);
+  setActiveStep(graphStep);
+}
+
+function applyFocus(on) {
+  const svg = document.getElementById('decisionGraph');
+  if (!svg) return;
+  const mainIds = new Set(CHAIN);
+  svg.querySelectorAll('.gnode').forEach(g => {
+    g.style.opacity = on && !mainIds.has(g.dataset.id) ? 0.16 : 1;
+  });
+  svg.querySelectorAll('.gedge').forEach(p => {
+    const keep = mainIds.has(p.dataset.from) && mainIds.has(p.dataset.to);
+    p.style.opacity = on && !keep ? 0.12 : 1;
+  });
+}
+
+function selectNode(id) {
+  S.selNode = id;
+  const n = GMAP[id], d = NODE_DETAIL[id];
+  if (!n || !d) return;
+  $$('.gnode').forEach(g => g.classList.toggle('sel', g.dataset.id === id));
+  $('#gpTitle').textContent = n.label;
+  const up = GEDGES.filter(e => e.to === id).map(e => GMAP[e.from]).filter(Boolean);
+  const down = GEDGES.filter(e => e.from === id).map(e => GMAP[e.to]).filter(Boolean);
+  const c = KIND_COLOR[n.kind] || '#64748b';
+  const agent = AGENT_MAP[n.kind];
+  $('#gpBody').innerHTML = `
+    <div class="gp-sec">
+      <span class="tag" style="background:${c}18;color:${c}">${d.phase}</span>
+      <p style="font-size:12px;color:var(--ink-2);line-height:1.68;margin-top:9px">${d.desc}</p>
+      ${agent ? `<div style="margin-top:9px;padding:8px 10px;background:${c}0d;border:1px solid ${c}22;border-radius:8px;font-size:11.5px;color:var(--ink-2);line-height:1.6">
+        <b style="color:${c}">职责</b>　${agent.duty}</div>` : ''}
+    </div>
+    <div class="gp-sec">
+      <div class="gp-sec-t">输入</div>
+      <ul class="io-list">${d.inputs.map(x => `<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="gp-sec">
+      <div class="gp-sec-t">输出</div>
+      <ul class="io-list">${d.outputs.map(x => `<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="gp-sec">
+      <div class="gp-sec-t">运行指标</div>
+      <div class="metric-mini">
+        ${d.metrics.map(m => `<div class="mm"><div class="mm-l">${m[0]}</div><div class="mm-v">${m[1]}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="gp-sec" style="margin-bottom:0">
+      <div class="gp-sec-t">图结构关系</div>
+      <div style="font-size:11.5px;color:var(--ink-2);line-height:1.9">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span style="color:var(--ink-3);flex:0 0 42px">上游</span>
+          ${up.length ? up.map(u => `<button class="chip" data-jump="${u.id}" style="font-size:10.5px;padding:2px 7px">${u.label}</button>`).join('') : '<span style="color:var(--ink-3)">—</span>'}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+          <span style="color:var(--ink-3);flex:0 0 42px">下游</span>
+          ${down.length ? down.map(u => `<button class="chip" data-jump="${u.id}" style="font-size:10.5px;padding:2px 7px">${u.label}</button>`).join('') : '<span style="color:var(--ink-3)">—</span>'}
+        </div>
+      </div>
+    </div>`;
+  $$('#gpBody [data-jump]').forEach(b => b.addEventListener('click', () => selectNode(b.dataset.jump)));
+}
+
+function setActiveStep(step) {
+  const svg = $('#decisionGraph');
+  if (!svg || !graphDrawn) return;
+  graphStep = ((step % CHAIN.length) + CHAIN.length) % CHAIN.length;
+  const id = CHAIN[graphStep];
+  $$('.gedge', svg).forEach(p => {
+    p.classList.remove('hot');
+    p.setAttribute('marker-end', `url(#${p.classList.contains('feedback') ? 'arwFb' : 'arw'})`);
+  });
+  $$('.gnode', svg).forEach(g => g.classList.remove('pulse'));
+  if (!S.showFlow) return;
+  $$(`.gedge[data-to="${id}"]`, svg).forEach(p => {
+    p.classList.add('hot');
+    p.setAttribute('marker-end', 'url(#arwHot)');
+  });
+  const g = $(`.gnode[data-id="${id}"]`, svg);
+  if (g) g.classList.add('pulse');
+}
+
+function startGraphLoop() {
+  if (graphTimer) return;
+  graphTimer = setInterval(() => {
+    if (S.mod !== 'graph' || S.paused) return;
+    setActiveStep(graphStep + 1);
+  }, 900);
+}
+
+/* ============================================================
+   仿真循环
+   ============================================================ */
+function updateClock() {
+  const c = $('#simClock');
+  if (c) c.textContent = fmtClock(S.clock);
+  const s = $('#simStatus');
+  if (s) s.textContent = (S.paused ? '已暂停' : '运行中') + ` · 第 ${S.round} 轮`;
+  const d = $('#simDot');
+  if (d) d.classList.toggle('paused', S.paused);
+  const b = $('#btnToggleSim');
+  if (b) b.textContent = S.paused ? '继续仿真' : '暂停仿真';
+}
+
+function tickOnce() {
+  S.tick++;
+  S.clock += 1.2 * S.speed;
+  if (S.clock >= 1440) { S.clock -= 1440; S.round++; }
+
+  /* 历史数据驱动：当前时刻的订单强度与平均速度（1.00 = 全天均值） */
+  const hh = thHour();
+  const inten = thIntensity(hh);
+  const sfac = thSpeedFactor(hh);
+  const norm = thNorm(hh);
+
+  VEHICLES.forEach(v => {
+    v.t += v.speed * S.speed * 9 * (0.62 + 0.38 * sfac);
+    if (v.t > 1) { v.t -= 1; v.gain = 0; genCands(v); }
+    v.gain += 0.3 * S.speed;
+  });
+
+  /* 区域需求跟随历史时段曲线：高峰抬升、凌晨回落 */
+  const wBias = WEATHER.impact > 1.15 ? 1.45 : 1.0;
+  const dTarget = 30 + 56 * norm;
+  const sTarget = 34 + 44 * norm;
+  ZONES.forEach(z => {
+    z.demand = clamp(z.demand + (dTarget - z.demand) * 0.045 + rnd(-1.1, 1.1) * wBias, 30, 99);
+    z.supply = clamp(z.supply + (sTarget - z.supply) * 0.03 + rnd(-0.9, 0.9), 30, 96);
+  });
+
+  updateClock();
+  syncMap();
+  renderDispatchPanel();
+
+  if (S.tick % 3 === 0 && S.mod === 'overview') { renderGapList(); renderCollabPanel(); }
+  if (S.tick % 4 === 0) updateDtLive();
+
+  if (S.tick % 2 === 0) {
+    const v = pick(VEHICLES);
+    const tpl = pick(EVENT_POOL);
+    const z = pick(ZONES);
+    pushEvent(tpl.txt, {
+      plate: v.plate, zone: z.name, conf: (0.6 + Math.random() * 0.35).toFixed(2),
+      pct: (3 + Math.random() * 9).toFixed(1), money: (12 + Math.random() * 26).toFixed(1),
+      gap: String(Math.round(Math.abs(z.demand - z.supply))).padStart(2, '0')
+    });
+  }
+}
+
+function loop() {
+  if (S.paused) return;
+  tickOnce();
+}
+
+/* ============================================================
+   事件绑定 & 初始化
+   ============================================================ */
+$('#btnToggleSim').addEventListener('click', () => { S.paused = !S.paused; updateClock(); });
+
+/* ---- 历史轨迹：导入 / 回放控件 ---- */
+$('#btnHistDemo').addEventListener('click', loadHistDemo);
+$('#histFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  onHistFile(f);
+  e.target.value = '';
+});
+$('#btnHistDemo2').addEventListener('click', loadHistDemo);
+$('#btnHistFile2').addEventListener('click', () => $('#histFile').click());
+$('#btnHistDl').addEventListener('click', downloadHistCsv);
+$('#rpPlay').addEventListener('click', () => {
+  if (!HIST.loaded) { loadHistDemo(); return; }
+  if (HIST.cur >= HIST.t1) HIST.cur = HIST.t0;      /* 播完后再点从头开始 */
+  setHistPlaying(!HIST.playing);
+});
+$('#rpSeek').addEventListener('input', e => {
+  if (!HIST.loaded) return;
+  const p = Number(e.target.value) / 1000;
+  HIST.cur = HIST.t0 + (HIST.t1 - HIST.t0) * p;
+  syncHist();
+});
+$('#rpSpeed').addEventListener('change', e => { HIST.speed = Number(e.target.value) || 1; });
+$('#rpClose').addEventListener('click', () => {
+  setHistPlaying(false);
+  HIST.cur = HIST.t0;
+  syncHist();
+});
+$('#speedSel').addEventListener('change', e => { S.speed = Number(e.target.value); });
+$('#btnPrevVeh').addEventListener('click', () => {
+  const i = VEHICLES.findIndex(v => v.id === S.selVeh);
+  selectVehicle(VEHICLES[(i - 1 + VEHICLES.length) % VEHICLES.length].id);
+});
+$('#btnTraceGraph').addEventListener('click', () => {
+  switchModule('graph');
+  setTimeout(() => { selectNode('dispatch_agent'); setActiveStep(CHAIN.indexOf('dispatch_agent')); }, 140);
+});
+$$('.chip[data-layer]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const k = btn.dataset.layer;
+    S.layers[k] = (S.layers[k] === false);      /* 取反 */
+    syncLayerChips();
+    refreshVehMode();                            /* 手工点 chip 时三档按钮跟着变灰/高亮 */
+    applyLayerVisibility();
+    if (mapReady) syncMap(true);
+    if (useFallback) initFallback();
+  });
+});
+$$('#vehMode .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => setVehMode(btn.dataset.mode));
+});
+$('#gtFlow').addEventListener('click', e => {
+  S.showFlow = !S.showFlow;
+  e.currentTarget.classList.toggle('on', S.showFlow);
+  setActiveStep(graphStep);
+});
+$('#gtReplay').addEventListener('click', () => {
+  graphStep = 0;
+  S.showFlow = true;
+  $('#gtFlow').classList.add('on');
+  let i = 0;
+  const t = setInterval(() => {
+    setActiveStep(i++);
+    if (i > CHAIN.length) clearInterval(t);
+  }, 380);
+});
+$('#gtFocus').addEventListener('click', e => {
+  S.focusMain = !S.focusMain;
+  e.currentTarget.classList.toggle('on', S.focusMain);
+  applyFocus(S.focusMain);
+});
+
+const MODULE_META = {
+  overview: ['态势总览', '郑州市主城区 · 出租车运力供需与调度效果实时监控'],
+  map:      ['城市调度地图', '郑州市主城区 · 区域需求、车辆分布与调度轨迹'],
+  graph:    ['决策图谱', '5 个智能体的协作过程图结构 · 天气 → 态势感知 → 路径规划 → 调度派单 → 司机执行'],
+  agents:   ['司机智能体', '差异化收益偏好与推荐接受倾向的多智能体群体'],
+  exp:      ['对比实验', '四组调度策略在相同订单流下的指标对比'],
+  data:     ['历史数据标定', '开源历史出租车数据 · 清洗统计与仿真参数标定'],
+  about:    ['项目说明', 'MobilityPilot · 郑州大学首届 AI 智能体创新应用大赛']
+};
+
+function switchModule(mod) {
+  S.mod = mod;
+  $$('.module').forEach(m => m.classList.toggle('active', m.dataset.mod === mod));
+  $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  const [t, d] = MODULE_META[mod] || ['', ''];
+  $('#pageTitle').textContent = t;
+  $('#pageDesc').textContent = d;
+  if (mod === 'map') setTimeout(() => { initMap(); syncMap(true); if (HIST.loaded) renderHistLayer(); }, 40);
+  if (mod === 'graph') setTimeout(() => { drawGraph(); }, 20);
+  if (mod === 'data') setTimeout(() => { renderTaxiData(); renderHistStat(); }, 10);
+}
+$$('.nav-item').forEach(b => b.addEventListener('click', () => switchModule(b.dataset.mod)));
+
+/* ============================================================
+   全局状态
+   ============================================================ */
+const S = {
+  mod: 'overview', tick: 0, clock: 8 * 60, paused: false, speed: 1,
+  selVeh: 'V1', selNode: null, showFlow: true, focusMain: false,
+  events: [], round: 1,
+  layers: { zone: true, veh: true, traj: true, label: true, hist: true }
+};
+
+/* ============================================================
+   总览渲染
+   ============================================================ */
+function renderKPIs() {
+  $('#kpiGrid').innerHTML = KPIS.map((k, i) => {
+    const pts = k.spark, max = Math.max(...pts), min = Math.min(...pts);
+    const d = pts.map((v, j) => {
+      const x = (j / (pts.length - 1)) * 62;
+      const y = 22 - ((v - min) / (max - min || 1)) * 18;
+      return `${j ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    return `<div class="kpi ${k.color}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val num">${k.val}<span>${k.unit}</span></div>
+      <div class="kpi-sub ${k.dir}">${k.sub}</div>
+      <svg class="spark" width="62" height="24" viewBox="0 0 62 24" fill="none">
+        <path d="${d}" stroke="#93b4e8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>`;
+  }).join('');
+}
+
+function renderDemandChart() {
+  const N = 28;
+  const demand = [], supply = [];
+  for (let i = 0; i < N; i++) {
+    const h = 6 + i * 0.5;
+    const base = 46 + 34 * Math.exp(-Math.pow((h - 8.6) / 1.5, 2)) + 40 * Math.exp(-Math.pow((h - 18.2) / 2.1, 2));
+    demand.push(clamp(base + Math.sin(i * 0.9) * 5, 18, 98));
+    supply.push(clamp(52 + Math.cos(i * 0.55) * 8 + i * 0.4, 20, 92));
+  }
+  const W = 560, H = 176, PL = 26, PB = 20;
+  const px = i => PL + (i / (N - 1)) * (W - PL - 8);
+  const py = v => H - PB - (v / 100) * (H - PB - 10);
+  const line = arr => arr.map((v, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
+  const area = arr => `${line(arr)} L${px(N - 1).toFixed(1)},${H - PB} L${PL},${H - PB} Z`;
+  const gridY = [0, 25, 50, 75, 100].map(v =>
+    `<line x1="${PL}" y1="${py(v)}" x2="${W - 8}" y2="${py(v)}" stroke="#eef2f7" stroke-width="1"/>
+     <text x="2" y="${py(v) + 3}" font-size="8.5" fill="#a8b4c4">${v}</text>`).join('');
+  const labels = ['06:00', '09:00', '12:00', '15:00', '18:00', '20:00'].map((t, i) => {
+    const x = PL + (i / 5) * (W - PL - 8);
+    return `<text x="${x}" y="${H - 6}" font-size="8.5" fill="#a8b4c4" text-anchor="middle">${t}</text>`;
+  }).join('');
+  $('#demandChart').innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gDem" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2563eb" stop-opacity=".20"/>
+          <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${gridY}${labels}
+      <path d="${area(demand)}" fill="url(#gDem)"/>
+      <path d="${line(demand)}" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+      <path d="${line(supply)}" fill="none" stroke="#0d9488" stroke-width="1.8" stroke-dasharray="4 3" stroke-linecap="round"/>
+      <circle cx="${px(N - 1)}" cy="${py(demand[N - 1])}" r="3" fill="#2563eb" stroke="#fff" stroke-width="1.6"/>
+      <circle cx="${px(N - 1)}" cy="${py(supply[N - 1])}" r="3" fill="#0d9488" stroke="#fff" stroke-width="1.6"/>
+    </svg>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--ink-2)">
+      <span style="display:flex;align-items:center;gap:5px"><i style="width:14px;height:0;border-top:2px solid #2563eb"></i>需求强度</span>
+      <span style="display:flex;align-items:center;gap:5px"><i style="width:14px;height:0;border-top:2px dashed #0d9488"></i>可用运力</span>
+      <span style="margin-left:auto;color:var(--ink-3)">缺口区域已标红引导</span>
+    </div>`;
+}
+
+function renderGapList() {
+  const rows = ZONES.map(z => ({ ...z, gap: Math.round(z.demand - z.supply) })).sort((a, b) => b.gap - a.gap).slice(0, 8);
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.gap)), 1);
+  $('#gapList').innerHTML = rows.map(z => {
+    const pos = z.gap >= 0;
+    const w = (Math.abs(z.gap) / maxAbs) * 100;
+    const color = pos ? (z.gap > 18 ? '#e11d48' : '#d97706') : '#0d9488';
+    return `<div class="gap-row">
+      <div class="gap-name">${z.name}</div>
+      <div class="gap-bar"><div class="gap-fill" style="width:${w}%;background:${color}"></div></div>
+      <div class="gap-val" style="color:${color}">${pos ? '+' : ''}${z.gap}</div>
+    </div>`;
+  }).join('');
+}
+
+function pushEvent(tpl, data) {
+  let txt = tpl;
+  Object.keys(data).forEach(k => { txt = txt.replaceAll(`{${k}}`, data[k]); });
+  S.events.unshift({ time: fmtClock(S.clock), txt, color: pick(['#2563eb', '#0d9488', '#d97706', '#7c3aed']) });
+  if (S.events.length > 40) S.events.pop();
+  renderFeed();
+}
+function renderFeed() {
+  const el = $('#eventFeed');
+  if (!el) return;
+  el.innerHTML = S.events.slice(0, 14).map(e =>
+    `<div class="feed-item"><div class="feed-time">${e.time}</div><i class="feed-dot" style="background:${e.color}"></i><div class="feed-text">${e.txt}</div></div>`
+  ).join('');
+}
+
+/* ============================================================
+   司机智能体
+   ============================================================ */
+function renderAgents() {
+  $('#agentGrid').innerHTML = AGENTS.map(a => `
+    <div class="ag-card" data-id="${a.id}">
+      <div class="ag-top">
+        <div class="ag-avatar" style="background:${a.color}">${a.id.slice(1)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="ag-name">${a.name}</div>
+          <div class="ag-meta">${a.plate} · ${a.type}</div>
+        </div>
+        <span class="tag ${a.acc > 0.7 ? 'teal' : a.acc > 0.5 ? 'blue' : 'gray'}">${a.mood}</span>
+      </div>
+      <div class="ag-stats">
+        <div class="ag-stat"><b>${a.acc.toFixed(2)}</b><span>接受率</span></div>
+        <div class="ag-stat"><b>${a.earn.toFixed(1)}</b><span>今日收益 ¥</span></div>
+        <div class="ag-stat"><b>${a.runs}</b><span>完成单数</span></div>
+      </div>
+      <div class="pref-bar"><span style="flex:0 0 48px">收益敏感</span>
+        <div class="pref-track"><i style="width:${a.sens * 100}%;background:${a.color}"></i></div>
+        <span class="num" style="flex:0 0 26px;text-align:right">${a.sens.toFixed(2)}</span></div>
+      <div class="pref-bar"><span style="flex:0 0 48px">接受阈值</span>
+        <div class="pref-track"><i style="width:${a.thr * 100}%;background:#94a3b8"></i></div>
+        <span class="num" style="flex:0 0 26px;text-align:right">${a.thr.toFixed(2)}</span></div>
+      <div class="ag-trait" style="margin-top:9px">
+        <span class="tag gray">偏好 ${a.pref}</span>
+        <span class="tag blue">协同权重 ${(a.sens * a.acc).toFixed(2)}</span>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   历史数据标定（NYC TLC 2024-01）
+   ============================================================ */
+const TH = TAXI_HISTORY;
+const TH_MEAN = TH.hourly.reduce((a, x) => a + x.share, 0) / TH.hourly.length;
+const TH_MAXS = Math.max.apply(null, TH.hourly.map(x => x.share));
+const TH_MINS = Math.min.apply(null, TH.hourly.map(x => x.share));
+const DT_C = { W: 640, H: 262, L: 46, R: 48, T: 18, B: 36 };
+
+/* 当前仿真时刻 -> 历史强度 / 速度 */
+function thHour() { return Math.floor(S.clock / 60) % 24; }
+function thIntensity(h) { return TH.hourly[h].share / TH_MEAN; }
+function thSpeedFactor(h) { return TH.hourly[h].speed / TH.kpi.avg_speed_kmh; }
+function thNorm(h) { return clamp((thIntensity(h) - 0.10) / 1.65, 0, 1); }
+function dtNum(n) { return Number(n).toLocaleString('en-US'); }
+function dtCurveX(h) { return DT_C.L + h / 23 * (DT_C.W - DT_C.L - DT_C.R); }
+
+function renderTaxiData() {
+  renderZzData();
+  renderDtFunnel();
+  renderDtKpi();
+  renderDtCurve();
+  renderDtBars();
+  renderDtHeat();
+  renderDtMap();
+  updateDtLive();
+}
+
+/* ---- 郑州本地派生指标 ---- */
+const ZZ = (function () {
+  const c = ZZ_TAXI.cruise, r = ZZ_TAXI.ridehail;
+  const latest = r.series[r.series.length - 1];
+  const cruiseDailyPax = c.annualPax / 365;
+  const rideDailyOrders = latest.op * latest.orders;
+  const rideDailyPax = rideDailyOrders * 1.35;      /* 郑州单人乘车为主，按 1.35 人/单折算 */
+  const total = cruiseDailyPax + rideDailyPax;
+  return {
+    cruiseDailyPax: cruiseDailyPax, rideDailyOrders: rideDailyOrders, rideDailyPax: rideDailyPax,
+    totalDailyPax: total,
+    cruiseShare: cruiseDailyPax / total * 100,
+    rideShare: rideDailyPax / total * 100,
+    perCarPax: cruiseDailyPax / c.cars,
+    latest: latest
+  };
+})();
+
+function renderZzData() {
+  renderZzMix();
+  renderZzKpi();
+  renderZzTable();
+  renderZzStruct();
+}
+
+function renderZzMix() {
+  const el = document.getElementById('zzMix');
+  if (!el) return;
+  const rows = [
+    ['巡游出租车', ZZ.cruiseDailyPax, ZZ.cruiseShare, '#2563eb'],
+    ['网约车', ZZ.rideDailyPax, ZZ.rideShare, '#7c3aed']
+  ];
+  const bar = function (pct, color) {
+    return '<div class="dt-fn-bar"><i style="width:' + pct.toFixed(1) + '%;background:' + color + '">' +
+      (pct >= 28 ? pct.toFixed(1) + '%' : '') + '</i></div>';
+  };
+  el.innerHTML = rows.map(function (r) {
+    return '<div><div class="dt-fn"><span>' + r[0] + '</span><span>' + (r[1] / 1e4).toFixed(1) + ' 万人次/日</span></div>' +
+      bar(r[2], r[3]) + '</div>';
+  }).join('') +
+    '<div><div class="dt-fn"><span>合计日均客运量</span><span>' + (ZZ.totalDailyPax / 1e4).toFixed(1) + ' 万人次/日</span></div>' +
+    bar(100, '#94a3b8') + '</div>';
+}
+
+function renderZzKpi() {
+  const el = document.getElementById('zzKpi');
+  if (!el) return;
+  const c = ZZ_TAXI.cruise, r = ZZ_TAXI.ridehail;
+  const items = [
+    ['巡游出租车', dtNum(c.cars), '台', c.companies + ' 家公司 + ' + c.unions + ' 个个体联队'],
+    ['年客运量', '2.9', '亿人次', '日均 ' + (ZZ.cruiseDailyPax / 1e4).toFixed(1) + ' 万人次'],
+    ['日均客运量', (ZZ.totalDailyPax / 1e4).toFixed(1), '万人次', '巡游 + 网约合计（推算）'],
+    ['网约车持证', (r.certs / 10000).toFixed(2), '万本', r.platforms + ' 家平台 · 在岗 ' + (25900 / 10000).toFixed(2) + ' 万人'],
+    ['网约日均运营', (ZZ.latest.op / 10000).toFixed(2), '万台', '占持证 ' + ZZ.latest.share.toFixed(1) + '%'],
+    ['网约单车日均', ZZ.latest.orders.toFixed(1), '单', '营运 ' + ZZ.latest.hours.toFixed(1) + ' h · 流水 ¥' + ZZ.latest.gross.toFixed(0)]
+  ];
+  el.innerHTML = items.map(function (it) {
+    return '<div class="dt-k"><b>' + it[1] + '<small>' + it[2] + '</small></b>' +
+      '<span>' + it[0] + '</span><em>' + it[3] + '</em></div>';
+  }).join('');
+}
+
+function renderZzTable() {
+  const el = document.getElementById('zzTable');
+  if (!el) return;
+  const ser = ZZ_TAXI.ridehail.series;
+  el.innerHTML = '<thead><tr><th style="width:15%">统计期</th><th style="width:19%">日均运营</th>' +
+    '<th style="width:13%">占比</th><th style="width:19%">单车日均订单</th>' +
+    '<th style="width:18%">单车日均流水</th><th style="width:16%">客单均价</th></tr></thead><tbody>' +
+    ser.map(function (d, i) {
+      const avg = d.avg === null ? d.gross / d.orders : d.avg;
+      const last = i === ser.length - 1;
+      return '<tr' + (last ? ' style="background:#f8fbff"' : '') + '>' +
+        '<td><b>' + d.p + '</b>' + (last ? ' <span class="tag blue" style="font-size:9px;padding:1px 5px">最新</span>' : '') + '</td>' +
+        '<td class="n">' + (d.op / 10000).toFixed(2) + ' 万</td>' +
+        '<td class="n">' + d.share.toFixed(1) + '%</td>' +
+        '<td class="n">' + d.orders.toFixed(1) + ' 单</td>' +
+        '<td class="n">¥' + d.gross.toFixed(2) + '</td>' +
+        '<td class="n">¥' + avg.toFixed(1) + (d.avg === null ? '<span style="color:var(--ink-3)">*</span>' : '') + '</td></tr>';
+    }).join('') + '</tbody>';
+}
+
+function renderZzStruct() {
+  const el = document.getElementById('zzStruct');
+  if (!el) return;
+  const W = 340, H = 200;
+  const bx = 12, bw = W - 24, by = 12, bh = 38;
+  const cw = bw * ZZ.cruiseShare / 100;
+  const P = [];
+  P.push('<rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="6" fill="#eef2f7"/>');
+  P.push('<rect x="' + bx + '" y="' + by + '" width="' + cw.toFixed(1) + '" height="' + bh + '" rx="6" fill="#2563eb"/>');
+  P.push('<rect x="' + (bx + cw).toFixed(1) + '" y="' + by + '" width="' + (bw - cw).toFixed(1) + '" height="' + bh + '" rx="6" fill="#7c3aed"/>');
+  P.push('<text x="' + (bx + cw / 2).toFixed(1) + '" y="' + (by + bh / 2 + 4) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">' + ZZ.cruiseShare.toFixed(1) + '%</text>');
+  P.push('<text x="' + (bx + cw + (bw - cw) / 2).toFixed(1) + '" y="' + (by + bh / 2 + 4) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">' + ZZ.rideShare.toFixed(1) + '%</text>');
+
+  const rows = [
+    ['#2563eb', '巡游出租车', (ZZ.cruiseDailyPax / 1e4).toFixed(1) + ' 万人次', dtNum(ZZ_TAXI.cruise.cars) + ' 台'],
+    ['#7c3aed', '网约车', (ZZ.rideDailyPax / 1e4).toFixed(1) + ' 万人次', (ZZ.latest.op / 10000).toFixed(2) + ' 万台运营']
+  ];
+  rows.forEach(function (r, i) {
+    const y = 74 + i * 30;
+    P.push('<rect x="' + bx + '" y="' + y + '" width="8" height="8" rx="2" fill="' + r[0] + '"/>');
+    P.push('<text x="' + (bx + 14) + '" y="' + (y + 7.5) + '" font-size="10.5" fill="#4a5568">' + r[1] + '</text>');
+    P.push('<text x="' + (bx + bw) + '" y="' + (y + 7.5) + '" text-anchor="end" font-size="10.5" font-family="monospace" font-weight="600" fill="#0d1526">' + r[2] + '</text>');
+    P.push('<text x="' + (bx + bw) + '" y="' + (y + 20) + '" text-anchor="end" font-size="9.5" font-family="monospace" fill="#8a97a8">' + r[3] + '</text>');
+  });
+  P.push('<line x1="' + bx + '" y1="142" x2="' + (bx + bw) + '" y2="142" stroke="#e4e9f0"/>');
+  P.push('<text x="' + bx + '" y="162" font-size="10.5" fill="#4a5568">合计日均客运量</text>');
+  P.push('<text x="' + (bx + bw) + '" y="162" text-anchor="end" font-size="13" font-family="monospace" font-weight="700" fill="#0d1526">' +
+    (ZZ.totalDailyPax / 1e4).toFixed(1) + ' 万人次</text>');
+  P.push('<text x="' + bx + '" y="182" font-size="9.5" fill="#8a97a8">巡游车多为两班制，单车日均约 ' + ZZ.perCarPax.toFixed(0) + ' 人次</text>');
+  el.innerHTML = P.join('');
+}
+
+function renderDtFunnel() {
+  const el = document.getElementById('dtFunnel');
+  if (!el) return;
+  const raw = TH.source.rows_raw, clean = TH.source.rows_clean;
+  const keep = TH.source.keep_ratio;
+  const bar = function (pct, color) {
+    return '<div class="dt-fn-bar"><i style="width:' + pct.toFixed(1) + '%;background:' + color + '">' +
+      (pct >= 28 ? pct.toFixed(1) + '%' : '') + '</i></div>';
+  };
+  el.innerHTML = '' +
+    '<div><div class="dt-fn"><span>原始记录</span><span>' + dtNum(raw) + '</span></div>' + bar(100, '#94a3b8') + '</div>' +
+    '<div><div class="dt-fn"><span>剔除异常行程</span><span>−' + dtNum(raw - clean) + '</span></div>' + bar(100 - keep, '#f59e0b') + '</div>' +
+    '<div><div class="dt-fn"><span>有效行程（参与标定）</span><span>' + dtNum(clean) + '</span></div>' + bar(keep, '#0d9488') + '</div>';
+}
+
+function renderDtKpi() {
+  const el = document.getElementById('dtKpi');
+  if (!el) return;
+  const k = TH.kpi;
+  const items = [
+    ['有效行程', (k.trips / 10000).toFixed(1), '万条', '2024-01 全月 · ' + TH.source.days + ' 天'],
+    ['日均订单', dtNum(Math.round(k.trips_per_day)), '单', '工作日 ' + dtNum(Math.round(TH.split.weekday_per_day))],
+    ['平均行程', k.avg_dist_km.toFixed(2), 'km', '中位 ' + k.median_dist_km.toFixed(2) + ' km'],
+    ['平均速度', k.avg_speed_kmh.toFixed(1), 'km/h', '中位 ' + k.median_speed_kmh.toFixed(1) + ' km/h'],
+    ['平均时长', k.avg_dur_min.toFixed(1), 'min', '中位 ' + k.median_dur_min.toFixed(1) + ' min'],
+    ['单均金额', '$' + k.avg_total_usd.toFixed(2), '', '小费占比 ' + k.tip_ratio.toFixed(1) + '%']
+  ];
+  el.innerHTML = items.map(function (it) {
+    return '<div class="dt-k"><b>' + it[1] + (it[2] ? '<small>' + it[2] + '</small>' : '') + '</b>' +
+      '<span>' + it[0] + '</span><em>' + it[3] + '</em></div>';
+  }).join('');
+}
+
+function renderDtCurve() {
+  const el = document.getElementById('dtCurve');
+  if (!el) return;
+  const W = DT_C.W, H = DT_C.H, L = DT_C.L, R = DT_C.R, T = DT_C.T, B = DT_C.B;
+  const ih = H - T - B;
+  const maxS = 8, vLo = 14, vHi = 34;
+  const YS = v => H - B - v / maxS * ih;
+  const YV = v => H - B - (v - vLo) / (vHi - vLo) * ih;
+  const P = [];
+
+  for (let v = 0; v <= maxS; v += 2) {
+    P.push('<line class="dt-grid" x1="' + L + '" y1="' + YS(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + YS(v).toFixed(1) + '"/>');
+    P.push('<text class="dt-tick" x="' + (L - 8) + '" y="' + (YS(v) + 3.3).toFixed(1) + '" text-anchor="end">' + v + '%</text>');
+  }
+  for (let v = vLo; v <= vHi; v += 5) {
+    P.push('<text class="dt-tick" x="' + (W - R + 8) + '" y="' + (YV(v) + 3.3).toFixed(1) + '">' + v + '</text>');
+  }
+  TH.hourly.forEach(function (d, h) {
+    if (h % 3 === 0) P.push('<text class="dt-tick" x="' + dtCurveX(h).toFixed(1) + '" y="' + (H - B + 15) + '" text-anchor="middle">' + h + '</text>');
+  });
+  P.push('<text class="dt-axl" x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">小时 →</text>');
+  P.push('<text class="dt-axl" x="' + (W - R + 8) + '" y="' + (T - 6) + '">km/h</text>');
+
+  let area = 'M' + dtCurveX(0).toFixed(1) + ' ' + (H - B).toFixed(1);
+  TH.hourly.forEach(function (d, h) { area += 'L' + dtCurveX(h).toFixed(1) + ' ' + YS(d.share).toFixed(1); });
+  area += 'L' + dtCurveX(23).toFixed(1) + ' ' + (H - B).toFixed(1) + 'Z';
+  P.push('<defs><linearGradient id="dtGrad" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#2563eb" stop-opacity=".26"/>' +
+    '<stop offset="1" stop-color="#2563eb" stop-opacity=".02"/></linearGradient></defs>');
+  P.push('<path d="' + area + '" fill="url(#dtGrad)"/>');
+  P.push('<polyline points="' + TH.hourly.map(function (d, h) { return dtCurveX(h).toFixed(1) + ',' + YS(d.share).toFixed(1); }).join(' ') +
+    '" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>');
+  P.push('<polyline points="' + TH.hourly.map(function (d, h) { return dtCurveX(h).toFixed(1) + ',' + YV(d.speed).toFixed(1); }).join(' ') +
+    '" fill="none" stroke="#d97706" stroke-width="1.8" stroke-dasharray="5 3" stroke-linejoin="round"/>');
+
+  const peak = TH.hourly.reduce(function (a, b) { return b.share > a.share ? b : a; });
+  P.push('<circle cx="' + dtCurveX(peak.h).toFixed(1) + '" cy="' + YS(peak.share).toFixed(1) + '" r="3.4" fill="#2563eb"/>');
+  P.push('<text class="dt-hl" x="' + dtCurveX(peak.h).toFixed(1) + '" y="' + (YS(peak.share) - 9).toFixed(1) +
+    '" text-anchor="middle" fill="#2563eb">峰值 ' + peak.share.toFixed(2) + '%</text>');
+
+  const slow = TH.hourly.reduce(function (a, b) { return b.speed < a.speed ? b : a; });
+  P.push('<circle cx="' + dtCurveX(slow.h).toFixed(1) + '" cy="' + YV(slow.speed).toFixed(1) + '" r="3" fill="#d97706"/>');
+  P.push('<text class="dt-hl" x="' + dtCurveX(slow.h).toFixed(1) + '" y="' + (YV(slow.speed) + 14).toFixed(1) +
+    '" text-anchor="middle" fill="#d97706">最慢 ' + slow.speed.toFixed(1) + '</text>');
+
+  P.push('<g id="dtNow">' +
+    '<line x1="0" y1="' + T + '" x2="0" y2="' + (H - B) + '" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="3 3"/>' +
+    '<rect x="-27" y="' + (T - 15) + '" width="54" height="15" rx="7.5" fill="#7c3aed"/>' +
+    '<text id="dtNowTx" x="0" y="' + (T - 4) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" font-family="monospace">08:00</text></g>');
+
+  el.innerHTML = P.join('');
+}
+
+function renderDtBars() {
+  const bins = [['dtDist', TH.dist_bins, '#2563eb'], ['dtDur', TH.dur_bins, '#0891b2']];
+  bins.forEach(function (cfg) {
+    const el = document.getElementById(cfg[0]);
+    if (!el) return;
+    const data = cfg[1], color = cfg[2];
+    const W = 340, H = 150, L = 26, R = 6, T = 12, B = 26;
+    const iw = W - L - R, ih = H - T - B;
+    const max = Math.max.apply(null, data.map(d => d.share));
+    const bw = iw / data.length;
+    const P = [];
+    [0, 10, 20, 30].forEach(function (v) {
+      if (v > max + 2) return;
+      const y = H - B - v / (max * 1.12) * ih;
+      P.push('<line class="dt-grid" x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '"/>');
+      P.push('<text class="dt-tick" x="' + (L - 5) + '" y="' + (y + 3.3).toFixed(1) + '" text-anchor="end">' + v + '</text>');
+    });
+    data.forEach(function (d, i) {
+      const h = d.share / (max * 1.12) * ih;
+      const x = L + i * bw + bw * 0.16;
+      const w = bw * 0.68;
+      P.push('<rect x="' + x.toFixed(1) + '" y="' + (H - B - h).toFixed(1) + '" width="' + w.toFixed(1) +
+        '" height="' + Math.max(1.5, h).toFixed(1) + '" rx="2.5" fill="' + color + '" fill-opacity="' + (0.38 + 0.5 * d.share / max).toFixed(2) + '"/>');
+      if (d.share >= max * 0.55) {
+        P.push('<text class="dt-tick" x="' + (x + w / 2).toFixed(1) + '" y="' + (H - B - h - 4).toFixed(1) +
+          '" text-anchor="middle" fill="#546176">' + d.share.toFixed(1) + '</text>');
+      }
+      P.push('<text class="dt-tick" x="' + (x + w / 2).toFixed(1) + '" y="' + (H - B + 13) + '" text-anchor="middle">' + d.label + '</text>');
+    });
+    el.innerHTML = P.join('');
+  });
+}
+
+function renderDtHeat() {
+  const el = document.getElementById('dtHeat');
+  if (!el) return;
+  const W = 640, H = 212, L = 42, R = 10, T = 24, B = 36;
+  const cols = 24, rows = 7;
+  const cw = (W - L - R) / cols, ch = (H - T - B) / rows;
+  const DAY = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const P = [];
+  for (let h = 0; h < 24; h += 3) {
+    P.push('<text class="dt-tick" x="' + (L + h * cw + cw / 2).toFixed(1) + '" y="' + (T - 7) + '" text-anchor="middle">' + h + '</text>');
+  }
+  DAY.forEach(function (d, i) {
+    P.push('<text class="dt-tick" x="' + (L - 8) + '" y="' + (T + i * ch + ch / 2 + 3.3).toFixed(1) + '" text-anchor="end">' + d + '</text>');
+  });
+  TH.weekday_hour.forEach(function (row, i) {
+    row.forEach(function (v, h) {
+      const a = 0.04 + Math.pow(v / 100, 0.72) * 0.90;
+      P.push('<rect x="' + (L + h * cw + 1).toFixed(1) + '" y="' + (T + i * ch + 1).toFixed(1) +
+        '" width="' + (cw - 2).toFixed(1) + '" height="' + (ch - 2).toFixed(1) +
+        '" rx="2" fill="rgba(37,99,235,' + a.toFixed(3) + ')"/>');
+    });
+  });
+  P.push('<rect id="dtHeatCur" x="0" y="0" width="' + (cw - 2).toFixed(1) + '" height="' + (ch - 2).toFixed(1) +
+    '" rx="2" fill="none" stroke="#fff" stroke-width="2.2"/>');
+  P.push('<text class="dt-axl" x="' + (W - R) + '" y="' + (H - 4) + '" text-anchor="end">小时 →</text>');
+  /* 色阶图例 */
+  const lx = L, ly = H - 8;
+  for (let i = 0; i < 12; i++) {
+    const v = (i + 0.5) / 12 * 100;
+    P.push('<rect x="' + (lx + i * 11) + '" y="' + (ly - 7) + '" width="11" height="7" fill="rgba(37,99,235,' +
+      (0.04 + Math.pow(v / 100, 0.72) * 0.90).toFixed(3) + ')"/>');
+  }
+  P.push('<text class="dt-tick" x="' + (lx - 4) + '" y="' + (ly - 1) + '" text-anchor="end">低</text>');
+  P.push('<text class="dt-tick" x="' + (lx + 12 * 11 + 4) + '" y="' + (ly - 1) + '">高</text>');
+  el.innerHTML = P.join('');
+}
+
+function renderDtMap() {
+  const el = document.getElementById('dtMap');
+  if (!el) return;
+  const k = TH.kpi;
+  const rows = [
+    ['__grp__', '水平 · 郑州本地官方数据'],
+    ['运营规模', '巡游 ' + dtNum(ZZ_TAXI.cruise.cars) + ' 台 · 日均 ' + (ZZ.cruiseDailyPax / 1e4).toFixed(1) + ' 万人次',
+      '仿真抽样比', '<b>1 : ' + Math.round(ZZ_TAXI.cruise.cars / FLEET_SIZE) + '</b>'],
+    ['网约车效率', '单车日均 ' + ZZ.latest.orders.toFixed(1) + ' 单 · 流水 ¥' + ZZ.latest.gross.toFixed(0),
+      '订单强度基准', '¥' + (ZZ.latest.gross / ZZ.latest.orders).toFixed(1) + ' / 单'],
+    ['__grp__', '形状 · 开源逐笔行程（NYC TLC）'],
+    ['时段订单强度', '峰值 ' + TH_MAXS.toFixed(2) + '%（18 时）· 谷值 ' + TH_MINS.toFixed(2) + '%（4 时）',
+      '区域需求漂移', '<span class="dt-live" id="dtLive1">×1.00</span>'],
+    ['载客平均速度', k.avg_speed_kmh + ' km/h，随时段在 ' + TH.hourly[16].speed.toFixed(1) + '~' + TH.hourly[4].speed.toFixed(1) + ' 之间',
+      '车辆推进倍率', '<span class="dt-live" id="dtLive2">×1.00</span>'],
+    ['行程距离分布', '中位 ' + k.median_dist_km + ' km · P90 ' + k.p90_dist_km + ' km',
+      '订单距离抽样', '<b>' + TH.dist_bins[1].share.toFixed(1) + '%</b> · 1~2km']
+  ];
+  el.innerHTML = '<thead><tr><th style="width:44%">数据统计</th><th style="width:28%">仿真参数</th><th style="width:28%">当前</th></tr></thead><tbody>' +
+    rows.map(function (r) {
+      if (r[0] === '__grp__') {
+        return '<tr class="dt-grp"><td colspan="3">' + r[1] + '</td></tr>';
+      }
+      return '<tr><td><b>' + r[0] + '</b><br><span style="font-size:10.2px;color:var(--ink-3)">' + r[1] + '</span></td>' +
+        '<td>' + r[2] + '</td><td class="n">' + r[3] + '</td></tr>';
+    }).join('') + '</tbody>';
+}
+
+function updateDtLive() {
+  if (S.mod !== 'data') return;
+  const hh = thHour();
+  const inten = thIntensity(hh);
+  const sf = thSpeedFactor(hh);
+
+  const g = document.getElementById('dtNow');
+  if (g) {
+    const x = dtCurveX(S.clock / 60);
+    g.setAttribute('transform', 'translate(' + x.toFixed(1) + ',0)');
+    const tx = document.getElementById('dtNowTx');
+    if (tx) tx.textContent = fmtClock(S.clock);
+  }
+  const l1 = document.getElementById('dtLive1');
+  if (l1) l1.textContent = '×' + inten.toFixed(2);
+  const l2 = document.getElementById('dtLive2');
+  if (l2) l2.textContent = '×' + sf.toFixed(2);
+
+  const cur = document.getElementById('dtHeatCur');
+  if (cur) {
+    const L = 42, R = 10, T = 24, B = 36;
+    const cw = (640 - L - R) / 24, ch = (212 - T - B) / 7;
+    const dow = (new Date().getDay() + 6) % 7;
+    cur.setAttribute('x', (L + hh * cw + 1).toFixed(1));
+    cur.setAttribute('y', (T + dow * ch + 1).toFixed(1));
+  }
+}
+
+/* ============================================================
+   司机智能体聚类（K-Means · k=3）
+   ============================================================ */
+const CL_KEYCOLOR = { long: '#2563eb', mid: '#0d9488', near: '#d97706' };
+const CL_META = {
+  long: { name: '远距高收益派', tip: '派单策略：优先推送跨区长途单（≥6km）。敏感度高、接受阈值低、响应快，适合承担跨区运力调度与高峰补充。' },
+  mid:  { name: '均衡通勤派',   tip: '派单策略：以 3~5km 常规单为主，收益与接单意愿兼顾，作为城市主干运力的稳定基本盘。' },
+  near: { name: '近场保守派',   tip: '派单策略：只推近场短单（≤3km）且要求高置信评分，阈值高、接受率低，避免无效派单造成的空驶损耗。' }
+};
+const CLUS = { data: null, sel: null };
+
+function clD2(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+  return s;
+}
+
+/* 标准化 + 最远点初始化 + Lloyd 迭代 */
+function clKmeans(rows, k, iters) {
+  const dim = rows[0].length;
+  const mu = [], sd = [];
+  for (let d = 0; d < dim; d++) {
+    const col = rows.map(r => r[d]);
+    const m = col.reduce((s, x) => s + x, 0) / col.length;
+    const v = col.reduce((s, x) => s + (x - m) * (x - m), 0) / col.length;
+    mu.push(m); sd.push(Math.sqrt(v) || 1);
+  }
+  const X = rows.map(r => r.map((x, d) => (x - mu[d]) / sd[d]));
+
+  const cent = [X[0].slice()];
+  while (cent.length < k) {
+    let best = 0, bd = -1;
+    X.forEach((x, i) => {
+      const dmin = Math.min.apply(null, cent.map(c => clD2(x, c)));
+      if (dmin > bd) { bd = dmin; best = i; }
+    });
+    cent.push(X[best].slice());
+  }
+
+  const assign = new Array(X.length).fill(0);
+  for (let it = 0; it < iters; it++) {
+    let moved = false;
+    X.forEach((x, i) => {
+      let bi = 0, bd = Infinity;
+      cent.forEach((c, j) => { const d = clD2(x, c); if (d < bd) { bd = d; bi = j; } });
+      if (assign[i] !== bi) { assign[i] = bi; moved = true; }
+    });
+    cent.forEach((c, j) => {
+      const mem = X.filter((_, i) => assign[i] === j);
+      if (!mem.length) return;
+      for (let d = 0; d < dim; d++) c[d] = mem.reduce((s, x) => s + x[d], 0) / mem.length;
+    });
+    if (!moved && it > 0) break;
+  }
+  return assign;
+}
+
+function buildClusters() {
+  const rows = AGENTS.map(a => [a.sens, a.thr, a.dist]);
+  const assign = clKmeans(rows, 3, 80);
+  const groups = [[], [], []];
+  AGENTS.forEach((a, i) => groups[assign[i]].push(a));
+
+  const stat = groups.map(g => ({
+    sens: g.reduce((s, a) => s + a.sens, 0) / g.length,
+    thr:  g.reduce((s, a) => s + a.thr, 0) / g.length,
+    dist: g.reduce((s, a) => s + a.dist, 0) / g.length,
+    earn: g.reduce((s, a) => s + a.earn, 0) / g.length
+  }));
+
+  /* 语义命名：敏感度最高 → 远距高收益；剩余中距离最短 → 近场保守；余下 → 均衡通勤 */
+  const bySens = stat.map((s, i) => i).sort((a, b) => stat[b].sens - stat[a].sens);
+  const keyOf = {};
+  keyOf[bySens[0]] = 'long';
+  const rest = bySens.slice(1).sort((a, b) => stat[a].dist - stat[b].dist);
+  keyOf[rest[0]] = 'near';
+  keyOf[rest[1]] = 'mid';
+
+  return groups.map((g, i) => ({
+    members: g, stat: stat[i], key: keyOf[i],
+    name: CL_META[keyOf[i]].name, tip: CL_META[keyOf[i]].tip
+  }));
+}
+
+function renderCluster() {
+  const svg = document.getElementById('clPlot');
+  if (!svg) return;
+  const groups = buildClusters();
+  CLUS.data = groups;
+
+  const W = 660, H = 360;
+  const PAD = { l: 56, r: 26, t: 22, b: 46 };
+  const X0 = 0.30, X1 = 1.00, Y0 = 1.8, Y1 = 7.0;
+  const px = v => PAD.l + (v - X0) / (X1 - X0) * (W - PAD.l - PAD.r);
+  const py = v => H - PAD.b - (v - Y0) / (Y1 - Y0) * (H - PAD.t - PAD.b);
+  const P = [];
+
+  /* 网格与刻度 */
+  for (let v = 0.3; v <= 1.001; v += 0.1) {
+    const x = px(v);
+    P.push('<line class="cl-grid" x1="' + x.toFixed(1) + '" y1="' + PAD.t + '" x2="' + x.toFixed(1) + '" y2="' + (H - PAD.b) + '"/>');
+    P.push('<text class="cl-tick" x="' + x.toFixed(1) + '" y="' + (H - PAD.b + 15) + '" text-anchor="middle">' + v.toFixed(1) + '</text>');
+  }
+  for (let v = 2; v <= 7; v++) {
+    const y = py(v);
+    P.push('<line class="cl-grid" x1="' + PAD.l + '" y1="' + y.toFixed(1) + '" x2="' + (W - PAD.r) + '" y2="' + y.toFixed(1) + '"/>');
+    P.push('<text class="cl-tick" x="' + (PAD.l - 9) + '" y="' + (y + 3.3).toFixed(1) + '" text-anchor="end">' + v + '</text>');
+  }
+  P.push('<line x1="' + PAD.l + '" y1="' + (H - PAD.b) + '" x2="' + (W - PAD.r) + '" y2="' + (H - PAD.b) + '" stroke="#cfd8e3"/>');
+  P.push('<line x1="' + PAD.l + '" y1="' + PAD.t + '" x2="' + PAD.l + '" y2="' + (H - PAD.b) + '" stroke="#cfd8e3"/>');
+  P.push('<text class="cl-ax" x="' + (W - PAD.r) + '" y="' + (H - 12) + '" text-anchor="end">收益敏感度 sens →</text>');
+  P.push('<text class="cl-ax" transform="translate(14 ' + ((H - PAD.b + PAD.t) / 2) + ') rotate(-90)" text-anchor="middle">平均接单距离 km →</text>');
+
+  /* 簇分布椭圆（协方差主轴） */
+  groups.forEach((g, gi) => {
+    const ps = g.members.map(a => [px(a.sens), py(a.dist)]);
+    const n = ps.length;
+    const mx = ps.reduce((s, p) => s + p[0], 0) / n;
+    const my = ps.reduce((s, p) => s + p[1], 0) / n;
+    let sxx = 0, syy = 0, sxy = 0;
+    ps.forEach(p => { const dx = p[0] - mx, dy = p[1] - my; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; });
+    sxx /= n; syy /= n; sxy /= n;
+    const tr = sxx + syy, det = sxx * syy - sxy * sxy;
+    const disc = Math.max(0, tr * tr / 4 - det);
+    const l1 = tr / 2 + Math.sqrt(disc), l2 = Math.max(0, tr / 2 - Math.sqrt(disc));
+    const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy) * 180 / Math.PI;
+    const rx = Math.max(28, 1.75 * Math.sqrt(l1));
+    const ry = Math.max(20, 1.75 * Math.sqrt(l2));
+    const th = ang * Math.PI / 180;
+    const yext = Math.sqrt(rx * rx * Math.sin(th) * Math.sin(th) + ry * ry * Math.cos(th) * Math.cos(th));
+    const col = CL_KEYCOLOR[g.key];
+    P.push('<ellipse class="cl-hull" data-cl="' + gi + '" cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) +
+      '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) + '" transform="rotate(' + ang.toFixed(1) + ' ' +
+      mx.toFixed(1) + ' ' + my.toFixed(1) + ')" fill="' + col + '" fill-opacity=".07" stroke="' + col +
+      '" stroke-opacity=".40" stroke-width="1.4" stroke-dasharray="5 4"/>');
+    g._c = [mx, my];
+    g._yext = yext;
+  });
+
+  /* 簇心 */
+  groups.forEach(g => {
+    const col = CL_KEYCOLOR[g.key];
+    const mx = g._c[0], my = g._c[1];
+    P.push('<path d="M' + mx.toFixed(1) + ' ' + (my - 5).toFixed(1) + 'L' + (mx + 5).toFixed(1) + ' ' + my.toFixed(1) +
+      'L' + mx.toFixed(1) + ' ' + (my + 5).toFixed(1) + 'L' + (mx - 5).toFixed(1) + ' ' + my.toFixed(1) + 'Z" fill="#fff" stroke="' + col + '" stroke-width="2"/>');
+  });
+
+  /* 节点 */
+  groups.forEach((g, gi) => {
+    const col = CL_KEYCOLOR[g.key];
+    g.members.forEach(a => {
+      const x = px(a.sens), y = py(a.dist);
+      const right = x > W * 0.60;
+      P.push('<g class="cl-pt" data-id="' + a.id + '" data-cl="' + gi + '">' +
+        '<title>' + a.name + ' · ' + a.type + ' · 敏感度 ' + a.sens.toFixed(2) + ' · 阈值 ' + a.thr.toFixed(2) + ' · 均距 ' + a.dist.toFixed(1) + 'km</title>' +
+        '<circle class="core" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="10.5" fill="' + col + '" stroke="#fff" stroke-width="2"/>' +
+        '<text x="' + x.toFixed(1) + '" y="' + (y + 3.4).toFixed(1) + '" text-anchor="middle">' + a.id.slice(1) + '</text>' +
+        '<text class="lbl" x="' + (right ? x - 15 : x + 15).toFixed(1) + '" y="' + (y + 3.6).toFixed(1) + '" text-anchor="' + (right ? 'end' : 'start') + '">' + a.type + '</text></g>');
+    });
+  });
+
+  P.push('<g id="clTip" style="display:none"><rect id="clTipBg" height="18" rx="9" fill="#fff" stroke-width="1"/>' +
+    '<text id="clTipTx" font-size="10.5" font-weight="650" text-anchor="middle" font-family="inherit"></text></g>');
+
+  svg.innerHTML = P.join('');
+
+  const list = document.getElementById('clList');
+  if (list) {
+    list.innerHTML = groups.map((g, gi) => {
+      const col = CL_KEYCOLOR[g.key];
+      return '<div class="cl-item" data-cl="' + gi + '">' +
+        '<div class="cl-item-hd"><i class="cl-dot" style="background:' + col + '"></i><b>' + g.name + '</b>' +
+        '<span class="cnt">' + g.members.length + ' 位</span></div>' +
+        '<div class="cl-kv"><span>敏感度 <b>' + g.stat.sens.toFixed(2) + '</b></span>' +
+        '<span>阈值 <b>' + g.stat.thr.toFixed(2) + '</b></span>' +
+        '<span>距离 <b>' + g.stat.dist.toFixed(1) + 'km</b></span></div>' +
+        '<div class="cl-kv" style="margin-top:3px"><span>成员 <b>' + g.members.map(m => m.id).join(' / ') + '</b></span></div>' +
+        '<div class="cl-tip">' + g.tip + '</div></div>';
+    }).join('');
+  }
+  bindClusterEvents();
+}
+
+function bindClusterEvents() {
+  const svg = document.getElementById('clPlot');
+  if (svg && !svg._clBound) {
+    svg._clBound = true;
+    svg.addEventListener('click', e => {
+      const pt = e.target.closest('.cl-pt');
+      if (!pt) { setCluster(null); return; }
+      const gi = Number(pt.dataset.cl);
+      setCluster(CLUS.sel === gi ? null : gi);
+    });
+  }
+  const list = document.getElementById('clList');
+  if (list && !list._clBound) {
+    list._clBound = true;
+    list.addEventListener('click', e => {
+      const it = e.target.closest('.cl-item');
+      if (!it) return;
+      const gi = Number(it.dataset.cl);
+      setCluster(CLUS.sel === gi ? null : gi);
+    });
+  }
+}
+
+function setCluster(gi) {
+  CLUS.sel = gi;
+  const svg = document.getElementById('clPlot');
+  if (svg) {
+    svg.querySelectorAll('.cl-pt').forEach(p => {
+      const inC = Number(p.dataset.cl) === gi;
+      p.classList.toggle('dim', gi !== null && !inC);
+      p.classList.toggle('hot', gi !== null && inC);
+    });
+    svg.querySelectorAll('.cl-hull').forEach(h => {
+      h.style.opacity = (gi === null || Number(h.dataset.cl) === gi) ? '1' : '.22';
+    });
+  }
+  document.querySelectorAll('.cl-item').forEach(it => it.classList.toggle('on', Number(it.dataset.cl) === gi));
+  const g = (gi !== null && CLUS.data) ? CLUS.data[gi] : null;
+  document.querySelectorAll('.ag-card').forEach(c => {
+    const inC = !!g && g.members.some(m => m.id === c.dataset.id);
+    c.classList.toggle('hot', inC);
+  });
+
+  const tip = svg && svg.querySelector('#clTip');
+  if (tip) {
+    if (!g) { tip.style.display = 'none'; }
+    else {
+      const col = CL_KEYCOLOR[g.key];
+      const mx = g._c[0];
+      const ty = Math.max(34, g._c[1] - g._yext - 11);
+      const w = g.name.length * 11 + 20;
+      const bg = tip.querySelector('#clTipBg'), tx = tip.querySelector('#clTipTx');
+      bg.setAttribute('x', (mx - w / 2).toFixed(1));
+      bg.setAttribute('y', (ty - 13).toFixed(1));
+      bg.setAttribute('width', w.toFixed(1));
+      bg.setAttribute('stroke', col);
+      bg.setAttribute('stroke-opacity', '.5');
+      tx.setAttribute('x', mx.toFixed(1));
+      tx.setAttribute('y', (ty - 0.5).toFixed(1));
+      tx.setAttribute('fill', col);
+      tx.textContent = g.name;
+      tip.style.display = '';
+    }
+  }
+}
+
+/* ============================================================
+   对比实验
+   ============================================================ */
+function renderExp() {
+  const cols = [['done', '完成率%', true], ['wait', '等待min', false], ['dead', '空驶率%', false], ['earn', '时薪¥', true], ['fair', 'Gini', false]];
+  $('#expTable').innerHTML = `
+    <thead><tr><th>策略</th>${cols.map(c => `<th style="text-align:right">${c[1]}</th>`).join('')}</tr></thead>
+    <tbody>${EXP_ROWS.map(r => `<tr class="${r.cls}">
+      <td>${r.name}${r.cls ? ' <span class="tag teal">本方案</span>' : ''}</td>
+      ${cols.map(c => {
+        const v = r[c[0]];
+        const best = c[0] === 'wait' || c[0] === 'dead' || c[0] === 'fair'
+          ? v === Math.min(...EXP_ROWS.map(x => x[c[0]]))
+          : v === Math.max(...EXP_ROWS.map(x => x[c[0]]));
+        return `<td class="n ${best ? 'good' : ''}">${v.toFixed(c[0] === 'fair' ? 2 : 1)}</td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody>`;
+}
+
+function renderBarChart() {
+  const groups = [
+    { key: 'done', label: '订单完成率 (%)', max: 100, fmt: v => v.toFixed(1) },
+    { key: 'dead', label: '空驶率 (%)', max: 30, fmt: v => v.toFixed(1) },
+    { key: 'earn', label: '司机时薪 (元)', max: 45, fmt: v => v.toFixed(1) }
+  ];
+  const colors = ['#cbd5e1', '#93b4e8', '#60a5fa', '#2563eb'];
+  $('#barChart').innerHTML = groups.map(g => `
+    <div class="bc-group">
+      <div class="bc-label"><span>${g.label}</span><span class="muted">${EXP_ROWS.length} 组策略</span></div>
+      <div class="bc-bars">
+        ${EXP_ROWS.map((r, i) => `<div class="bc-bar" style="height:${(r[g.key] / g.max) * 100}%;background:${colors[i]}">
+          <span>${g.fmt(r[g.key])}</span></div>`).join('')}
+      </div>
+    </div>`).join('') + `
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--ink-3);border-top:1px dashed var(--border);padding-top:9px">
+      ${EXP_ROWS.map((r, i) => `<span style="display:flex;align-items:center;gap:4px"><i style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></i>${r.name}</span>`).join('')}
+    </div>`;
+}
+
+/* ============================================================
+   协同状态 / 行为日志
+   ============================================================ */
+function renderCollabPanel() {
+  const el = $('#collabPanel');
+  if (!el) return;
+  const rec = Math.round(FLEET_SIZE * 0.05) + (S.tick % 5);   /* 每轮推荐量随车队规模缩放 */
+  const accRate = 0.62 + ((S.tick * 3) % 9) * 0.012;
+  const acc = Math.round(rec * accRate);
+  const conf = 0.82 + ((S.tick * 7) % 6) * 0.008;
+  const suppress = 1 + (S.tick % 3);
+  const gapAvg = (0.34 + ((S.tick * 2) % 5) * 0.006).toFixed(2);
+  const tag = $('#roundTag');
+  if (tag) tag.textContent = '第 ' + S.round + ' 轮';
+  el.innerHTML = `
+    <div class="kv"><span>本轮推荐车辆</span><b>${rec} 辆</b></div>
+    <div class="kv"><span>司机接受 / 拒绝</span><b>${acc} / ${rec - acc}</b></div>
+    <div class="gap-row" style="padding:9px 0 4px">
+      <div class="gap-name" style="width:52px;flex:0 0 52px;font-size:11.5px">接受率</div>
+      <div class="gap-bar"><div class="gap-fill" style="width:${(accRate * 100).toFixed(0)}%;background:#0d9488"></div></div>
+      <div class="gap-val">${(accRate * 100).toFixed(0)}%</div>
+    </div>
+    <div class="kv"><span>聚集抑制触发</span><b style="color:#d97706">${suppress} 次</b></div>
+    <div class="kv"><span>平均决策置信度</span><b>${conf.toFixed(2)}</b></div>
+    <div class="kv"><span>区域失衡度</span><b style="color:#0d9488">${gapAvg}</b></div>
+    <div class="kv"><span>策略记忆版本</span><b>v12.${S.tick % 9}</b></div>`;
+}
+
+const AGENT_LOGS = [
+  ['08:04', '#0d9488', 'A01', '接受建议 → 前往 <b>郑东CBD</b>，预计 6 min 到达，预期净收益 ¥24.6'],
+  ['08:03', '#e11d48', 'A04', '拒绝建议（阈值 0.72 &gt; 置信度 0.66），保持 <b>郑州东站</b> 原地候客'],
+  ['08:02', '#d97706', 'A07', '部分接受 → 前往 <b>二七广场</b>，途中接单概率 0.41，先沿主干道巡游'],
+  ['08:01', '#7c3aed', 'A03', '接受建议 → 前往 <b>花园路商圈</b>，收益敏感度 0.92，对高客单区域响应快'],
+  ['08:00', '#2563eb', 'A06', '接受建议 → 前往 <b>龙子湖</b>，该区域在途车辆 3 辆，未触发聚集抑制'],
+  ['07:59', '#0d9488', 'A05', '拒绝建议（路线偏好不符，倾向惠济区熟路），记录偏好权重 +0.05'],
+  ['07:58', '#e11d48', 'A02', '接受建议 → 前往 <b>郑州东站</b>，等待时间预计 4.2 min']
+];
+
+function renderAgentLog() {
+  const el = $('#agentLog');
+  if (!el) return;
+  el.innerHTML = AGENT_LOGS.map(l => {
+    const a = AGENTS.find(x => x.id === l[2]);
+    return `<div class="feed-item">
+      <div class="feed-time">${l[0]}</div>
+      <i class="feed-dot" style="background:${l[1]}"></i>
+      <div class="feed-text"><b>${a ? a.name : l[2]}</b>（${a ? a.plate : ''}）${l[3]}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   启动
+   ============================================================ */
+renderKPIs();
+renderDemandChart();
+renderGapList();
+renderAgents();
+renderCluster();
+renderTaxiData();
+renderExp();
+renderBarChart();
+renderCollabPanel();
+renderAgentLog();
+renderDispatchPanel();
+updateClock();
+
+/* 车队规模与历史轨迹控件 */
+$('#tbVeh').textContent = FLEET_SIZE;
+const expFleetEl = $('#expFleet');
+if (expFleetEl) expFleetEl.textContent = FLEET_SIZE;
+renderHistUI();
+
+pushEvent(`系统启动：加载郑州市主城区出行仿真环境，在线车辆 <b>${FLEET_SIZE}</b> 辆`, {});
+pushEvent('调度 Agent 已就绪，策略记忆载入 <b>12</b> 条区域权重', {});
+pushEvent('轨迹回放模块就绪：可导入 CSV / JSON 逐车轨迹，或加载内置郑州示例', {});
+
+const startMod = ((typeof location !== 'undefined' && location.hash) || '').replace('#', '');
+switchModule(MODULE_META[startMod] ? startMod : 'map');
+setTimeout(() => { initMap(); }, 80);
+setInterval(loop, 1000);
+startGraphLoop();
+</script>
+</body>
+</html>
