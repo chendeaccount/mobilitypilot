@@ -14,7 +14,7 @@
     securityJsCode: '0d37cc2155875ea80f8622b58925ca81',
   };
 </script>
-<script src="https://webapi.amap.com/maps?v=2.0&key=e18971dd7720f736a98e7d1701b09518&plugin=AMap.PlaceSearch,AMap.Driving,AMap.Geocoder,AMap.TileLayer.Traffic"></script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=e18971dd7720f736a98e7d1701b09518&plugin=AMap.PlaceSearch,AMap.Driving,AMap.Geocoder,AMap.TileLayer.Traffic,AMap.HeatMap"></script>
 <style>
 :root{
   --bg:#f3f5f9; --surface:#ffffff; --surface-2:#f8fafc; --surface-3:#eef2f7;
@@ -178,7 +178,7 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .ol > *{pointer-events:auto}
 .ol-tl{top:14px;left:14px;display:flex;flex-direction:column;gap:8px}
 .ol-bc{bottom:14px;left:50%;transform:translateX(-50%)}
-.legend-h{display:flex;align-items:center;gap:13px;padding:7px 13px}
+.legend-h{display:flex;align-items:center;gap:13px;padding:7px 13px;flex-wrap:wrap;row-gap:5px}
 .legend-sep{width:1px;height:12px;background:var(--border-strong)}
 .ds-title{font-size:10px;font-weight:650;letter-spacing:.8px;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px}
 .ds-tag{font-size:9px;letter-spacing:.2px;padding:1px 5px;border-radius:4px;background:#eef4ff;color:#1d4ed8;text-transform:none;font-weight:600}
@@ -212,6 +212,7 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .legend-key{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:2px;flex:0 0 16px}
 .legend-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
 .legend-sq{width:8px;height:8px;border-radius:1.5px;flex:0 0 8px}
+.legend-heat{width:24px;height:8px;border-radius:2px;background:linear-gradient(90deg,#2563eb,#0d9488,#facc15,#e11d48);flex:0 0 24px}
 .dispatch-panel{
   position:absolute;top:14px;right:14px;bottom:14px;width:312px;z-index:12;
   background:#ffffff;
@@ -221,6 +222,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .dp-hd{padding:12px 14px 10px;border-bottom:1px solid var(--border)}
 .dp-hd .dp-kicker{font-size:10px;letter-spacing:1px;color:var(--ink-3);font-weight:650;text-transform:uppercase}
 .dp-hd .dp-title{font-size:14.5px;font-weight:640;margin-top:2px;display:flex;align-items:center;gap:7px}
+.dp-mem{flex:0 0 auto;font-family:inherit;font-size:10px;font-weight:650;color:#1d4ed8;background:#eef4ff;border:1px solid #c7d7f2;border-radius:7px;padding:4px 7px;cursor:pointer;white-space:nowrap;margin-bottom:1px}
+.dp-mem:hover{background:#dbe7ff;border-color:#9db6d8}
 .dp-body{flex:1;overflow-y:auto;padding:12px 14px 14px}
 .dp-sec{margin-bottom:14px}
 .dp-sec-t{font-size:10.5px;font-weight:650;letter-spacing:.7px;color:var(--ink-3);text-transform:uppercase;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
@@ -315,17 +318,33 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .gcol-label{font-size:10px;font-weight:650;fill:#9aa8ba;letter-spacing:1.4px;font-family:inherit}
 
 /* ---------- agents ---------- */
-.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px}
+.llm-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(120deg,#f5f9ff,#eef4ff 60%,#f2fbfa);border:1px solid #dbe7ff;border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.llm-ico{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex:0 0 30px;letter-spacing:.3px}
+.llm-t{font-size:12.5px;font-weight:650;color:#16233a;line-height:1.25}
+.llm-s{font-size:10.5px;color:#64748b;margin-top:1px}
+.llm-stats{display:flex;gap:16px;margin-left:auto;flex-wrap:wrap}
+.llm-stat b{display:block;font-family:var(--mono);font-size:12.5px;font-weight:640;color:#1e293b}
+.llm-stat span{font-size:9.5px;color:#8a97a8}
+.llm-btn{border:1px solid #c7d7f2;background:#fff;color:#1d4ed8;font-size:11px;font-weight:600;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:inherit}
+.llm-btn:hover{background:#eef4ff;border-color:#9db6d8}
+.llm-pill{font-size:9.5px;font-weight:650;padding:2px 7px;border-radius:20px;border:1px solid transparent}
+.llm-pill.local{background:#eef2f7;color:#475569;border-color:#dbe3ee}
+.llm-pill.online{background:#e6f7f4;color:#0f766e;border-color:#b6e5dd}
+.ag-llm-real{margin-top:7px;border-top:1px dashed #cfe0f8;padding-top:7px}
+.ag-llm-real .alr-hd{display:flex;align-items:center;gap:5px;font-size:9.5px;color:#0f766e;font-weight:650;margin-bottom:4px}
+.ag-llm-real .alr-txt{font-size:10.5px;color:#334155;line-height:1.5;white-space:pre-wrap}
+/* ---------- agents ---------- */
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:12px;align-items:start}
 .ag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;box-shadow:var(--sh);transition:box-shadow .18s,transform .18s}
 .ag-card:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
 .ag-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .ag-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:650;color:#fff;flex:0 0 34px;letter-spacing:.3px}
 .ag-name{font-size:12.8px;font-weight:620}
 .ag-meta{font-size:10.5px;color:var(--ink-3)}
-.ag-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:9px 0 10px}
-.ag-stat{background:var(--surface-2);border-radius:7px;padding:5px 7px}
-.ag-stat b{display:block;font-size:12.5px;font-family:var(--mono);font-weight:640}
-.ag-stat span{font-size:9.5px;color:var(--ink-3)}
+.ag-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:9px 0 10px}
+.ag-stat{background:var(--surface-2);border-radius:7px;padding:5px 6px;min-width:0}
+.ag-stat b{display:block;font-size:12px;font-family:var(--mono);font-weight:640;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-stat span{font-size:9px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .ag-trait{display:flex;gap:5px;flex-wrap:wrap}
 .pref-bar{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3);margin-top:7px}
 .pref-track{flex:1;height:5px;border-radius:3px;background:var(--surface-3);overflow:hidden}
@@ -357,6 +376,111 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .cl-kv b{color:var(--ink-2);font-weight:640}
 .cl-tip{margin-top:6px;font-size:10.5px;color:var(--ink-2);line-height:1.5;border-left:2px solid var(--border-strong);padding-left:8px}
 .ag-card.hot{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft),var(--sh-lg)}
+.ag-card{cursor:pointer;user-select:none}
+.ag-card.open{border-color:var(--brand);box-shadow:0 4px 22px rgba(37,99,235,.12)}
+.ag-expand{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.ag-card.open .ag-expand{display:block}
+.ag-think{background:linear-gradient(135deg,#f8faff,#f0f6ff);border:1px solid #dbe7ff;border-radius:9px;padding:9px 10px;margin-bottom:8px}
+.ag-think-hd{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:650;color:#2563eb;margin-bottom:6px;letter-spacing:.3px}
+.ag-think-hd .llm-badge{font-size:8.5px;background:#2563eb;color:#fff;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.5px}
+.ag-think-step{display:flex;gap:7px;margin-bottom:5px;align-items:flex-start}
+.ag-think-step:last-child{margin-bottom:0}
+.ag-think-step .ts-tag{font-size:9px;font-weight:600;color:#64748b;flex:0 0 52px;padding-top:1px;text-align:right}
+.ag-think-step .ts-txt{font-size:10.5px;color:#334155;line-height:1.45;flex:1}
+.ag-think-step.decide .ts-tag{color:#0d9488}
+.ag-think-step.decide.reject .ts-tag{color:#e11d48}
+.ag-mem{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.ag-mem-box{background:var(--surface-2);border-radius:7px;padding:6px 8px}
+.ag-mem-box .mb-t{font-size:9px;color:var(--ink-3);font-weight:600;margin-bottom:2px}
+.ag-mem-box .mb-v{font-size:11px;color:var(--ink-2);font-weight:550;line-height:1.35}
+.ag-trait-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 10px;margin-bottom:7px}
+.ag-trait-row{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--ink-3)}
+.ag-trait-row .tr-l{flex:0 0 56px;text-align:right}
+.ag-trait-row .tr-bar{flex:1;height:4px;border-radius:2px;background:var(--surface-3);overflow:hidden}
+.ag-trait-row .tr-bar i{display:block;height:100%;border-radius:2px}
+.ag-bio{font-size:10px;color:var(--ink-3);line-height:1.5;padding:6px 8px;background:var(--surface-2);border-radius:7px;border-left:2.5px solid var(--brand);margin-bottom:7px}
+.ag-lit{font-size:8.5px;color:#94a3b8;font-style:italic;margin-bottom:7px;line-height:1.3}
+.ag-route-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;font-size:10.5px;font-weight:550;color:#2563eb;background:#eff6ff;border:1px solid #dbe7ff;border-radius:7px;padding:6px;cursor:pointer;transition:background .14s}
+.ag-route-btn:hover{background:#dbe7ff}
+.ag-status-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+
+/* ---------- 司机详情弹层：思考 + 记忆 ---------- */
+.dr-mask{position:fixed;inset:0;z-index:9200;background:rgba(10,17,32,.44);display:none;align-items:center;justify-content:center;padding:22px}
+.dr-mask.show{display:flex}
+.dr-panel{width:800px;max-width:100%;max-height:calc(100vh - 56px);background:var(--surface);border-radius:16px;box-shadow:0 30px 80px rgba(10,17,32,.34);display:flex;flex-direction:column;overflow:hidden;animation:drIn .16s ease-out}
+@keyframes drIn{from{opacity:0;transform:translateY(9px) scale(.995)}to{opacity:1;transform:none}}
+.dr-hd{display:flex;align-items:center;gap:11px;padding:14px 18px 12px;border-bottom:1px solid var(--border)}
+.dr-av{width:40px;height:40px;border-radius:12px;color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;flex:0 0 40px;box-shadow:0 4px 12px rgba(13,21,38,.18)}
+.dr-name{font-size:15px;font-weight:680;letter-spacing:-.2px;display:flex;align-items:center;gap:7px}
+.dr-id{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--ink-3);background:var(--surface-3);padding:1px 5px;border-radius:4px}
+.dr-live{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:var(--ink-3)}
+.dr-live i{width:6px;height:6px;border-radius:50%}
+.dr-meta{font-size:10.5px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-x{border:0;background:transparent;font-size:22px;line-height:1;color:#b6c1cf;cursor:pointer;padding:0 2px;font-family:inherit}
+.dr-x:hover{color:var(--ink-2)}
+.dr-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:11px 18px 0}
+.dr-kpi{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:6px 9px;min-width:0}
+.dr-kpi b{display:block;font-family:var(--mono);font-size:13px;font-weight:660;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-kpi span{display:block;font-size:9px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.dr-tabs{display:flex;gap:5px;padding:11px 18px 0}
+.dr-tab{border:1px solid transparent;background:transparent;font-family:inherit;font-size:11.5px;font-weight:600;color:var(--ink-3);padding:6px 11px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.dr-tab:hover{background:var(--surface-2);color:var(--ink-2)}
+.dr-tab.on{background:var(--brand-soft);border-color:#dbe7ff;color:var(--brand)}
+.dr-tab i{font-style:normal;font-family:var(--mono);font-size:9px;background:var(--surface-3);color:var(--ink-3);padding:0 4px;border-radius:6px;font-weight:600}
+.dr-tab.on i{background:#dbe7ff;color:var(--brand-2)}
+.dr-body{padding:12px 18px 14px;overflow-y:auto;flex:1;min-height:0}
+.dr-body::-webkit-scrollbar{width:8px}
+.dr-body::-webkit-scrollbar-thumb{background:#dbe3ee;border-radius:4px}
+.dr-block{border:1px solid #dbe7ff;background:linear-gradient(135deg,#f8faff,#f1f6ff);border-radius:10px;padding:10px 11px;margin-bottom:10px}
+.dr-block-hd{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:650;color:#2563eb;margin-bottom:8px;flex-wrap:wrap}
+.dr-block-hd .llm-badge{font-size:8.5px;background:#2563eb;color:#fff;padding:1px 5px;border-radius:4px;font-weight:700;letter-spacing:.5px}
+.dr-order{margin-left:auto;font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--ink-3);background:#fff;border:1px solid var(--border);border-radius:6px;padding:1px 6px}
+.dr-verdict{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;flex:0 0 auto}
+.dr-verdict.ok{background:#e6f7f4;color:#0f766e}
+.dr-verdict.no{background:#fdecef;color:#be123c}
+.dr-steps{display:flex;flex-direction:column;gap:8px}
+.dr-step{display:flex;gap:8px;align-items:flex-start}
+.dr-step .ds-n{flex:0 0 18px;height:18px;border-radius:6px;background:#dbe7ff;color:#1d4ed8;font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.dr-step .ds-c{flex:1;min-width:0}
+.dr-step .ds-p{font-size:9.5px;color:var(--ink-3);font-weight:600;margin-bottom:1px}
+.dr-step .ds-t{font-size:11.5px;color:#334155;line-height:1.55}
+.dr-step.decide .ds-n{background:#ccfbf1;color:#0f766e}
+.dr-step.decide.reject .ds-n{background:#fee2e2;color:#b91c1c}
+.dr-sec{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:650;color:var(--ink-2);margin:13px 0 6px}
+.dr-sec:before{content:'';width:3px;height:11px;border-radius:2px;background:var(--brand);flex:0 0 3px}
+.dr-sec span{margin-left:auto;font-weight:500;font-size:9.5px;color:var(--ink-3)}
+.dr-mg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.dr-zone{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed #eef2f7}
+.dr-zone:last-child{border-bottom:0}
+.dr-zone .dz-n{flex:0 0 82px;font-size:10.5px;color:var(--ink-2);font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-zone .dz-b{flex:1;height:5px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+.dr-zone .dz-b i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#0d9488)}
+.dr-zone .dz-v{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.dr-trip{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.dr-trip>div{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:6px 9px;min-width:0}
+.dr-trip span{display:block;font-size:9px;color:var(--ink-3)}
+.dr-trip b{display:block;font-size:11px;font-weight:620;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-trip b.ok{color:#0f766e}
+.dr-li{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed #eef2f7;align-items:flex-start}
+.dr-li:last-child{border-bottom:0}
+.dr-li .dl-t{flex:0 0 40px;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);padding-top:1px}
+.dr-li .dl-m{flex:1;min-width:0;font-size:10.5px;color:#334155;line-height:1.5}
+.dr-li .dl-m em{font-style:normal;color:var(--ink-3);font-size:9.5px;display:block;margin-top:1px}
+.dr-li .dl-x{flex:0 0 auto;font-family:var(--mono);font-size:10px;font-weight:650;color:var(--teal)}
+.dr-empty{padding:20px 12px;text-align:center;font-size:11px;color:var(--ink-3);background:var(--surface-2);border:1px dashed var(--border-strong);border-radius:10px;line-height:1.65}
+.dr-note{margin-top:11px;font-size:9.5px;color:#94a3b8;line-height:1.6;background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.dr-body .ag-trait-grid{column-gap:26px;row-gap:8px}
+.dr-body .ag-trait-row{gap:7px}
+.dr-body .ag-trait-row .tr-l{flex:0 0 auto;min-width:50px;text-align:left;white-space:nowrap}
+.dr-body .ag-trait-row .tr-bar{min-width:0}
+.dr-bio{font-size:11.5px;color:var(--ink-2);line-height:1.6;padding:9px 11px;background:var(--surface-2);border-radius:9px;border-left:3px solid var(--brand)}
+.dr-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.dr-tv{flex:0 0 26px;font-family:var(--mono);font-size:9px;color:var(--ink-3);text-align:right}
+.dr-lit{font-size:10.5px;color:var(--ink-3);line-height:1.6;font-style:italic;background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.dr-hint{font-size:9.5px;color:var(--ink-3);margin-right:auto;display:flex;align-items:center;gap:5px}
+.dr-hint i{width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;animation:drPulse 1.7s infinite}
+@keyframes drPulse{0%,100%{opacity:1}50%{opacity:.22}}
+.dr-foot{display:flex;align-items:center;gap:8px;padding:10px 18px;border-top:1px solid var(--border);background:#fbfdff}
 
 /* ---------- 历史数据标定 ---------- */
 .dt-sec{display:flex;align-items:center;gap:10px;margin:0 0 10px}
@@ -498,6 +622,105 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
   font-family:var(--mono);font-size:10.5px;color:var(--ink-2);line-height:1.62;white-space:pre;overflow:auto}
 .hist-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .hist-btns .btn{font-size:11.5px;padding:5px 11px}
+/* ---------- operations workspace ---------- */
+:root{
+  --bg:#eef3f8;--border:#dce5ef;--ink:#10233b;--ink-3:#596d84;
+  --r:15px;--sh:0 2px 8px rgba(20,45,74,.045);
+}
+.sidebar{width:218px;flex-basis:218px;background:#101f34}
+.nav-label,.clock-row span{color:#94a7bf}
+.brand-sub,.sim-state{color:#a1b6cf}
+.side-foot{padding:12px 10px 10px;border:1px solid #314660;border-radius:12px;background:#142741}
+.topbar{background:#fdfefe;gap:14px}
+.tb-left h1{font-size:18px;font-weight:720}
+.tb-right{justify-content:flex-end;flex-wrap:wrap;row-gap:4px}
+.module[data-mod="overview"]{padding-top:20px}
+.overview-hero{
+  position:relative;isolation:isolate;overflow:hidden;margin-bottom:16px;padding:24px 28px;
+  border-radius:18px;background:linear-gradient(108deg,#122641 30%,#15476a 76%,#146675);
+  color:#fff;box-shadow:0 6px 16px #162e4826;
+}
+.overview-hero::after{
+  content:'';position:absolute;inset:0;z-index:-2;
+  background:radial-gradient(circle,#abdee62c 1px,transparent 1.5px) 0 0/17px 17px;
+  mask-image:linear-gradient(90deg,transparent 24%,#000);
+}
+.hero-network{position:absolute;z-index:-1;right:0;top:0;height:100%;width:55%;opacity:.65;pointer-events:none}
+.hero-kicker{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:650;letter-spacing:1.2px;color:#b7dce7}
+.overview-hero h2{font-size:clamp(24px,3vw,34px);line-height:1.2;margin:9px 0 7px;font-weight:740}
+.overview-hero p{color:#d0e1ec;font-size:13px;max-width:450px}
+.hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.hero-actions button{padding:7px 12px;border-radius:8px;font-weight:650;border:1px solid #a7d5eb70}
+.hero-actions button:first-child{background:#d0f4fa;color:#133750;border-color:#d0f4fa}
+.hero-actions button:last-child{background:#173c59;color:#edf9ff}
+.hero-actions button:hover{filter:brightness(1.12)}
+.kpi-grid,.ov-grid{gap:14px}
+.kpi-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpi{padding:13px 13px 12px 15px}
+.kpi-label{font-weight:620}
+.kpi-heading{font-size:12px;color:var(--ink-3);font-weight:650;margin:0 0 7px 2px}
+.ov-grid{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)}
+.card-hd{gap:8px;flex-wrap:wrap}
+.dispatch-board{margin-bottom:16px}
+.dispatch-board .card-hd{padding:13px 16px}
+.dispatch-board .card-hd h3{font-size:15px}
+.board-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.board-metric{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;color:var(--ink-3);font-size:11px}
+.board-metric b{display:block;color:var(--ink);font:700 20px var(--mono);margin-top:2px}
+.board-orders{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;max-height:260px;overflow:auto;scrollbar-gutter:stable}
+.board-order{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.board-order strong,.board-order small{display:block;overflow-wrap:anywhere}
+.board-order small{color:var(--ink-3);margin-top:1px}
+.board-order button{color:var(--brand-2);font-size:11px;font-weight:650;text-align:left}
+.board-order button:hover{text-decoration:underline}
+:is(button,select,a):focus-visible{outline:2px solid #2585d7;outline-offset:3px}
+.map-tools-toggle{display:none}
+@media (max-width:1120px){
+  .sidebar{width:182px;flex-basis:182px}
+  .tb-right .pill:first-child,.tb-right .pill:has(#pillFleet){display:none}
+  .kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:850px){
+  .app{flex-direction:column;height:100dvh}
+  .sidebar{width:100%;flex:0 0 auto}
+  .side-inner{padding:8px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .brand{padding:0}.brand-mark{width:32px;height:32px;flex-basis:32px}
+  .side-rule,.nav-label,.nav-badge,.side-foot .sim-state,.clock-row span{display:none}
+  .nav{grid-column:1/-1;grid-row:2;flex-direction:row;overflow-x:auto;overflow-y:hidden;margin:0;padding:3px;gap:4px}
+  .nav::-webkit-scrollbar{height:3px}
+  .nav::-webkit-scrollbar-thumb{background:#65819f}
+  .nav-item{flex:none;white-space:nowrap;padding:6px 8px;font-size:12px}
+  .side-foot{display:flex;align-items:center;gap:7px;padding:0;border:0;margin:0;background:none}
+  .clock-row strong{font-size:14px}.sim-btn{white-space:nowrap;padding:5px 7px}
+  .topbar{flex:0 0 auto;min-height:55px;padding:8px 12px}
+  .tb-left p,.tb-right .pill{display:none}
+  .module,.module[data-mod="overview"]{padding:12px}
+  .ov-grid,.about-grid{grid-template-columns:minmax(0,1fr)}
+  .module.no-pad{overflow:auto}
+  .map-shell{height:auto;padding-top:440px}
+  #map{height:440px;bottom:auto}
+  .map-tools-toggle{display:block;position:absolute;top:10px;left:12px;z-index:11}
+  .map-shell .ol-tl{top:44px;left:12px;max-width:calc(100% - 24px);max-height:285px;overflow:auto}
+  .map-shell .ol-tl:not(.open){display:none}
+  .map-shell .ol-bc{top:auto;bottom:auto;left:12px;right:12px;transform:none;inset-block-start:354px}
+  .map-shell.rp-on .ol-bc{display:none}
+  .map-shell .ol-replay{left:12px;right:12px;top:343px;bottom:auto}
+  .fb-note{bottom:110px;width:max-content;max-width:calc(100% - 24px);white-space:normal;text-align:center;line-height:1.4}
+  .rp{flex-wrap:wrap;gap:6px;padding:6px 8px}
+  .rp-track{min-width:0;flex:1 0 100%;order:1}
+  .rp-name{max-width:100px}
+  .map-shell .dispatch-panel{position:relative;inset:auto;margin:0;width:100%;max-height:430px}
+  .graph-shell{height:auto;grid-template-columns:minmax(0,1fr)}
+  .graph-canvas{min-height:400px}
+}
+@media (max-width:520px){
+  .overview-hero{padding:17px 15px}
+  .hero-network{opacity:.32}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .board-orders{grid-template-columns:minmax(0,1fr);max-height:230px}
+  .board-metric{padding:6px}
+  .board-metric b{font-size:17px}
+}
 </style>
 </head>
 <body>
@@ -520,9 +743,9 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 
       <div class="side-rule"></div>
 
-      <nav class="nav">
+      <nav class="nav" aria-label="仪表盘导航">
         <div class="nav-label">运行监控</div>
-        <button class="nav-item active" data-mod="overview">
+        <button class="nav-item active" data-mod="overview" aria-current="page">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
           <span>态势总览</span>
         </button>
@@ -560,7 +783,7 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 
       <div class="side-foot">
         <div class="clock-row"><span>仿真时钟</span><strong id="simClock">08:00</strong></div>
-        <div class="sim-state"><i class="dot" id="simDot"></i><span id="simStatus">运行中 · 第 1 轮</span></div>
+        <div class="sim-state"><i class="dot" id="simDot"></i><span id="simStatus">运行中 · 第 1 天</span></div>
         <button class="sim-btn" id="btnToggleSim">暂停仿真</button>
       </div>
     </div>
@@ -577,8 +800,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
         <div class="pill"><i class="dot"></i>郑州市主城区</div>
         <div class="pill">在线 <b id="tbVeh">—</b> 辆</div>
         <div class="pill" id="weatherPill"><i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>天气 <b>—</b></div>
-        <div class="pill"><b>5 Agent 协同</b></div>
-        <select class="sel" id="speedSel">
+        <div class="pill"><b id="pillFleet">1 平台 + 8 司机 Agent</b></div>
+        <select class="sel" id="speedSel" aria-label="仿真速度">
           <option value="1">仿真速度 1×</option>
           <option value="2">仿真速度 2×</option>
           <option value="4">仿真速度 4×</option>
@@ -589,6 +812,32 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
     <div class="viewport">
       <!-- ===== OVERVIEW ===== -->
       <section class="module active" data-mod="overview">
+        <div class="overview-hero">
+          <svg class="hero-network" viewBox="0 0 520 192" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+            <g fill="none" stroke="#97d4ed" stroke-opacity=".4">
+              <path d="M0 138H98l52-52h160l74-74h136M62 192l52-52h148l51 51M166 0v35l86 86h268M400 192v-54l-83-83H220"/>
+              <path d="M103 0v45l47 41 112 54 118-54h140M337 0v38l-27 48v60l46 46" stroke-dasharray="5 6"/>
+              <path d="M85 170l65-84h160l74-74h105" stroke="#71eddd" stroke-width="2"/>
+            </g>
+            <g fill="#a3f4ea"><circle cx="150" cy="86" r="5"/><circle cx="310" cy="86" r="6"/><circle cx="384" cy="12" r="4"/></g>
+            <circle cx="310" cy="86" r="15" fill="none" stroke="#a3f4ea" opacity=".65"/>
+          </svg>
+          <div class="hero-kicker"><i class="dot" aria-hidden="true"></i> 郑州主城区 · 调度仿真</div>
+          <h2>城市出行调度台</h2>
+          <p>跟踪区域供需、司机响应和每笔订单的执行进度。</p>
+          <div class="hero-actions">
+            <button type="button" id="overviewMap">打开调度地图 →</button>
+            <button type="button" id="overviewGraph">查看协作图谱</button>
+          </div>
+        </div>
+        <section class="card dispatch-board" aria-labelledby="collabTitle">
+          <div class="card-hd">
+            <h3 id="collabTitle">订单协同</h3>
+            <span class="muted" id="roundTag">等待首批订单</span>
+          </div>
+          <div class="card-bd" id="collabPanel"></div>
+        </section>
+        <h3 class="kpi-heading">策略对比参考值</h3>
         <div class="kpi-grid" id="kpiGrid"></div>
         <div class="ov-grid">
           <div class="card">
@@ -605,19 +854,12 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
             </div>
             <div class="card-bd" id="gapList" style="padding-top:8px"></div>
           </div>
-          <div class="card">
+          <div class="card span2">
             <div class="card-hd">
               <h3>调度事件流</h3>
-              <span class="muted" id="feedCount">最近 12 条</span>
+              <span class="muted">最近 14 条</span>
             </div>
             <div class="feed" id="eventFeed"></div>
-          </div>
-          <div class="card">
-            <div class="card-hd">
-              <h3>本轮协同状态</h3>
-              <span class="muted" id="roundTag">第 1 轮</span>
-            </div>
-            <div class="card-bd" id="collabPanel"></div>
           </div>
         </div>
       </section>
@@ -630,7 +872,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
             <div class="ml-ring"></div>
             <div>正在加载高德地图 · 郑州市…</div>
           </div>
-          <div class="ol ol-tl">
+          <button class="gt-btn map-tools-toggle" id="mapToolsToggle" type="button" aria-expanded="false" aria-controls="mapTools">地图工具</button>
+          <div class="ol ol-tl" id="mapTools">
             <div class="layer-box" id="dsPanel">
               <div class="ds-title">现实数据接口 <span class="ds-tag">高德开放平台</span></div>
             </div>
@@ -645,6 +888,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
               <div class="chip-row">
                 <button class="chip on" data-layer="zone"><i style="color:#2563eb"></i>区域需求</button>
                 <button class="chip on" data-layer="veh"><i style="color:#0d9488"></i>模拟车辆</button>
+                <button class="chip on" data-layer="spd"><i style="color:#0f766e"></i>实时车速</button>
+                <button class="chip" data-layer="heat"><i style="color:#e11d48"></i>需求热力</button>
                 <button class="chip on" data-layer="traj"><i style="color:#7c3aed"></i>调度轨迹</button>
                 <button class="chip on" data-layer="label"><i style="color:#d97706"></i>区域标注</button>
                 <button class="chip on" data-layer="hist"><i style="color:#0ea5e9"></i>历史轨迹</button>
@@ -673,6 +918,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
               <div class="legend-row"><i class="legend-dot" style="background:#e11d48;box-shadow:0 0 0 2px #fff inset"></i>前往</div>
               <div class="legend-sep"></div>
               <div class="legend-row"><i class="legend-sq" style="background:#0284c7"></i>历史轨迹</div>
+              <div class="legend-sep"></div>
+              <div class="legend-row"><i class="legend-heat"></i>需求热力</div>
             </div>
           </div>
           <div class="ol ol-replay" id="replayBar" style="display:none">
@@ -696,8 +943,13 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
           </div>
           <aside class="dispatch-panel">
             <div class="dp-hd">
-              <div class="dp-kicker">Dispatch Decision</div>
-              <div class="dp-title" id="dpTitle">豫A·T0231 <span class="tag blue">空闲</span></div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                <div style="min-width:0">
+                  <div class="dp-kicker">Dispatch Decision</div>
+                  <div class="dp-title" id="dpTitle">豫A·T0231 <span class="tag blue">空闲</span></div>
+                </div>
+                <button class="dp-mem" id="btnDrvMem" title="查看该司机的思考过程与记忆">思考 · 记忆</button>
+              </div>
             </div>
             <div class="dp-body" id="dpBody"></div>
             <div class="dp-foot">
@@ -748,6 +1000,7 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 
       <!-- ===== AGENTS ===== -->
       <section class="module" data-mod="agents">
+        <div class="llm-bar" id="llmBar"></div>
         <div class="ag-grid" id="agentGrid"></div>
 
         <div class="card" style="margin-top:12px">
@@ -967,8 +1220,9 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
                 <li><b style="color:#2563eb">A1 态势感知智能体</b>：融合高德 POI 热度、实时路况、车辆 GPS 与订单流，输出区域供需缺口。</li>
                 <li><b style="color:#0891b2">A2 路径规划智能体</b>：调用高德 Driving 接口做真实路网规划，输出距离、ETA 与空驶成本。</li>
                 <li><b style="color:#7c3aed">A3 调度派单智能体</b>：综合评分并做车辆-订单匹配，向司机下发派单指令与推荐路线。</li>
-                <li><b style="color:#d97706">A4 司机执行智能体</b>：代表司机与车辆确认接单，沿规划路线行驶、送达并结算。</li>
+                <li><b style="color:#d97706">A4 司机执行智能体</b>：代表司机与车辆确认接单，沿规划路线行驶、送达并结算。<b>每个司机均接入 LLM 链式思考引擎</b>（态势评估→选项分析→决策输出），具备独立思考、记忆模块与性格原型。</li>
                 <li>A1 → A2 → A3 → A4 首尾相接形成闭环：执行结果回写为区域权重与司机阈值，供下一轮 A1 / A3 使用。</li>
+                <li><b>8 名司机智能体</b>：基于出租车行为研究文献（Camerer、Farber、Haggag、Tang 等），赋予差异化性格原型（收益猎手、价格敏感、区域深耕、保守观望等），每人均有偏好区域、记忆模块与独立 LLM 思考过程。点击司机卡片可查看完整链式推理。</li>
               </ul>
             </div>
           </div>
@@ -1084,30 +1338,11 @@ const ZONES = [
 ];
 const ZMAP = Object.fromEntries(ZONES.map(z => [z.id, z]));
 
-/* ---------------- 车辆与调度轨迹 ----------------
-   车队规模 FLEET_SIZE 辆，是郑州 11,875 台巡游车的抽样样本（抽样比见「历史数据标定」页）。
-   前 8 辆为手工标定的示范车辆，号牌与司机智能体 A01~A08 一一对应；
-   其余按区域需求权重程序化生成起终点，路径为片区间折线 + 法向弯曲，避免出现笔直对角线。 */
-const FLEET_SIZE = 240;
-
-const SEED_VEHICLES = [
-  { id: 'V1', plate: '豫A·T0231', status: 'idle',    from: 'erqi',      to: 'cbd',
-    path: [[34.7480,113.6270],[34.7465,113.6440],[34.7500,113.6620],[34.7545,113.6900],[34.7565,113.7150],[34.7620,113.7300],[34.7722,113.7333]] },
-  { id: 'V2', plate: '豫A·T0458', status: 'busy',    from: 'dongzhan',  to: 'huayuan',
-    path: [[34.7560,113.7750],[34.7570,113.7600],[34.7562,113.7420],[34.7560,113.7250],[34.7580,113.7050],[34.7620,113.6850],[34.7720,113.6720],[34.7880,113.6650]] },
-  { id: 'V3', plate: '豫A·T0772', status: 'enroute', from: 'gaoxin',    to: 'bishagang',
-    path: [[34.8120,113.5350],[34.8040,113.5560],[34.7940,113.5760],[34.7830,113.5940],[34.7700,113.6060],[34.7600,113.6100],[34.7520,113.6050]] },
-  { id: 'V4', plate: '豫A·T0316', status: 'idle',    from: 'huayuan',   to: 'dongzhan',
-    path: [[34.7880,113.6650],[34.7890,113.6820],[34.7895,113.7020],[34.7900,113.7220],[34.7840,113.7420],[34.7750,113.7580],[34.7620,113.7700],[34.7560,113.7750]] },
-  { id: 'V5', plate: '豫A·T0509', status: 'enroute', from: 'huiji',     to: 'erqi',
-    path: [[34.8600,113.6250],[34.8420,113.6320],[34.8220,113.6420],[34.8020,113.6520],[34.7860,113.6600],[34.7700,113.6550],[34.7560,113.6420],[34.7480,113.6270]] },
-  { id: 'V6', plate: '豫A·T0688', status: 'busy',    from: 'longzihu',  to: 'dongzhan',
-    path: [[34.8080,113.7820],[34.7960,113.7800],[34.7820,113.7780],[34.7680,113.7760],[34.7560,113.7750]] },
-  { id: 'V7', plate: '豫A·T0125', status: 'idle',    from: 'jingkai',   to: 'erqi',
-    path: [[34.7250,113.7550],[34.7285,113.7400],[34.7320,113.7220],[34.7360,113.7020],[34.7400,113.6820],[34.7440,113.6550],[34.7480,113.6270]] },
-  { id: 'V8', plate: '豫A·T0913', status: 'idle',    from: 'bishagang', to: 'cbd',
-    path: [[34.7520,113.6050],[34.7520,113.6280],[34.7530,113.6500],[34.7545,113.6750],[34.7560,113.7000],[34.7600,113.7200],[34.7680,113.7300],[34.7722,113.7333]] }
-];
+/* ---------------- 车辆与司机智能体绑定 ----------------
+   车队缩减至 8 辆，每辆车与一个司机智能体 1:1 绑定。
+   车辆起始位置在司机偏好区域内，行驶轨迹取高德导航路线。
+   仍为车多乘客少场景：8 辆车竞争每轮 2~3 个订单，突出平台调度价值。 */
+const FLEET_SIZE = 8;
 
 /* 片区间路网折线：在中点附近施加法向偏移，形态接近绕行而不是直线 */
 function roadPath(a, b, k) {
@@ -1125,58 +1360,453 @@ function roadPath(a, b, k) {
   return out;
 }
 
-function plateOf(i) {
-  return '豫A·T' + String(1000 + ((i * 7919 + 137) % 8999)).padStart(4, '0');
+/* 每辆车与司机智能体 1:1 绑定。
+   注意：AGENTS 是 const、定义在下方，此处先占位声明，
+   等司机智能体数据定义完成后再填充（避免 TDZ 报错）。 */
+let VEHICLES = [];
+
+/* ============================================================
+   司机智能体（8 个深度 Agent · 文献分析驱动 · LLM 思考 · 记忆模块）
+   ------------------------------------------------------------
+   性格原型基于出租车司机行为研究文献：
+   - Camerer et al. (1997) / Crawford & Meng (2011): 收益目标与劳动供给
+   - Farber (2005/2015): 班次模式与收入弹性
+   - Haggag & Paci (2014): 小费行为与价格敏感性
+   - Wong et al. (2001): 巡游时空模式
+   - Tang et al. (2017): 空间锁定效应
+   - Szeto et al. (2013) / Cheng & Nguyen (2011): 自适应行为
+   - Zhan et al. (2016): 空驶最小化与接单策略
+   每个司机接入 LLM（链式推理模拟），具备独立思考与记忆能力。
+   ============================================================ */
+function mkMemory() {
+  return { trajectory: [], visitedZones: {}, earningsLog: [], decisions: [], dailyRoute: [], currentThought: '', thoughtHistory: [], llm: null };
 }
 
-const VEHICLES = SEED_VEHICLES.slice();
-(function buildFleet() {
-  const ids = ZONES.map(z => z.id);
-  const wsum = ZONES.reduce((s, z) => s + z.demand, 0);
-  /* 目的地区按需求加权：需求越高的片区越容易被选为终点 */
-  const pickDest = () => {
-    let r = Math.random() * wsum;
-    for (let i = 0; i < ZONES.length; i++) { r -= ZONES[i].demand; if (r <= 0) return ZONES[i].id; }
-    return ZONES[0].id;
-  };
-  const used = new Set(SEED_VEHICLES.map(v => v.plate));
-  for (let i = SEED_VEHICLES.length; i < FLEET_SIZE; i++) {
-    const from = ids[Math.floor(Math.random() * ids.length)];
-    let to = pickDest(), g = 0;
-    while (to === from && g++ < 8) to = pickDest();
-    if (to === from) to = ids[(ids.indexOf(from) + 3) % ids.length];
-    let plate = plateOf(i), guard = 0;
-    while (used.has(plate) && guard++ < 60) plate = plateOf(i + guard * 17);
-    used.add(plate);
-    const r = Math.random();
-    VEHICLES.push({
-      id: 'V' + (i + 1), plate,
-      status: r < 0.46 ? 'idle' : r < 0.80 ? 'busy' : 'enroute',
-      from, to,
-      path: roadPath(ZMAP[from], ZMAP[to], 5 + ((i * 3) % 4))
-    });
-  }
-})();
+const AGENTS = [
+  { id:'A01', name:'张明远', plate:'豫A·T0231', type:'收益猎手型', color:'#2563eb',
+    sens:0.88, pref:'郑东CBD', thr:0.38, acc:0.82, earn:0, runs:0, mood:'专注', dist:5.8,
+    bio:'十年老司机，专挑高客单区域，日均收入目标 300 元，达不到不收车',
+    archetype:'profit-hunter', prefZones:['cbd','erqi','dongzhan'],
+    traits:{ riskTolerance:0.85, profitSensitivity:0.92, spatialLoyalty:0.30, timeHorizon:'short', complianceRate:0.55, experienceLevel:0.80 },
+    literature:'Camerer(1997)收益目标驱动; Crawford&Meng(2011)参考点依赖',
+    memory: mkMemory() },
+  { id:'A02', name:'李建国', plate:'豫A·T0458', type:'稳健通勤型', color:'#0d9488',
+    sens:0.52, pref:'花园路商圈', thr:0.68, acc:0.64, earn:0, runs:0, mood:'平稳', dist:3.2,
+    bio:'固定班次司机，早七晚六，走固定通勤路线，不追高峰溢价',
+    archetype:'steady-commuter', prefZones:['huayuan','dongzhan'],
+    traits:{ riskTolerance:0.35, profitSensitivity:0.48, spatialLoyalty:0.65, timeHorizon:'long', complianceRate:0.72, experienceLevel:0.60 },
+    literature:'Farber(2005)班次固定性; Schmidt(2017)稳健策略',
+    memory: mkMemory() },
+  { id:'A03', name:'王德发', plate:'豫A·T0772', type:'价格敏感型', color:'#7c3aed',
+    sens:0.94, pref:'二七广场', thr:0.32, acc:0.86, earn:0, runs:0, mood:'活跃', dist:5.1,
+    bio:'对每公里单价极度敏感，低客单区域一分钟不待，算账比谁都精',
+    archetype:'price-sensitive', prefZones:['erqi','bishagang'],
+    traits:{ riskTolerance:0.70, profitSensitivity:0.96, spatialLoyalty:0.45, timeHorizon:'short', complianceRate:0.50, experienceLevel:0.75 },
+    literature:'Haggag&Paci(2014)价格敏感性; Zhan(2016)空驶成本意识',
+    memory: mkMemory() },
+  { id:'A04', name:'赵守义', plate:'豫A·T0316', type:'保守观望型', color:'#d97706',
+    sens:0.40, pref:'郑州东站', thr:0.75, acc:0.38, earn:0, runs:0, mood:'观望', dist:2.4,
+    bio:'排队等候型，常驻高铁站候客区，宁愿等也不空驶，接单率低但客单高',
+    archetype:'conservative-watcher', prefZones:['dongzhan','hangkong'],
+    traits:{ riskTolerance:0.20, profitSensitivity:0.42, spatialLoyalty:0.78, timeHorizon:'long', complianceRate:0.35, experienceLevel:0.55 },
+    literature:'Schmidt(2017)等待策略; Tang(2017)空间锁定',
+    memory: mkMemory() },
+  { id:'A05', name:'孙师傅', plate:'豫A·T0509', type:'路线熟手型', color:'#0891b2',
+    sens:0.68, pref:'惠济区', thr:0.48, acc:0.76, earn:0, runs:0, mood:'专注', dist:4.2,
+    bio:'北区活地图，惠济到碧沙岗的每条小巷都烂熟于心，专走别人不知道的捷径',
+    archetype:'route-expert', prefZones:['huiji','bishagang'],
+    traits:{ riskTolerance:0.55, profitSensitivity:0.60, spatialLoyalty:0.88, timeHorizon:'mid', complianceRate:0.65, experienceLevel:0.92 },
+    literature:'Jaffe(2015)默会知识; Tang(2017)区域专精',
+    memory: mkMemory() },
+  { id:'A06', name:'周晓东', plate:'豫A·T0688', type:'均衡适应型', color:'#e11d48',
+    sens:0.62, pref:'龙子湖', thr:0.56, acc:0.70, earn:0, runs:0, mood:'平稳', dist:3.6,
+    bio:'随遇而安型，哪有空就去哪，不追高也不死等，平台推荐基本都听',
+    archetype:'balanced-adapter', prefZones:['longzihu','gaoxin'],
+    traits:{ riskTolerance:0.52, profitSensitivity:0.58, spatialLoyalty:0.40, timeHorizon:'mid', complianceRate:0.82, experienceLevel:0.50 },
+    literature:'Szeto(2013)自适应行为; Cheng&Nguyen(2011)弹性响应',
+    memory: mkMemory() },
+  { id:'A07', name:'刘争气', plate:'豫A·T0125', type:'高峰追逐型', color:'#1d4ed8',
+    sens:0.80, pref:'经开区', thr:0.42, acc:0.78, earn:0, runs:0, mood:'活跃', dist:5.6,
+    bio:'只在早晚高峰和雨天发力，平峰找地方休息，靠溢价窗口赚够一天',
+    archetype:'peak-chaser', prefZones:['jingkai','cbd'],
+    traits:{ riskTolerance:0.72, profitSensitivity:0.78, spatialLoyalty:0.35, timeHorizon:'short', complianceRate:0.60, experienceLevel:0.68 },
+    literature:'Wong(2001)时间模式; Farber(2015)高峰溢价响应',
+    memory: mkMemory() },
+  { id:'A08', name:'陈根生', plate:'豫A·T0913', type:'区域深耕型', color:'#0f766e',
+    sens:0.58, pref:'碧沙岗', thr:0.60, acc:0.62, earn:0, runs:0, mood:'平稳', dist:2.0,
+    bio:'碧沙岗周边十年，不离开西区三公里范围，靠熟客和固定点位吃饭',
+    archetype:'area-specialist', prefZones:['bishagang','erqi'],
+    traits:{ riskTolerance:0.30, profitSensitivity:0.50, spatialLoyalty:0.95, timeHorizon:'long', complianceRate:0.58, experienceLevel:0.85 },
+    literature:'Tang(2017)空间锁定; Salanova(2014)区域专精',
+    memory: mkMemory() },
+];
 
-VEHICLES.forEach((v, i) => {
-  v.t = (i * 0.1373) % 1;            /* 轨迹进度 0~1，整体均匀铺开 */
-  v.speed = 0.0014 + Math.random() * 0.0016;
-  v.conf = 0.72 + Math.random() * 0.24;
-  v.gain = 0;
-  v.cands = null;
+/* 司机与车辆 1:1 绑定映射 */
+const AGENT_BY_ID = Object.fromEntries(AGENTS.map(a => [a.id, a]));
+const AGENT_BY_PLATE = Object.fromEntries(AGENTS.map(a => [a.plate, a]));
+
+/* 填充车辆：每辆车 1:1 绑定司机，起始位置在司机偏好区域内 */
+VEHICLES = AGENTS.map((a, i) => {
+  const fromZid = a.prefZones[0];
+  const toZid = a.prefZones[1 % a.prefZones.length] || ZONES[(ZONES.findIndex(z => z.id === fromZid) + 1) % ZONES.length].id;
+  const fromZ = ZMAP[fromZid], toZ = ZMAP[toZid];
+  return {
+    id: 'V' + (i + 1),
+    plate: a.plate,
+    agentId: a.id,
+    status: 'idle',
+    from: fromZid,
+    to: toZid,
+    path: roadPath(fromZ, toZ, 6 + (i % 3)),
+    t: (i * 0.083) % 1,
+    speed: 0.0016 + Math.random() * 0.0012,
+    kmh: 0,                 /* 实时车速（km/h），由导航路径位移 + 路况 + 天气动态计算 */
+    kmhSrc: 'sim',          /* sim = 内置轨迹推演；route = 高德导航路径 */
+    routeKm: 0, routeMin: 0,
+    conf: 0.72 + Math.random() * 0.24,
+    gain: 0,
+    cands: null
+  };
 });
 
-/* ---------------- 司机智能体 ---------------- */
-const AGENTS = [
-  { id:'A01', name:'司机 A01', plate:'豫A·T0231', type:'收益激进型', color:'#2563eb', sens:0.86, pref:'郑东CBD', thr:0.42, acc:0.78, earn:186.5, runs:14, mood:'专注', dist:5.8 },
-  { id:'A02', name:'司机 A02', plate:'豫A·T0458', type:'稳健通勤型', color:'#0d9488', sens:0.54, pref:'花园路商圈', thr:0.66, acc:0.61, earn:152.0, runs:11, mood:'平稳', dist:2.6 },
-  { id:'A03', name:'司机 A03', plate:'豫A·T0772', type:'价格敏感型', color:'#7c3aed', sens:0.92, pref:'二七广场', thr:0.35, acc:0.84, earn:203.2, runs:16, mood:'活跃', dist:6.4 },
-  { id:'A04', name:'司机 A04', plate:'豫A·T0316', type:'保守观望型', color:'#d97706', sens:0.44, pref:'郑州东站', thr:0.72, acc:0.37, earn:118.4, runs:8,  mood:'观望', dist:2.9 },
-  { id:'A05', name:'司机 A05', plate:'豫A·T0509', type:'路线熟手型', color:'#0891b2', sens:0.71, pref:'惠济区', thr:0.50, acc:0.72, earn:171.8, runs:13, mood:'专注', dist:4.2 },
-  { id:'A06', name:'司机 A06', plate:'豫A·T0688', type:'均衡型',     color:'#e11d48', sens:0.63, pref:'龙子湖', thr:0.58, acc:0.66, earn:164.3, runs:12, mood:'平稳', dist:3.1 },
-  { id:'A07', name:'司机 A07', plate:'豫A·T0125', type:'收益激进型', color:'#1d4ed8', sens:0.81, pref:'经开区', thr:0.45, acc:0.74, earn:178.9, runs:13, mood:'活跃', dist:5.2 },
-  { id:'A08', name:'司机 A08', plate:'豫A·T0913', type:'稳健通勤型', color:'#0f766e', sens:0.57, pref:'碧沙岗', thr:0.62, acc:0.58, earn:149.6, runs:10, mood:'平稳', dist:2.2 }
-];
+/* ============================================================
+   LLM 思考引擎：链式推理模拟（chain-of-thought）
+   每种性格原型有独立的思考模板，模拟大语言模型的推理输出
+   ============================================================ */
+const THOUGHT_TEMPLATES = {
+  'profit-hunter': {
+    assess: (ctx) => `当前在${ctx.curZone}，平台推送${ctx.orderZone}的订单。收益预估¥${ctx.estimate}，空驶${ctx.deadhead}km。我的今日收入¥${ctx.todayEarn}，目标300元，还差¥${Math.max(0, 300 - ctx.todayEarn).toFixed(0)}。`,
+    evaluate: (ctx) => `${ctx.orderZone}是高需求区域，单价偏高。但已有${ctx.competitors}辆车在附近，竞争不小。空驶成本¥${(ctx.deadhead * 0.62).toFixed(1)}，占预估收益的${((ctx.deadhead * 0.62 / ctx.estimate) * 100).toFixed(0)}%，${ctx.deadhead > 5 ? '偏高了' : '可以接受'}。`,
+    decide: (ctx) => ctx.estimate > 20 && ctx.deadhead < 6 ? '接！高客单区域正是我需要的，抓紧时间跑。' : '算了，收益不够覆盖空驶，等下一个更好的单。'
+  },
+  'steady-commuter': {
+    assess: (ctx) => `现在${ctx.clockStr}，在${ctx.curZone}附近。平台推荐去${ctx.orderZone}，预估收益¥${ctx.estimate}。我的班次还剩${ctx.shiftLeft}小时。`,
+    evaluate: (ctx) => `${ctx.orderZone}在我的常规通勤路线上${ctx.onRoute ? '' : '，稍微有点偏'}。这个时段去那边不太堵，路程可控。收益不算最高但稳定，符合我的节奏。`,
+    decide: (ctx) => ctx.onRoute ? '可以，顺路而且稳定，不会打乱我的节奏。' : '稍微偏了点，但如果不太远也行，稳稳当当跑完这单。'
+  },
+  'price-sensitive': {
+    assess: (ctx) => `平台推送${ctx.orderZone}订单，预估¥${ctx.estimate}，距离${ctx.deadhead}km。算一下：每公里单价¥${(ctx.estimate / Math.max(0.1, ctx.deadhead + 2)).toFixed(1)}。`,
+    evaluate: (ctx) => `每公里收益${(ctx.estimate / Math.max(0.1, ctx.deadhead + 2)).toFixed(1)}元，${ctx.estimate / Math.max(0.1, ctx.deadhead + 2) > 8 ? '不错，高于我的底线8元/km' : '低于我的底线，不值'}。空驶${ctx.deadhead}km白烧油，得算进去。`,
+    decide: (ctx) => ctx.estimate / Math.max(0.1, ctx.deadhead + 2) > 8 ? '接！每公里单价达标，这笔账划算。' : '不接，每公里单价太低，跑了等于白干。'
+  },
+  'conservative-watcher': {
+    assess: (ctx) => `我在${ctx.curZone}候客区排队，前面还有${ctx.queueAhead}人。平台推荐去${ctx.orderZone}，预估¥${ctx.estimate}。`,
+    evaluate: (ctx) => `离开排队区去${ctx.orderZone}，风险是不确定那边有没有客。而排队虽然慢，但高铁站客单高、稳定。置信度${ctx.confidence}，${ctx.confidence < 0.72 ? '低于我的接受阈值，风险太大' : '勉强可以试试'}。`,
+    decide: (ctx) => ctx.confidence > 0.72 ? '行吧，置信度够了，试试看。' : '不了，排队虽慢但稳，不想冒这个险。留在原区域等下一波旅客。'
+  },
+  'route-expert': {
+    assess: (ctx) => `去${ctx.orderZone}？我对那边的路很熟。从这儿走${ctx.shortcutName || '小路'}能省1.5km，导航都不知道。`,
+    evaluate: (ctx) => `${ctx.orderZone}${ctx.prefZones.includes(ctx.orderZoneId) ? '是我的地盘' : '不太熟'}，但我能找到捷径，实际路程比平台算的短。收益尚可，关键是我知道怎么避开堵点。`,
+    decide: (ctx) => ctx.prefZones.includes(ctx.orderZoneId) ? '接！这块我闭着眼都能跑，走捷径比谁都快。' : '可以接，虽然不是我最熟的区域，但老司机到哪都能找到路。'
+  },
+  'balanced-adapter': {
+    assess: (ctx) => `当前在${ctx.curZone}，平台推荐${ctx.orderZone}，预估¥${ctx.estimate}，空驶${ctx.deadhead}km。看看整体情况。`,
+    evaluate: (ctx) => `${ctx.orderZone}需求${ctx.demandLevel}，供应${ctx.supplyLevel}，${ctx.demandLevel > ctx.supplyLevel ? '缺口存在' : '供需平衡'}。距离不远，收益中等，综合来看还行。平台推荐一般不会太离谱。`,
+    decide: (ctx) => '行，听平台的，去试试。整体评估还可以，不强求最优但也不亏。'
+  },
+  'peak-chaser': {
+    assess: (ctx) => `现在${ctx.clockStr}，${ctx.isPeak ? '正在高峰期，得抓住窗口' : '平峰期，按说该休息了'}。平台推荐${ctx.orderZone}，预估¥${ctx.estimate}。`,
+    evaluate: (ctx) => ctx.isPeak ? `高峰期！${ctx.orderZone}需求暴涨，这单收益比平时高${ctx.premium}%。机不可失，现在每分钟都是钱。` : `现在不是高峰，去${ctx.orderZone}收益一般，不太想动。不过如果近的话也可以跑跑。`,
+    decide: (ctx) => ctx.isPeak ? '接！高峰窗口不等人，冲！' : '平峰的单不太想接，除非特别近。先歇会儿等高峰。'
+  },
+  'area-specialist': {
+    assess: (ctx) => `平台推荐${ctx.orderZone}。${ctx.prefZones.includes(ctx.orderZoneId) ? '这在我的地盘范围内' : '这超出了我的活动范围'}。`,
+    evaluate: (ctx) => ctx.prefZones.includes(ctx.orderZoneId) ? `${ctx.orderZone}我很熟，知道哪个点位最容易接到客，收益稳定。在自己地盘心里有底。` : `${ctx.orderZone}太远了，不熟路况也不熟客源，去了可能两眼一抹黑。还是留在西区稳当。`,
+    decide: (ctx) => ctx.prefZones.includes(ctx.orderZoneId) ? '接，自己地盘，闭眼跑。' : '不接，超出我的活动圈了，不冒险去陌生区域。'
+  },
+  'novice-learner': {
+    assess: (ctx) => `平台推荐去${ctx.orderZone}，预估¥${ctx.estimate}。我对那边还不太熟，得靠导航。`,
+    evaluate: (ctx) => `平台评分${ctx.confidence}，${ctx.confidence > 0.7 ? '评分挺高，应该靠谱' : '评分一般，但试试也无妨'}。我经验少，多跑跑不同区域才能长见识。导航能带我过去，应该没问题。`,
+    decide: (ctx) => '好的，听平台的！我去。多跑多学，慢慢就熟了。'
+  },
+  'veteran-cruiser': {
+    assess: (ctx) => `${ctx.clockStr}，按我的巡回路线，这个时段应该${ctx.expectedZone || '在商圈附近'}。平台推荐${ctx.orderZone}，预估¥${ctx.estimate}。`,
+    evaluate: (ctx) => `${ctx.orderZone}${ctx.matchesRoute ? '跟我巡游路线吻合' : '稍微偏离路线'}。跑了二十年，这个点${ctx.orderZone}的客源情况我心里有数：${ctx.demandLevel > 70 ? '确实需求旺' : '需求一般'}。综合判断还行。`,
+    decide: (ctx) => ctx.matchesRoute ? '接，正好在路线上，顺手的事。' : '稍微偏了点，不过老司机到哪都能找到活，接了。'
+  },
+  'night-specialist': {
+    assess: (ctx) => `现在${ctx.clockStr}，${ctx.isNight ? '夜班时段，精神正好' : '白天不太是我的时间'}。平台推荐${ctx.orderZone}，预估¥${ctx.estimate}。`,
+    evaluate: (ctx) => ctx.isNight ? `夜场时段${ctx.orderZone}附近有酒吧/KTV散场，需求旺。这单接了大概率还能连上下一单。` : `白天去${ctx.orderZone}没什么优势，我对白天客源不太熟。`,
+    decide: (ctx) => ctx.isNight ? '接！夜班时段是我的主场。' : '白天不太想动，等天黑再发力。'
+  },
+  'opportunistic': {
+    assess: (ctx) => `平台推荐${ctx.orderZone}，预估¥${ctx.estimate}，空驶${ctx.deadhead}km。看看顺不顺路。`,
+    evaluate: (ctx) => `${ctx.deadhead < 3 ? '很近，顺路，油耗可控' : `要空驶${ctx.deadhead}km过去，烧油¥${(ctx.deadhead * 0.7).toFixed(1)}，不太值`}。这单去${ctx.orderZone}，回来路上能不能接到下一单很关键。`,
+    decide: (ctx) => ctx.deadhead < 3 ? '接，顺路！近的地方不费油。' : '不接，太远了空驶不划算，不如就近等等。'
+  }
+};
+
+/* 生成司机的链式思考过程 */
+function generateThought(agent, ctx) {
+  const tpl = THOUGHT_TEMPLATES[agent.archetype] || THOUGHT_TEMPLATES['balanced-adapter'];
+  const steps = [
+    { phase: '态势评估', icon: 'eye', text: tpl.assess(ctx) },
+    { phase: '选项分析', icon: 'brain', text: tpl.evaluate(ctx) },
+    { phase: '决策输出', icon: 'check', text: tpl.decide(ctx) }
+  ];
+  const accept = !/^(不|算了|平峰|白天)/.test(steps[2].text);
+  const thought = {
+    time: fmtClock(S.clock),
+    steps,
+    accept,
+    order: { zone: ctx.orderZone, estimate: ctx.estimate, deadhead: ctx.deadhead },
+    archetype: agent.archetype
+  };
+  agent.memory.currentThought = thought;
+  agent.memory.llm = null;
+  agent.memory.thoughtHistory.push(thought);
+  if (agent.memory.thoughtHistory.length > 20) agent.memory.thoughtHistory.shift();
+  return thought;
+}
+
+/* ============================================================
+   LLM 推理引擎
+   ------------------------------------------------------------
+   local  : 本地链式推理（性格模板），离线可用，保证演示不依赖网络
+   online : OpenAI 兼容 /chat/completions（DeepSeek / 通义 / vLLM 等）
+            司机收到派单后真实调用大模型生成独立思考文本，
+            决策规则仍由「性格 + 收益阈值 + 平台评分」给出，模型只负责推理表达
+   ============================================================ */
+const LLM = {
+  cfg: {
+    enabled: false,
+    endpoint: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+    key: ''
+  },
+  state: { calls: 0, ok: 0, fail: 0, tokens: 0, latency: 0, pending: 0, lastErr: '' }
+};
+try {
+  const raw = localStorage.getItem('mp_llm_cfg');
+  if (raw) Object.assign(LLM.cfg, JSON.parse(raw));
+} catch (e) { /* 隐私模式下 localStorage 不可用，走默认配置 */ }
+
+function llmOnline() {
+  return !!(LLM.cfg.enabled && LLM.cfg.key && LLM.cfg.endpoint && LLM.cfg.model);
+}
+function saveLLMCfg() {
+  try { localStorage.setItem('mp_llm_cfg', JSON.stringify(LLM.cfg)); } catch (e) { /* ignore */ }
+  renderLLMBar();
+  renderAgents();
+}
+
+function renderLLMBar() {
+  const el = $('#llmBar');
+  if (!el) return;
+  const on = llmOnline();
+  const st = LLM.state;
+  const avg = st.ok ? Math.round(st.latency / st.ok) : 0;
+  el.innerHTML = `
+    <div class="llm-ico">LLM</div>
+    <div>
+      <div class="llm-t">司机独立思考引擎
+        <span class="llm-pill ${on ? 'online' : 'local'}">${on ? '在线模型 · ' + LLM.cfg.model : '本地链式推理'}</span>
+      </div>
+      <div class="llm-s">${AGENTS.length}/${AGENTS.length} 名司机接入${on ? '在线大模型' : '本地推理'} · ${on ? '派单后实时生成思考过程' : '点击右上角可接入真实模型'}</div>
+    </div>
+    <div class="llm-stats">
+      <div class="llm-stat"><b>${st.calls}</b><span>推理调用</span></div>
+      <div class="llm-stat"><b>${st.ok}/${st.calls}</b><span>成功</span></div>
+      <div class="llm-stat"><b>${avg ? avg + ' ms' : '—'}</b><span>平均延迟</span></div>
+      <div class="llm-stat"><b>${st.tokens || '—'}</b><span>累计 token</span></div>
+    </div>
+    <button class="llm-btn" id="btnLLMCfg">${on ? '模型设置' : '接入在线模型'}</button>`;
+  const b = $('#btnLLMCfg');
+  if (b) b.addEventListener('click', openLLMModal);
+}
+
+function openLLMModal() {
+  let m = $('#llmModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'llmModal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(10,17,32,.42);display:flex;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML = `
+      <div style="width:520px;max-width:100%;background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(13,21,38,.28);overflow:hidden">
+        <div style="padding:16px 18px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;gap:8px">
+          <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#0d9488);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">LLM</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:650;color:#16233a">接入在线大语言模型</div>
+            <div style="font-size:10.5px;color:#64748b">OpenAI 兼容接口 · 每位司机独立 system prompt</div>
+          </div>
+          <button id="llmClose" style="border:0;background:transparent;font-size:20px;line-height:1;color:#94a3b8;cursor:pointer">×</button>
+        </div>
+        <div style="padding:14px 18px 4px">
+          <label style="display:block;font-size:10.5px;color:#64748b;margin-bottom:4px">接口地址（POST，兼容 /chat/completions）</label>
+          <input id="llmEp" style="width:100%;box-sizing:border-box;border:1px solid #dbe3ee;border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;margin-bottom:10px">
+          <div style="display:flex;gap:10px">
+            <div style="flex:1">
+              <label style="display:block;font-size:10.5px;color:#64748b;margin-bottom:4px">模型名</label>
+              <input id="llmModel" style="width:100%;box-sizing:border-box;border:1px solid #dbe3ee;border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit">
+            </div>
+            <div style="flex:1.35">
+              <label style="display:block;font-size:10.5px;color:#64748b;margin-bottom:4px">API Key</label>
+              <input id="llmKey" type="password" placeholder="sk-…" style="width:100%;box-sizing:border-box;border:1px solid #dbe3ee;border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit">
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#334155;margin:11px 0 4px">
+            <input id="llmOn" type="checkbox"> 启用在线模型（关闭则使用本地链式推理）
+          </label>
+          <div style="font-size:10px;color:#94a3b8;line-height:1.6;background:#f8fafc;border:1px solid #eef2f7;border-radius:8px;padding:8px 10px;margin:8px 0 12px">
+            配置仅保存在本机浏览器 localStorage，不会上传。若接口未开启 CORS，浏览器会拒绝跨域请求，
+            页面自动回退本地推理并在引擎栏提示失败原因。
+          </div>
+          <div id="llmMsg" style="font-size:11px;margin-bottom:10px;min-height:16px"></div>
+        </div>
+        <div style="padding:12px 18px;border-top:1px solid #eef2f7;display:flex;gap:8px;justify-content:flex-end;background:#fbfdff">
+          <button id="llmTest" class="llm-btn">测试连接</button>
+          <button id="llmSave" class="llm-btn" style="background:#2563eb;border-color:#2563eb;color:#fff">保存并启用</button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+    $('#llmClose').addEventListener('click', () => { m.style.display = 'none'; });
+    $('#llmSave').addEventListener('click', () => {
+      LLM.cfg.endpoint = $('#llmEp').value.trim();
+      LLM.cfg.model = $('#llmModel').value.trim();
+      LLM.cfg.key = $('#llmKey').value.trim();
+      LLM.cfg.enabled = $('#llmOn').checked;
+      saveLLMCfg();
+      m.style.display = 'none';
+      pushEvent(`LLM 引擎：${llmOnline() ? '已接入在线模型 <b>' + LLM.cfg.model + '</b>' : '使用本地链式推理'}`, {});
+    });
+    $('#llmTest').addEventListener('click', () => llmTest($('#llmEp').value.trim(), $('#llmModel').value.trim(), $('#llmKey').value.trim()));
+  }
+  $('#llmEp').value = LLM.cfg.endpoint;
+  $('#llmModel').value = LLM.cfg.model;
+  $('#llmKey').value = LLM.cfg.key;
+  $('#llmOn').checked = LLM.cfg.enabled;
+  $('#llmMsg').textContent = '';
+  m.style.display = 'flex';
+}
+
+async function llmTest(ep, model, key) {
+  const msg = $('#llmMsg');
+  if (!ep || !model || !key) { msg.style.color = '#e11d48'; msg.textContent = '接口地址 / 模型名 / API Key 都不能为空'; return; }
+  msg.style.color = '#64748b'; msg.textContent = '正在请求模型…';
+  const t0 = performance.now();
+  try {
+    const r = await fetch(ep, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({ model, max_tokens: 24, messages: [{ role: 'user', content: '只回复两个字：连通' }] })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+    msg.style.color = '#0f766e';
+    msg.textContent = `连通成功 · ${Math.round(performance.now() - t0)} ms · 返回「${txt.trim().slice(0, 20)}」`;
+  } catch (e) {
+    msg.style.color = '#e11d48';
+    msg.textContent = '调用失败：' + e.message + '（常见原因是未开启 CORS 或 Key 无效）';
+  }
+}
+
+/* 在线模型推理：决策已由性格规则给出，模型负责输出可解释的思考文本 */
+async function llmThink(agent, ctx, thought) {
+  if (!llmOnline()) return;
+  /* 节流：单个司机 15s 内最多一次、全局最多 2 个并发，避免派单密集时打爆接口 */
+  const now = Date.now();
+  if (LLM.state.pending >= 2 || now - (agent._llmAt || 0) < 15000) return;
+  agent._llmAt = now;
+  const cfg = { ...LLM.cfg };
+  const decision = thought.accept ? '接受' : '拒绝';
+  const prefNames = ctx.prefZones.map(z => (ZMAP[z] ? ZMAP[z].name : z)).join('、');
+  const body = {
+    model: cfg.model,
+    temperature: 0.85,
+    max_tokens: 320,
+    messages: [
+      {
+        role: 'system',
+        content: `你是郑州网约车司机${agent.name}，性格类型「${agent.type}」：${agent.bio}。`
+          + `你偏好的活动区域是${prefNames}。请始终用第一人称、口语化中文，不要客套，不要出现"作为AI"。`
+      },
+      {
+        role: 'user',
+        content: `平台派单：前往${ctx.orderZone}，预估收益¥${ctx.estimate}，空驶${ctx.deadhead}km，现在${ctx.clockStr}，天气${ctx.weather}，`
+          + `我今天已赚¥${ctx.todayEarn}。我的最终决策是「${decision}」。`
+          + `请分三行输出，每行不超过45字：\n1) 态势评估：…\n2) 选项分析：…\n3) 决策输出：…\n结论必须与决策一致。`
+      }
+    ]
+  };
+  const t0 = performance.now();
+  LLM.state.calls++;
+  LLM.state.pending++;
+  renderLLMBar();
+  try {
+    const r = await fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+      signal: AbortSignal.timeout(12000),
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const txt = ((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '').trim();
+    if (!txt) throw new Error('模型返回空内容');
+    const latency = Math.round(performance.now() - t0);
+    const tokens = (j.usage && j.usage.total_tokens) || 0;
+    LLM.state.ok++;
+    LLM.state.latency += latency;
+    LLM.state.tokens += tokens;
+    thought.llm = { src: 'online', model: cfg.model, text: txt, latency, tokens, time: thought.time };
+  } catch (e) {
+    LLM.state.fail++;
+    LLM.state.lastErr = e.message;
+    thought.llm = {
+      src: 'error', model: cfg.model, text: '在线调用失败（' + e.message + '），已回退本地推理。',
+      latency: Math.round(performance.now() - t0), tokens: 0, time: thought.time
+    };
+  } finally {
+    if (agent.memory.currentThought === thought) {
+      agent.memory.llm = thought.llm;
+      if (S.mod === 'agents') renderAgents();
+    }
+    LLM.state.pending--;
+    renderLLMBar();
+  }
+}
+
+/* 更新司机记忆模块 */
+function updateDriverMemory(agent, action, data) {
+  const m = agent.memory;
+  switch (action) {
+    case 'move':
+      if (data.lng && data.lat) {
+        m.trajectory.push({ t: S.clock, lng: data.lng, lat: data.lat, zone: data.zone || '' });
+        if (m.trajectory.length > 200) m.trajectory.shift();
+        if (data.zone) m.visitedZones[data.zone] = (m.visitedZones[data.zone] || 0) + 1;
+        m.dailyRoute.push({ t: S.clock, lng: data.lng, lat: data.lat });
+        if (m.dailyRoute.length > 300) m.dailyRoute.shift();
+      }
+      break;
+    case 'earn':
+      m.earningsLog.push({ t: S.clock, amount: data.amount, zone: data.zone });
+      agent.earn += data.amount;
+      agent.runs++;
+      break;
+    case 'decide':
+      m.decisions.push({ t: S.clock, order: data.order, decision: data.decision, reason: data.reason });
+      if (m.decisions.length > 50) m.decisions.shift();
+      break;
+  }
+}
+
+/* 获取司机今日去过的区域列表（按次数排序） */
+function driverVisitedSummary(agent) {
+  const entries = Object.entries(agent.memory.visitedZones).sort((a, b) => b[1] - a[1]);
+  return entries.map(([zid, cnt]) => {
+    const z = ZMAP[zid];
+    return z ? `${z.name}×${cnt}` : zid;
+  }).slice(0, 5);
+}
+
+/* 获取司机最近一条思考记录 */
+function driverLastThought(agent) {
+  const h = agent.memory.thoughtHistory;
+  return h.length ? h[h.length - 1] : null;
+}
 
 /* ---------------- 决策图结构 ---------------- */
 const AGENTS4 = [
@@ -1370,6 +2000,12 @@ function fmtClock(min) {
   return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0');
 }
 /* 车辆位置：优先沿高德路径规划返回的真实路径插值推演，无真实路径时退回内置轨迹 */
+function distKm(a, b) {
+  const R = 6371, rad = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * rad, dLng = (b[1] - a[1]) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(Math.min(1, h)));
+}
 function posAt(v) {
   if (v.realPath && v.realPath.length > 1) {
     const rp = v.realPath, n = rp.length - 1;
@@ -1392,9 +2028,12 @@ function routeOf(v) {
 function routeSource(v) {
   return (v.realPath && v.realPath.length > 1) ? 'plan' : 'sim';
 }
+function escHtml(t) {
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 function shuffle(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 
-const STATUS_TEXT = { idle: '空闲待客', busy: '载客中', enroute: '调度前往' };
+const STATUS_TEXT = { idle: '空闲待客', busy: '载客中', enroute: '接驾中' };
 const STATUS_COLOR = { idle: '#0d9488', busy: '#d97706', enroute: '#e11d48' };
 const STATUS_TAG = { idle: 'teal', busy: 'amber', enroute: 'rose' };
 
@@ -1424,6 +2063,7 @@ const AMAP_KEY = 'e18971dd7720f736a98e7d1701b09518';
 const MAP_CENTER = { lng: 113.6880, lat: 34.7620 };
 let map = null, mapReady = false, useFallback = false;
 let ovZone = null, ovTraj = null, ovVeh = null, ovLabel = null, ovRoute = null, trafficLayer = null;
+let ovSpd = null, spdLabels = {}, heatLayer = null;
 let vehMarkers = {}, realRoute = null, selLine = null;
 
 /* 历史轨迹回放状态（导入 / 解析 / 回放的具体实现见下方「历史出租车轨迹」段） */
@@ -1459,8 +2099,7 @@ function weatherImpact(text) {
   return 1.0;
 }
 
-/* 未选中车辆用单个 10px 圆点（车队规模上百辆，DOM 越轻越好）；
-   选中车辆才展开成带光晕的大号标记。 */
+/* 车辆标记：8 辆车均使用带号牌的详细标记，选中时展开光晕 */
 function carMarkerHtml(color, active) {
   if (!active) {
     return `<div style="width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 0 1.6px #fff"></div>`;
@@ -1472,12 +2111,57 @@ function carMarkerHtml(color, active) {
   </div>`;
 }
 
+function spdLabelStyle(col) {
+  return {
+    'background-color': 'rgba(255,255,255,.92)',
+    'border': '1px solid rgba(148,163,184,.45)',
+    'border-radius': '9px',
+    'padding': '1px 5px',
+    'font-size': '9.5px',
+    'font-weight': '650',
+    'color': col,
+    'white-space': 'nowrap',
+    'box-shadow': '0 1px 3px rgba(13,21,38,.10)'
+  };
+}
 function zoneRadius(z) { return 430 + z.demand * 16; }
 function zoneColor(z) {
   const gap = z.demand - z.supply;
   if (gap >= 18) return { fill: '#e11d48', border: '#e11d48', op: 0.15 };
   if (gap >= 8) return { fill: '#d97706', border: '#d97706', op: 0.14 };
   return { fill: '#0d9488', border: '#0d9488', op: 0.12 };
+}
+
+/* ---------- 需求热力图：区域供需缺口 + 车辆分布 ---------- */
+function initHeatLayer() {
+  if (!map || typeof AMap === 'undefined') return;
+  AMap.plugin(['AMap.HeatMap'], () => {
+    if (!AMap.HeatMap) return;
+    try {
+      heatLayer = new AMap.HeatMap(map, {
+        radius: 44,
+        opacity: [0, 0.66],
+        zooms: [9, 18],
+        gradient: { 0.2: '#2563eb', 0.45: '#0d9488', 0.70: '#facc15', 0.95: '#e11d48' }
+      });
+      updateHeatData();
+      if (S.layers.heat === false && heatLayer.hide) heatLayer.hide();
+    } catch (e) { RD.errors.push('heat: ' + e.message); }
+  });
+}
+
+function updateHeatData() {
+  if (!heatLayer || S.layers.heat === false) return;
+  /* 权重 = 区域需求缺口 + 基础需求；车辆位置给较低基底权重，体现运力分布 */
+  const pts = ZONES.map(z => ({
+    lng: z.lng, lat: z.lat,
+    count: Math.max(6, 26 + z.demand * 0.62 + Math.max(0, z.demand - z.supply) * 1.7)
+  }));
+  VEHICLES.forEach(v => {
+    const p = posAt(v);
+    pts.push({ lng: p[1], lat: p[0], count: v.status === 'idle' ? 56 : v.status === 'busy' ? 34 : 26 });
+  });
+  try { heatLayer.setDataSet({ data: pts, max: 96 }); } catch (e) { /* 插件未就绪时忽略 */ }
 }
 
 /* ---------- 数据源状态面板 ---------- */
@@ -1492,7 +2176,8 @@ function updateDataSourceUI() {
   el.innerHTML = `
     <div class="ds-title">现实数据接口 <span class="ds-tag">高德开放平台</span></div>
     ${row(RD.map, '地图底图', RD.map ? '已连通' : '未连通')}
-    ${row(RD.traffic, '实时路况', RD.traffic ? '实时刷新' : '未启用')}
+    ${row(RD.traffic, '实时路况', RD.traffic ? '拥堵指数 ' + (S.congestion || '—') : '未启用')}
+    ${row(RD.traffic, '动态车速', S.avgKmh ? S.avgKmh.toFixed(0) + ' km/h · 车队均值' : '待计算')}
     ${row(RD.poi, 'POI 检索', RD.poi ? `${RD.poiHit}/${RD.poiTotal} 命中` : '降级坐标')}
     ${row(RD.route, '路径规划', RD.routeMsg)}
     ${row(RD.veh, '车辆位置', RD.veh ? `路径推演 ${RD.vehHit}/${RD.vehTotal}` : '仿真轨迹')}
@@ -1502,7 +2187,11 @@ function updateDataSourceUI() {
 /* ---------- 初始化地图 ---------- */
 function initMap() {
   if (mapReady || useFallback) return;
-  if (typeof AMap === 'undefined' || !AMap.Map) { initFallback(); return; }
+  if (typeof AMap === 'undefined' || !AMap.Map) {
+    applyWeatherFallback();
+    initFallback();
+    return;
+  }
   try {
     map = new AMap.Map('map', {
       zoom: 11.6,
@@ -1511,7 +2200,7 @@ function initMap() {
       resizeEnable: true,
       showLabel: true
     });
-    map.on('complete', () => { RD.map = true; updateDataSourceUI(); });
+    map.on('complete', () => { RD.map = true; updateDataSourceUI(); initHeatLayer(); });
 
     buildOverlays();
 
@@ -1541,12 +2230,12 @@ function initMap() {
 }
 
 /* 用当前 ZONES / VEHICLES 数据重建全部覆盖物
-   车队规模上百辆，轨迹按 OD 对去重（同一「起点片区 → 终点片区」只画一条），
-   否则数百条线会糊成一片，既看不清也拖慢渲染。 */
+   车队为 8 辆规模，每辆车独立绘制轨迹线，无需按 OD 对去重，
+   既能看清个体路径，也不会拖慢渲染。 */
 function buildOverlays() {
   if (!map) return;
-  map.remove([ovZone, ovTraj, ovVeh, ovLabel, selLine].filter(Boolean));
-  selLine = null;
+  map.remove([ovZone, ovTraj, ovVeh, ovLabel, ovSpd, selLine].filter(Boolean));
+  selLine = null; ovSpd = null;
 
   /* 区域需求圈 */
   ovZone = new AMap.OverlayGroup();
@@ -1589,22 +2278,18 @@ function buildOverlays() {
   });
   map.add(ovLabel);
 
-  /* 调度轨迹：每个 OD 对只画一条，优先取已由高德规划的路径作代表 */
+  /* 调度轨迹：8 辆车每辆独立一条线，用司机性格色区分，直观呈现各自的偏好区域 */
   ovTraj = new AMap.OverlayGroup();
-  const reps = new Map();
   VEHICLES.forEach(v => {
-    const key = v.from + '>' + v.to;
-    const cur = reps.get(key);
-    if (!cur || (!cur.realPath && v.realPath)) reps.set(key, v);
-  });
-  reps.forEach(v => {
+    const a = AGENT_BY_ID[v.agentId];
     const line = new AMap.Polyline({
       path: routeOf(v),
-      strokeColor: '#7c3aed',
-      strokeWeight: 1.6,
-      strokeOpacity: 0.24,
+      strokeColor: a ? a.color : '#7c3aed',
+      strokeWeight: v.id === S.selVeh ? 3.4 : 1.8,
+      strokeOpacity: v.id === S.selVeh ? 0.85 : 0.42,
       lineJoin: 'round', lineCap: 'round',
-      zIndex: 40
+      zIndex: 40,
+      extData: { agentId: v.agentId }
     });
     ovTraj.addOverlay(line);
   });
@@ -1623,16 +2308,38 @@ function buildOverlays() {
       zIndex: sel ? 200 : 150,
       extData: { id: v.id }
     });
-    m.on('click', () => selectVehicle(v.id));
+    m.on('click', () => {
+      selectVehicle(v.id);
+      openDriverModal(v.agentId);      /* 点击司机 → 弹出思考过程与记忆 */
+    });
     vehMarkers[v.id] = m;
     ovVeh.addOverlay(m);
   });
   map.add(ovVeh);
+
+  /* 实时车速标签：跟随车辆的轻量胶囊文字，可单独关闭，避免和车牌标注打架 */
+  ovSpd = new AMap.OverlayGroup();
+  spdLabels = {};
+  VEHICLES.forEach(v => {
+    const p = posAt(v);
+    const t = new AMap.Text({
+      text: '',
+      position: [p[1], p[0]],
+      anchor: 'bottom-center',
+      offset: new AMap.Pixel(0, -9),
+      zIndex: 170,
+      style: spdLabelStyle('#0f766e')
+    });
+    spdLabels[v.id] = t;
+    ovSpd.addOverlay(t);
+  });
+  map.add(ovSpd);
+
   applySelection(null);
   applyLayerVisibility();
 }
 
-/* 只更新选中态，不重建整层——选车时若重建 240 个 marker 会明显卡顿 */
+/* 只更新选中态，不重建整层——保持地图交互流畅 */
 function applySelection(prevId) {
   if (!map || !mapReady || useFallback) return;
   const paint = id => {
@@ -1664,13 +2371,15 @@ function applySelection(prevId) {
 /* 图层开关：按 S.layers 同步各 OverlayGroup 的显隐 */
 function applyLayerVisibility() {
   if (!mapReady || !map) return;
-  const L = { zone: ovZone, veh: ovVeh, traj: ovTraj, label: ovLabel, hist: ovHist };
+  const L = { zone: ovZone, veh: ovVeh, traj: ovTraj, label: ovLabel, hist: ovHist, spd: ovSpd, heat: heatLayer };
   Object.keys(L).forEach(k => {
     const ov = L[k];
     if (!ov) return;
-    if (S.layers[k] === false) ov.hide(); else ov.show();
+    if (S.layers[k] === false) { if (ov.hide) ov.hide(); }
+    else { if (ov.show) ov.show(); }
   });
   if (selLine) { S.layers.veh === false ? selLine.hide() : selLine.show(); }
+  if (S.layers.heat !== false) updateHeatData();
   const emph = S.layers.veh === false && S.layers.hist !== false;
   if (HIST._emph !== emph) { HIST._emph = emph; setHistEmphasis(emph); }
 }
@@ -1679,7 +2388,7 @@ function applyLayerVisibility() {
 const VEH_MODE = { mode: 'all' };
 const VEH_MODE_TEXT = {
   all: '车辆显示：模拟车辆 + 历史车辆',
-  sim: '车辆显示：仅模拟车辆（240 辆仿真车队）',
+  sim: '车辆显示：仅模拟车辆（8 名司机智能体车队）',
   hist: '车辆显示：仅历史车辆（导入的逐车轨迹）',
   none: '车辆显示：两类车辆均已隐藏'
 };
@@ -1726,6 +2435,22 @@ function syncMap(force) {
       const p = posAt(v);
       m.setPosition([p[1], p[0]]);
     }
+  }
+  /* 实时车速标签：只有文字变化时才 setText，减少无谓的重排 */
+  if (S.layers.spd !== false) {
+    VEHICLES.forEach(v => {
+      const t = spdLabels[v.id];
+      if (!t) return;
+      const p = posAt(v);
+      t.setPosition([p[1], p[0]]);
+      const txt = v.kmh > 0.5 ? Math.round(v.kmh) + ' km/h' : '待发车';
+      if (v._spdTxt !== txt) { t.setText(txt); v._spdTxt = txt; }
+      const col = v.status === 'busy' ? '#b45309' : v.status === 'enroute' ? '#be123c' : '#0f766e';
+      if (v._spdCol !== col) {
+        t.setStyle(spdLabelStyle(col));    /* 完整样式对象，避免 setStyle 覆盖圆角与底色 */
+        v._spdCol = col;
+      }
+    });
   }
   if (HIST.loaded) syncHist();
 }
@@ -1814,6 +2539,7 @@ function loadRealPOI() {
 /* 坐标被真实 POI 替换后，按新坐标重算车辆轨迹路径点 */
 function rebuildVehiclePaths() {
   VEHICLES.forEach(v => {
+    if (v.routeVersion) return;
     const from = ZMAP[v.from], to = ZMAP[v.to];
     if (!from || !to) return;
     const n = v.path.length;
@@ -1834,7 +2560,8 @@ function planRealRoute() {
   if (typeof AMap === 'undefined') return;
   AMap.plugin(['AMap.Driving'], () => {
     const v = VEHICLES.find(x => x.id === S.selVeh);
-    if (!v) return;
+    if (!v || v.order) return;
+    const routeVersion = v.routeVersion;
     const best = v.cands && v.cands[0];
     if (!best) return;
     const from = posAt(v), to = best.z;
@@ -1843,6 +2570,7 @@ function planRealRoute() {
       new AMap.LngLat(from[1], from[0]),
       new AMap.LngLat(to.lng, to.lat),
       (status, result) => {
+        if (S.selVeh !== v.id || v.routeVersion !== routeVersion) return;
         if (status === 'complete' && result.routes && result.routes.length) {
           const r = result.routes[0];
           const path = [];
@@ -1967,16 +2695,17 @@ function weatherIcon(text) {
 function planVehicleRoutes() {
   if (typeof AMap === 'undefined' || !map) return;
   AMap.plugin(['AMap.Driving'], () => {
-    /* 车队上百辆：按 OD 对去重，只对使用量最高的若干 OD 对调用路径规划，
-       规划结果回填给该 OD 上的所有车辆，避免几百次接口调用把配额打满。 */
+    /* 8 辆车规模：按 OD 对做一次轻量去重（同一 OD 只规划一次并回填），
+       实际几乎所有车都是独立 OD，因此每辆车都能拿到高德真实路径。 */
     const groups = new Map();
     VEHICLES.forEach(v => {
+      if (v.order || v.routeVersion) return;
       const k = v.from + '>' + v.to;
       if (!groups.has(k)) groups.set(k, { from: v.from, to: v.to, vs: [] });
       groups.get(k).vs.push(v);
     });
     const all = Array.from(groups.values()).sort((a, b) => b.vs.length - a.vs.length);
-    const PLAN_MAX = 28;
+    const PLAN_MAX = FLEET_SIZE;   /* 车队全量规划 */
     const targets = all.slice(0, PLAN_MAX);
 
     RD.vehTotal = VEHICLES.length;
@@ -1989,9 +2718,13 @@ function planVehicleRoutes() {
       targets.forEach(g => {
         if (!g.path) return;
         g.vs.forEach(v => {
-          if (!v.realPath) { v.realPath = g.path; v.routeInfo = g.info; }
+          if (v.routeVersion || v.realPath) return;
+          v.realPath = g.path;
+          v.routeInfo = g.info;
+          /* 记录导航里程与耗时，作为实时车速与 ETA 的基准 */
+          if (g.info) { v.routeKm = g.info.distance / 1000; v.routeMin = g.info.time / 60; }
+          assigned++;
         });
-        assigned += g.vs.length;
       });
       RD.veh = assigned > 0;
       RD.vehHit = assigned;
@@ -2037,6 +2770,46 @@ function planVehicleRoutes() {
   });
 }
 
+/* 单车导航路线：派单/改道后按「当前位置 → 目标区域」重新规划，
+   保证车辆实时运行数据始终来自高德导航路径，而不是直线估算 */
+function planRouteTo(v, toZ, done) {
+  if (typeof AMap === 'undefined' || !toZ) { if (done) done(false); return; }
+  const from = posAt(v);
+  const routeVersion = v.routeVersion;
+  try {
+    AMap.plugin(['AMap.Driving'], () => {
+      if (v.routeVersion !== routeVersion) return;
+      const driving = new AMap.Driving({
+        policy: AMap.DrivingPolicy.LEAST_TIME, hideMarkers: true, showTraffic: false
+      });
+      driving.search(
+        new AMap.LngLat(from[1], from[0]),
+        new AMap.LngLat(toZ.lng, toZ.lat),
+        (status, result) => {
+          if (v.routeVersion !== routeVersion || v.t > 0) return;
+          let applied = false;
+          try {
+            if (status === 'complete' && result.routes && result.routes.length) {
+              const r = result.routes[0], path = [];
+              (r.steps || []).forEach(st => (st.path || []).forEach(pt => path.push([pt.lng, pt.lat])));
+              if (path.length > 1 && r.distance > 0 && r.time > 0) {
+                v.realPath = path;
+                v.routeInfo = { distance: r.distance, time: r.time };
+                v.routeKm = r.distance / 1000;
+                v.routeMin = r.time / 60;
+                v.kmhSrc = 'route';
+                applied = true;
+                if (mapReady) syncMap(true);
+              }
+            }
+          } catch (e) { RD.errors.push('route1: ' + e.message); }
+          if (done) done(applied);
+        }
+      );
+    });
+  } catch (e) { if (done) done(false); }
+}
+
 function drawRealRoute(path) {
   if (!map) return;
   if (ovRoute) { map.remove(ovRoute); ovRoute = null; }
@@ -2057,6 +2830,9 @@ function drawRealRoute(path) {
 const FB = { lng0: 113.46, lng1: 113.90, lat0: 34.90, lat1: 34.50, W: 1000, H: 640 };
 const fbX = lng => ((lng - FB.lng0) / (FB.lng1 - FB.lng0)) * FB.W;
 const fbY = lat => ((FB.lat0 - lat) / (FB.lat0 - FB.lat1)) * FB.H;
+
+/* 离线底图下选中司机的当日路径（作为状态保留，刷新底图时重绘） */
+let FB_DRIVER_ROUTE = null;
 
 function initFallback() {
   useFallback = true;
@@ -2095,23 +2871,15 @@ function initFallback() {
     return `<circle cx="${fbX(z.lng).toFixed(1)}" cy="${fbY(z.lat).toFixed(1)}" r="${r.toFixed(1)}"
       fill="${c.fill}" fill-opacity="${c.op * 1.6}" stroke="${c.border}" stroke-width="1.2" stroke-opacity=".5"/>`;
   }).join('');
-  /* 调度轨迹：按 OD 对去重，选中车辆单独描一条高亮线 */
+  /* 调度轨迹：8 辆车每辆独立一条线，用司机性格色区分偏好区域 */
   if (S.layers.traj !== false) {
-    const fbReps = new Map();
-    VEHICLES.forEach(v => {
-      const k = v.from + '>' + v.to;
-      const cur = fbReps.get(k);
-      if (!cur || (!cur.realPath && v.realPath)) fbReps.set(k, v);
-    });
-    html += Array.from(fbReps.values()).map(v => {
+    html += VEHICLES.map(v => {
+      const a = AGENT_BY_ID[v.agentId];
+      const col = a ? a.color : '#7c3aed';
+      const sel = v.id === S.selVeh;
       const d = routeOf(v).map((p, i) => `${i ? 'L' : 'M'}${fbX(p[0]).toFixed(1)},${fbY(p[1]).toFixed(1)}`).join(' ');
-      return `<path d="${d}" fill="none" stroke="rgba(124,58,237,0.26)" stroke-width="1.5" stroke-linecap="round"/>`;
+      return `<path d="${d}" fill="none" stroke="${col}" stroke-opacity="${sel ? '.9' : '.42'}" stroke-width="${sel ? '3' : '1.8'}" stroke-linecap="round"/>`;
     }).join('');
-    const selV = VEHICLES.find(x => x.id === S.selVeh);
-    if (selV) {
-      const d = routeOf(selV).map((p, i) => `${i ? 'L' : 'M'}${fbX(p[0]).toFixed(1)},${fbY(p[1]).toFixed(1)}`).join(' ');
-      html += `<path d="${d}" fill="none" stroke="#7c3aed" stroke-width="3" stroke-linecap="round"/>`;
-    }
   }
   /* 标签 */
   if (S.layers.label !== false) html += ZONES.map(z => {
@@ -2129,6 +2897,12 @@ function initFallback() {
   }
   html += `<g id="fbHist"></g>`;
   html += `<g id="fbVeh"></g>`;
+  /* 选中司机当日行驶路径 */
+  if (FB_DRIVER_ROUTE && FB_DRIVER_ROUTE.pts.length > 1) {
+    const a = AGENT_BY_ID[FB_DRIVER_ROUTE.aid];
+    const d = FB_DRIVER_ROUTE.pts.map((p, i) => `${i ? 'L' : 'M'}${fbX(p.lng).toFixed(1)},${fbY(p.lat).toFixed(1)}`).join(' ');
+    html += `<path d="${d}" fill="none" stroke="${a ? a.color : '#2563eb'}" stroke-width="3.2" stroke-opacity=".9" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
   svg.innerHTML = html;
   updateFallback();
 }
@@ -2544,7 +3318,8 @@ function makeDemoHist() {
   let seed = 20260115;
   const rs = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
   const base = new Date(2024, 0, 15, 6, 0, 0).getTime();
-  const HOURS = 6, N = 120;
+  /* 示例规模同步缩减：48 辆车、约 6 小时，避免与仿真车队抢视线、也降低渲染压力 */
+  const HOURS = 6, N = 48;
   const map = new Map();
   for (let i = 0; i < N; i++) {
     const id = '豫A·T' + String(1000 + (i * 37) % 8999).padStart(4, '0');
@@ -2654,11 +3429,48 @@ function selectVehicle(id) {
 function renderDispatchPanel() {
   const v = VEHICLES.find(x => x.id === S.selVeh);
   if (!v) return;
+  const bodyEl = $('#dpBody');
+  const keepTop = bodyEl.scrollTop;
+  $('#dpTitle').innerHTML = `${v.plate} <span class="tag ${STATUS_TAG[v.status]}">${STATUS_TEXT[v.status]}</span>`;
+
+  if (v.order) {
+    const order = v.order;
+    const pickingUp = order.stage === 'pickup';
+    const leg = v.routeMin || v.legMin;
+    const remaining = Math.max(1, Math.ceil((1 - v.t) * leg));
+    const distance = distKm(posAt(v), [ZMAP[v.to].lat, ZMAP[v.to].lng]);
+    bodyEl.innerHTML = `
+      <div class="dp-sec">
+        <div class="dp-sec-t"><span>执行中的订单</span><span class="tag blue">${order.id}</span></div>
+        <div class="reason-box"><b>${order.zone.name} → ${order.dropoff.name}</b><br>
+          ${pickingUp ? '前往上车点' : '前往目的地'} · 预估 ¥${order.fare}</div>
+      </div>
+      <div class="dp-sec">
+        <div class="dp-sec-t"><span>当前行程</span><span>${v.routeMin ? '高德路径' : '仿真估算'}</span></div>
+        <div class="gap-bar" role="progressbar" aria-label="当前路段进度" aria-valuenow="${Math.floor(v.t * 100)}">
+          <div class="gap-fill" style="width:${v.t * 100}%;background:#2563eb"></div>
+        </div>
+        <div class="kv"><span>剩余直线距离</span><b>${distance.toFixed(1)} km</b></div>
+        <div class="kv"><span>基准剩余时间</span><b>约 ${remaining} 分钟</b></div>
+        <div class="kv"><span>实时车速</span><b>${v.kmh > 0 ? v.kmh.toFixed(0) + ' km/h' : '—'}</b></div>
+        <div class="kv"><span>派单置信度</span><b>${order.confidence.toFixed(2)}</b></div>
+      </div>
+      <div class="dp-sec">
+        <div class="dp-sec-t"><span>协同进度</span></div>
+        <div class="chain-list">
+          <div class="ch-item"><i style="background:#2563eb"></i><b>平台派单</b><span>第 ${order.batch} 批 · ${order.declined.size} 次拒单</span></div>
+          <div class="ch-item"><i style="background:#0891b2"></i><b>司机接驾</b><span>${pickingUp ? '进行中' : '已完成'}</span></div>
+          <div class="ch-item"><i style="background:#7c3aed"></i><b>载客送达</b><span>${pickingUp ? '等待上车' : '进行中'}</span></div>
+          <div class="ch-item"><i style="background:#0d9488"></i><b>结算回写</b><span>送达后结算</span></div>
+        </div>
+      </div>`;
+    bodyEl.scrollTop = keepTop;
+    return;
+  }
+
   const best = v.cands[0];
   const z = best.z;
   const gap = Math.round(z.demand - z.supply);
-  const bodyEl = $('#dpBody');
-  const keepTop = bodyEl ? bodyEl.scrollTop : 0;
 
   const rl = (RD.lastRoute && RD.lastRoute.plate === v.plate) ? RD.lastRoute : null;
   const cur = posAt(v);
@@ -2668,11 +3480,9 @@ function renderDispatchPanel() {
   const routeSrc = rl ? '高德实时' : '估算';
   const statusNow = v.status === 'busy' ? '载客中' : v.status === 'enroute' ? '前往中' : '待派单';
 
-  $('#dpTitle').innerHTML = `${v.plate} <span class="tag ${STATUS_TAG[v.status]}">${STATUS_TEXT[v.status]}</span>`;
-
   $('#dpBody').innerHTML = `
     <div class="dp-sec">
-      <div class="dp-sec-t"><span>派单建议</span><span class="tag blue">第 ${S.round} 轮</span></div>
+      <div class="dp-sec-t"><span>调度建议示例</span><span class="tag gray">空闲待客</span></div>
       <div style="display:flex;align-items:center;gap:9px;background:linear-gradient(120deg,#eef4ff,#f6f9ff);border:1px solid #dbe7ff;border-radius:10px;padding:10px 11px">
         <div style="width:30px;height:30px;border-radius:8px;background:#2563eb;display:flex;align-items:center;justify-content:center;flex:0 0 30px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
@@ -2717,6 +3527,8 @@ function renderDispatchPanel() {
       <div class="kv"><span>该区域在途车辆</span><b>${2 + Math.round(z.demand / 26)} 辆</b></div>
       <div class="kv"><span>空驶成本</span><b>¥${(dist * 0.62).toFixed(1)}</b></div>
       <div class="kv"><span>路径来源</span><b style="color:${rl ? '#0d9488' : '#94a3b8'}">${rl ? 'AMap.Driving' : '内置估算'}</b></div>
+      <div class="kv"><span>实时车速</span><b style="color:${v.kmh > 0 ? '#0f766e' : '#94a3b8'}">${v.kmh > 0 ? v.kmh.toFixed(0) + ' km/h' : '待发车'}</b></div>
+      <div class="kv"><span>路况拥堵指数</span><b style="color:${(S.congestion || 0) > 60 ? '#e11d48' : '#0d9488'}">${S.congestion || '—'}</b></div>
     </div>
 
     <div class="dp-sec" style="margin-bottom:0">
@@ -2979,7 +3791,7 @@ function updateClock() {
   const c = $('#simClock');
   if (c) c.textContent = fmtClock(S.clock);
   const s = $('#simStatus');
-  if (s) s.textContent = (S.paused ? '已暂停' : '运行中') + ` · 第 ${S.round} 轮`;
+  if (s) s.textContent = (S.paused ? '已暂停' : '运行中') + ` · 第 ${S.round} 天`;
   const d = $('#simDot');
   if (d) d.classList.toggle('paused', S.paused);
   const b = $('#btnToggleSim');
@@ -2991,44 +3803,262 @@ function tickOnce() {
   S.clock += 1.2 * S.speed;
   if (S.clock >= 1440) { S.clock -= 1440; S.round++; }
 
-  /* 历史数据驱动：当前时刻的订单强度与平均速度（1.00 = 全天均值） */
+  /* 历史数据驱动：当前时刻的订单强度与平均速度 */
   const hh = thHour();
   const inten = thIntensity(hh);
   const sfac = thSpeedFactor(hh);
   const norm = thNorm(hh);
 
-  VEHICLES.forEach(v => {
-    v.t += v.speed * S.speed * 9 * (0.62 + 0.38 * sfac);
-    if (v.t > 1) { v.t -= 1; v.gain = 0; genCands(v); }
-    v.gain += 0.3 * S.speed;
-  });
+  /* 天气影响车速：雨雪降速，晴朗正常 */
+  const wSpeedFactor = WEATHER.impact > 1.30 ? 0.68 : WEATHER.impact > 1.15 ? 0.80 : WEATHER.impact > 1.08 ? 0.90 : 1.0;
+  /* 天气影响需求：恶劣天气乘客增多 */
+  const wDemandBoost = WEATHER.impact;
 
-  /* 区域需求跟随历史时段曲线：高峰抬升、凌晨回落 */
-  const wBias = WEATHER.impact > 1.15 ? 1.45 : 1.0;
-  const dTarget = 30 + 56 * norm;
+  /* 车辆运动：导航路线推演 + 天气降速
+     实时车速由「本 tick 路径位移 ÷ 仿真时间」算出，天然叠加了时段路况与天气系数 */
+  const dtHour = (1.2 * S.speed) / 60;
+  let kmhSum = 0, kmhN = 0;
+  VEHICLES.forEach(v => {
+    const p0 = posAt(v);
+    const t0 = v.t;
+    const progress = v.order
+      ? dtHour * 60 / (v.routeMin || v.legMin)
+      : v.speed * S.speed * 9;
+    v.t += progress * (0.62 + 0.38 * sfac) * wSpeedFactor;
+    if (v.order && v.t >= 1) {
+      v.t = 1;
+      advanceOrder(v);
+      return;
+    }
+    let wrapped = false;
+    if (v.t > 1) {
+      v.t -= 1;
+      v.gain = 0;
+      genCands(v);
+      wrapped = true;
+    }
+    v.gain += 0.3 * S.speed;
+
+    /* 瞬时车速：以高德导航 ETA 为基准（该 ETA 已含实时路况），
+       再叠加本 tick 的位移校验与 ±8% 波动，避免读数完全一样 */
+    const etaKmh = v.routeKm > 0 && v.routeMin > 0 ? v.routeKm / (v.routeMin / 60) : 0;
+    let inst = 0;
+    if (etaKmh > 0) {
+      inst = etaKmh * (0.94 + Math.random() * 0.12);
+    } else if (!wrapped && t0 <= 1) {
+      inst = distKm(p0, posAt(v)) / dtHour;
+    }
+    if (!(inst > 0.5 && inst < 95) && !wrapped && t0 <= 1) {
+      inst = distKm(p0, posAt(v)) / dtHour;
+    }
+    if (wSpeedFactor < 1) inst *= 0.6 + 0.4 * wSpeedFactor;
+    if (inst > 0) v.kmh = v.kmh ? v.kmh * 0.68 + inst * 0.32 : inst;
+    if (v.kmh > 0) v.kmh = clamp(v.kmh, 7, 88);   /* 城市道路下限 7 km/h，避免短途导航把均值拉塌 */
+    v.kmhSrc = routeSource(v) === 'plan' ? 'route' : 'sim';
+    if (v.kmh > 0) { kmhSum += v.kmh; kmhN++; }
+
+    /* 每 2 tick 记录一次当前位置，构建司机当日行驶轨迹与去过区域 */
+    if (S.tick % 2 === 0) {
+      const a = AGENT_BY_ID[v.agentId];
+      if (a) {
+        const pos = posAt(v);
+        const zname = POS_ZONE_NAME(v);
+        updateDriverMemory(a, 'move', { lng: pos[1], lat: pos[0], zone: zname });
+      }
+    }
+  });
+  S.avgKmh = kmhN ? kmhSum / kmhN : 0;
+  /* 路况拥堵指数：由历史时段速度因子 + 天气共同决定，0 畅通 / 100 极堵 */
+  S.congestion = Math.round(clamp(30 + (1 - sfac) * 130 + (wSpeedFactor < 0.9 ? 15 : 0), 4, 96));
+
+  /* 区域需求跟随历史时段曲线 + 天气加成 */
+  const wBias = wDemandBoost > 1.15 ? 1.45 : 1.0;
+  const dTarget = 30 + 56 * norm * wDemandBoost;
   const sTarget = 34 + 44 * norm;
   ZONES.forEach(z => {
     z.demand = clamp(z.demand + (dTarget - z.demand) * 0.045 + rnd(-1.1, 1.1) * wBias, 30, 99);
     z.supply = clamp(z.supply + (sTarget - z.supply) * 0.03 + rnd(-0.9, 0.9), 30, 96);
   });
 
+  /* 平台调度智能体：每 3 tick 执行一轮派单（车多乘客少场景） */
+  if (S.tick % 3 === 0) platformDispatch(hh, norm);
+
   updateClock();
   syncMap();
-  renderDispatchPanel();
-
-  if (S.tick % 3 === 0 && S.mod === 'overview') { renderGapList(); renderCollabPanel(); }
+  if (S.mod === 'map') renderDispatchPanel();
+  if (S.mod === 'overview') {
+    if (S.tick % 3 === 0) renderGapList();
+    renderCollabPanel();
+  }
+  if (S.tick % 6 === 0 && S.layers.heat !== false) updateHeatData();
+  if (S.tick % 5 === 0) updateDataSourceUI();
   if (S.tick % 4 === 0) updateDtLive();
 
-  if (S.tick % 2 === 0) {
-    const v = pick(VEHICLES);
-    const tpl = pick(EVENT_POOL);
-    const z = pick(ZONES);
-    pushEvent(tpl.txt, {
-      plate: v.plate, zone: z.name, conf: (0.6 + Math.random() * 0.35).toFixed(2),
-      pct: (3 + Math.random() * 9).toFixed(1), money: (12 + Math.random() * 26).toFixed(1),
-      gap: String(Math.round(Math.abs(z.demand - z.supply))).padStart(2, '0')
+  /* 司机卡片定时刷新 */
+  if (S.tick % 5 === 0 && S.mod === 'agents') renderAgents();
+}
+
+/* ============================================================
+   平台调度智能体（Platform Agent）
+   ------------------------------------------------------------
+   车多乘客少场景：8 辆车竞争每轮 2~3 个订单。
+   平台评分派单 → 司机 LLM 思考 → 接受/拒绝 → 拒绝则改派。
+   ============================================================ */
+function finishOrder(order, stage) {
+  order.stage = stage;
+  S.dispatch.history.unshift(order);
+  if (S.dispatch.history.length > 8) S.dispatch.history.pop();
+  S.dispatch[stage]++;
+}
+
+function startOrderLeg(vehicle, target, origin, confidence) {
+  const [lat, lng] = origin;
+  vehicle.from = ZONES.reduce((nearest, z) =>
+    distKm(origin, [z.lat, z.lng]) < distKm(origin, [nearest.lat, nearest.lng]) ? z : nearest
+  ).id;
+  vehicle.to = target.id;
+  vehicle.path = roadPath({ lat, lng }, target, 6);
+  vehicle.t = 0;
+  vehicle.legMin = Math.max(1.2, distKm(origin, [target.lat, target.lng]) * 2.4);
+  vehicle.realPath = null;
+  vehicle.routeInfo = null;
+  vehicle.routeKm = 0;
+  vehicle.routeMin = 0;
+  vehicle.kmh = 0;
+  vehicle.routeVersion = (vehicle.routeVersion || 0) + 1;
+  genCands(vehicle);
+  vehicle.conf = confidence;
+  if (S.selVeh === vehicle.id) {
+    RD.lastRoute = null;
+    if (ovRoute && map) { map.remove(ovRoute); ovRoute = null; }
+  }
+  planRouteTo(vehicle, target);
+}
+
+function advanceOrder(vehicle) {
+  const order = vehicle.order;
+  const agent = AGENT_BY_ID[vehicle.agentId];
+  const target = ZMAP[vehicle.to];
+  const [lng, lat] = routeOf(vehicle).at(-1);
+  const origin = [lat, lng];
+  updateDriverMemory(agent, 'move', { lat: origin[0], lng: origin[1], zone: target.name });
+  if (vehicle.status === 'enroute') {
+    vehicle.status = 'busy';
+    order.stage = 'trip';
+    startOrderLeg(vehicle, order.dropoff, origin, order.confidence);
+    pushEvent(`<b>${order.id}</b> · ${agent.name} 已到达 ${order.zone.name} 接客，前往 ${order.dropoff.name}`, {});
+    return;
+  }
+  updateDriverMemory(agent, 'earn', { amount: order.fare, zone: order.dropoff.name });
+  finishOrder(order, 'completed');
+  vehicle.order = null;
+  vehicle.status = 'idle';
+  vehicle.t = 0;
+  vehicle.path = [origin, origin];
+  vehicle.speed = 0;
+  vehicle.realPath = null;
+  vehicle.routeInfo = null;
+  vehicle.routeKm = 0;
+  vehicle.routeMin = 0;
+  vehicle.kmh = 0;
+  vehicle.routeVersion++;
+  pushEvent(`<b>${order.id}</b> · ${agent.name} 送达 ${order.dropoff.name}，结算 ¥${order.fare}`, {});
+}
+
+function platformDispatch(hh, norm) {
+  const dispatch = S.dispatch;
+  const batch = ++dispatch.batch;
+  const gapZones = ZONES.slice().sort((a, b) => (b.demand - b.supply) - (a.demand - a.supply));
+  const orderCount = norm > 0.6 ? 3 : 2;
+  for (let i = 0; i < orderCount; i++) {
+    const zone = gapZones[i];
+    const dropoff = pick(ZONES.filter(z => z !== zone));
+    const weatherBonus = WEATHER.impact > 1.15 ? 1.3 : 1.0;
+    const fare = Math.max(12, Math.round((15 + Math.random() * 20 + (zone.demand - zone.supply) * 0.4) * weatherBonus));
+    dispatch.pending.push({
+      zone, dropoff, fare, id: `O${batch}-${i + 1}`, batch,
+      stage: 'pending', declined: new Set()
     });
   }
+
+  /* 先处理积压，每批最多向三个新候选发出邀约。 */
+  dispatch.pending = dispatch.pending.filter(order => {
+    if (batch - order.batch >= 6) {
+      finishOrder(order, 'expired');
+      pushEvent(`<b>${order.id}</b> · ${order.zone.name} 订单等待超时`, {});
+      return false;
+    }
+
+    const z = order.zone;
+    const scored = VEHICLES.filter(v => v.status === 'idle' && !order.declined.has(v.agentId)).map(vehicle => {
+      const agent = AGENT_BY_ID[vehicle.agentId];
+      const pos = posAt(vehicle);
+      const dist = distKm(pos, [z.lat, z.lng]);
+      const prefMatch = agent.prefZones.includes(z.id) ? 1.25 : 0.85;
+      const compliance = agent.traits.complianceRate;
+      const score = (1 / (1 + dist * 0.08)) * prefMatch * (0.4 + compliance * 0.6) * (0.5 + agent.acc * 0.5);
+      return { agent, vehicle, dist, score };
+    }).sort((a, b) => b.score - a.score);
+
+    const label = `${order.id} · ${z.name} → ${order.dropoff.name} ¥${order.fare}`;
+    for (const { agent, vehicle, dist, score } of scored.slice(0, 3)) {
+      const confidence = clamp(0.45 + score * 0.55, 0, 0.99);
+      const ctx = {
+        clockStr: fmtClock(S.clock),
+        curZone: POS_ZONE_NAME(vehicle) || '途中',
+        orderZone: z.name,
+        orderZoneId: z.id,
+        estimate: order.fare,
+        deadhead: Number(dist.toFixed(1)),
+        todayEarn: agent.earn,
+        competitors: VEHICLES.filter(v => v.order && v.status === 'enroute' && v.to === z.id).length,
+        confidence: Number(confidence.toFixed(2)),
+        onRoute: agent.prefZones.includes(z.id),
+        prefZones: agent.prefZones,
+        isPeak: norm > 0.6,
+        isNight: hh >= 20 || hh < 6,
+        premium: Math.round(Math.max(0, (WEATHER.impact - 1)) * 100),
+        demandLevel: Math.round(z.demand),
+        supplyLevel: Math.round(z.supply),
+        queueAhead: Math.floor(z.supply / 10),
+        shiftLeft: Math.max(0, 18 - hh),
+        shortcutName: agent.traits.experienceLevel > 0.85 ? '北区捷径' : null,
+        expectedZone: ZMAP[agent.prefZones[0]] ? ZMAP[agent.prefZones[0]].name : agent.pref,
+        matchesRoute: agent.prefZones.includes(z.id),
+        weather: WEATHER.text
+      };
+      const thought = generateThought(agent, ctx);
+      updateDriverMemory(agent, 'decide', {
+        order: label, decision: thought.accept ? '接受' : '拒绝', reason: thought.steps[2].text
+      });
+      agent.acc = agent.acc * 0.9 + (thought.accept ? 0.1 : 0);
+      llmThink(agent, ctx, thought);
+
+      if (thought.accept) {
+        order.stage = 'pickup';
+        order.vehicleId = vehicle.id;
+        order.confidence = confidence;
+        vehicle.order = order;
+        vehicle.status = 'enroute';
+        startOrderLeg(vehicle, z, posAt(vehicle), confidence);
+        agent.dist = agent.dist * 0.8 + ctx.deadhead * 0.2;
+        dispatch.accepted++;
+        pushEvent(`<b>${order.id}</b> · ${agent.name} 接单，前往 ${z.name} 接客`, {});
+        return false;
+      }
+      order.declined.add(agent.id);
+      dispatch.rejected++;
+      pushEvent(`<b>${order.id}</b> · ${agent.name} 拒绝，平台寻找下一位司机`, {});
+    }
+
+    if (order.declined.size === FLEET_SIZE) {
+      finishOrder(order, 'expired');
+      pushEvent(`<b>${order.id}</b> · 车队均已拒绝，订单关闭`, {});
+      return false;
+    }
+    return true;
+  });
+  if (S.mod === 'agents') renderAgents();
 }
 
 function loop() {
@@ -3043,6 +4073,10 @@ $('#btnToggleSim').addEventListener('click', () => { S.paused = !S.paused; updat
 
 /* ---- 历史轨迹：导入 / 回放控件 ---- */
 $('#btnHistDemo').addEventListener('click', loadHistDemo);
+$('#mapToolsToggle').addEventListener('click', e => {
+  const open = $('#mapTools').classList.toggle('open');
+  e.currentTarget.setAttribute('aria-expanded', String(open));
+});
 $('#histFile').addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
   onHistFile(f);
@@ -3069,6 +4103,10 @@ $('#rpClose').addEventListener('click', () => {
   syncHist();
 });
 $('#speedSel').addEventListener('change', e => { S.speed = Number(e.target.value); });
+$('#btnDrvMem').addEventListener('click', () => {
+  const v = VEHICLES.find(x => x.id === S.selVeh);
+  if (v) openDriverModal(v.agentId);
+});
 $('#btnPrevVeh').addEventListener('click', () => {
   const i = VEHICLES.findIndex(v => v.id === S.selVeh);
   selectVehicle(VEHICLES[(i - 1 + VEHICLES.length) % VEHICLES.length].id);
@@ -3114,7 +4152,7 @@ $('#gtFocus').addEventListener('click', e => {
 
 const MODULE_META = {
   overview: ['态势总览', '郑州市主城区 · 出租车运力供需与调度效果实时监控'],
-  map:      ['城市调度地图', '郑州市主城区 · 区域需求、车辆分布与调度轨迹'],
+  map:      ['城市调度地图', '郑州市主城区 · 区域需求、车辆分布与调度轨迹 · 点击任意车辆查看该司机的思考过程与记忆'],
   graph:    ['决策图谱', '5 个智能体的协作过程图结构 · 天气 → 态势感知 → 路径规划 → 调度派单 → 司机执行'],
   agents:   ['司机智能体', '差异化收益偏好与推荐接受倾向的多智能体群体'],
   exp:      ['对比实验', '四组调度策略在相同订单流下的指标对比'],
@@ -3125,15 +4163,30 @@ const MODULE_META = {
 function switchModule(mod) {
   S.mod = mod;
   $$('.module').forEach(m => m.classList.toggle('active', m.dataset.mod === mod));
-  $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  $$('.nav-item').forEach(b => {
+    const active = b.dataset.mod === mod;
+    b.classList.toggle('active', active);
+    if (active) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
   const [t, d] = MODULE_META[mod] || ['', ''];
   $('#pageTitle').textContent = t;
   $('#pageDesc').textContent = d;
-  if (mod === 'map') setTimeout(() => { initMap(); syncMap(true); if (HIST.loaded) renderHistLayer(); }, 40);
+  if (mod === 'overview') { renderGapList(); renderCollabPanel(); }
+  if (mod === 'map') setTimeout(() => { initMap(); syncMap(true); renderDispatchPanel(); if (HIST.loaded) renderHistLayer(); }, 40);
   if (mod === 'graph') setTimeout(() => { drawGraph(); }, 20);
   if (mod === 'data') setTimeout(() => { renderTaxiData(); renderHistStat(); }, 10);
+  if (mod === 'agents') setTimeout(() => { renderAgents(); renderLLMBar(); }, 10);
 }
 $$('.nav-item').forEach(b => b.addEventListener('click', () => switchModule(b.dataset.mod)));
+$('#overviewMap').addEventListener('click', () => switchModule('map'));
+$('#overviewGraph').addEventListener('click', () => switchModule('graph'));
+$('#collabPanel').addEventListener('click', e => {
+  const button = e.target.closest('button[data-vehicle]');
+  if (!button) return;
+  switchModule('map');
+  selectVehicle(button.dataset.vehicle);
+});
 
 /* ============================================================
    全局状态
@@ -3142,7 +4195,8 @@ const S = {
   mod: 'overview', tick: 0, clock: 8 * 60, paused: false, speed: 1,
   selVeh: 'V1', selNode: null, showFlow: true, focusMain: false,
   events: [], round: 1,
-  layers: { zone: true, veh: true, traj: true, label: true, hist: true }
+  dispatch: { batch: 0, pending: [], history: [], accepted: 0, rejected: 0, completed: 0, expired: 0 },
+  layers: { zone: true, veh: true, traj: true, label: true, hist: true, spd: true, heat: false },
 };
 
 /* ============================================================
@@ -3243,33 +4297,506 @@ function renderFeed() {
 /* ============================================================
    司机智能体
    ============================================================ */
+/* AG_OPEN_ID 是展开态的唯一真源，由卡片点击维护，定时刷新后据此恢复 */
+let AG_OPEN_ID = null;
 function renderAgents() {
-  $('#agentGrid').innerHTML = AGENTS.map(a => `
+  $('#agentGrid').innerHTML = AGENTS.map(a => {
+    const v = VEHICLES.find(x => x.agentId === a.id);
+    const stColor = v ? STATUS_COLOR[v.status] : '#94a3b8';
+    const stText = v ? STATUS_TEXT[v.status] : '离线';
+    const thought = driverLastThought(a);
+    const visited = driverVisitedSummary(a);
+    const tr = a.traits;
+    const prefNames = a.prefZones.map(zid => ZMAP[zid] ? ZMAP[zid].name : zid).join('、');
+    /* 思考过程 HTML */
+    let thinkHtml = '<div class="ag-think"><div class="ag-think-hd"><span class="llm-badge">LLM</span>链式思考</div>';
+    if (thought) {
+      thought.steps.forEach((s, i) => {
+        const isDecide = i === 2;
+        const reject = isDecide && !thought.accept;
+        thinkHtml += `<div class="ag-think-step ${isDecide ? 'decide' : ''} ${reject ? 'reject' : ''}"><span class="ts-tag">${s.phase}</span><span class="ts-txt">${s.text}</span></div>`;
+      });
+    } else {
+      thinkHtml += '<div class="ag-think-step"><span class="ts-tag">待触发</span><span class="ts-txt">尚未收到平台派单，等待调度指令…</span></div>';
+    }
+    if (a.memory.llm) {
+      const l = a.memory.llm;
+      const ok = l.src === 'online';
+      thinkHtml += `<div class="ag-llm-real">
+        <div class="alr-hd">${ok ? '在线模型思考' : '模型调用失败'} · ${escHtml(l.model)} · ${l.latency}ms${l.tokens ? ' · ' + l.tokens + ' tok' : ''}</div>
+        <div class="alr-txt">${escHtml(l.text)}</div>
+      </div>`;
+    }
+    thinkHtml += '</div>';
+    /* 记忆模块 */
+    const memHtml = `<div class="ag-mem">
+      <div class="ag-mem-box"><div class="mb-t">今日去过</div><div class="mb-v">${visited.length ? visited.join('、') : '尚未出车'}</div></div>
+      <div class="ag-mem-box"><div class="mb-t">轨迹点</div><div class="mb-v">${a.memory.trajectory.length} 个 · 决策 ${a.memory.decisions.length} 次</div></div>
+      <div class="ag-mem-box"><div class="mb-t">今日收益</div><div class="mb-v">¥${a.earn.toFixed(1)} · ${a.runs} 单</div></div>
+      <div class="ag-mem-box"><div class="mb-t">性格原型</div><div class="mb-v">${a.type}</div></div>
+    </div>`;
+    /* 特质条 */
+    const traitBar = (label, val, color) => `<div class="ag-trait-row"><span class="tr-l">${label}</span><div class="tr-bar"><i style="width:${val * 100}%;background:${color}"></i></div></div>`;
+    const timePref = tr.timeHorizon === 'short' ? '短期' : tr.timeHorizon === 'long' ? '长期' : '中期';
+    const traitHtml = `<div class="ag-trait-grid">
+      ${traitBar('风险容忍', tr.riskTolerance, '#e11d48')}
+      ${traitBar('收益敏感', tr.profitSensitivity, '#2563eb')}
+      ${traitBar('区域忠诚', tr.spatialLoyalty, '#0d9488')}
+      ${traitBar('合规倾向', tr.complianceRate, '#7c3aed')}
+      ${traitBar('经验值', tr.experienceLevel, '#d97706')}
+      <div class="ag-trait-row"><span class="tr-l">时间偏好</span><span style="font-size:9.5px;color:var(--ink-2);font-weight:550">${timePref}</span></div>
+    </div>`;
+    return `
     <div class="ag-card" data-id="${a.id}">
       <div class="ag-top">
         <div class="ag-avatar" style="background:${a.color}">${a.id.slice(1)}</div>
         <div style="flex:1;min-width:0">
-          <div class="ag-name">${a.name}</div>
+          <div class="ag-name">${a.name} <span style="font-size:9px;color:#94a3b8;font-weight:400">${a.id}</span></div>
           <div class="ag-meta">${a.plate} · ${a.type}</div>
         </div>
-        <span class="tag ${a.acc > 0.7 ? 'teal' : a.acc > 0.5 ? 'blue' : 'gray'}">${a.mood}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span style="display:flex;align-items:center;gap:3px;font-size:9.5px;color:var(--ink-3)"><i class="ag-status-dot" style="background:${stColor}"></i>${stText}</span>
+          <span class="tag ${a.acc > 0.7 ? 'teal' : a.acc > 0.5 ? 'blue' : 'gray'}">${a.mood}</span>
+        </div>
       </div>
       <div class="ag-stats">
+        <div class="ag-stat"><b>¥${a.earn.toFixed(0)}</b><span>今日收益</span></div>
+        <div class="ag-stat"><b>${a.runs}</b><span>完成单</span></div>
         <div class="ag-stat"><b>${a.acc.toFixed(2)}</b><span>接受率</span></div>
-        <div class="ag-stat"><b>${a.earn.toFixed(1)}</b><span>今日收益 ¥</span></div>
-        <div class="ag-stat"><b>${a.runs}</b><span>完成单数</span></div>
+        <div class="ag-stat"><b style="color:${v && v.kmh > 0 ? '#0f766e' : '#94a3b8'}">${v && v.kmh > 0 ? Math.round(v.kmh) : '—'}</b><span>车速 km/h</span></div>
       </div>
-      <div class="pref-bar"><span style="flex:0 0 48px">收益敏感</span>
-        <div class="pref-track"><i style="width:${a.sens * 100}%;background:${a.color}"></i></div>
-        <span class="num" style="flex:0 0 26px;text-align:right">${a.sens.toFixed(2)}</span></div>
-      <div class="pref-bar"><span style="flex:0 0 48px">接受阈值</span>
-        <div class="pref-track"><i style="width:${a.thr * 100}%;background:#94a3b8"></i></div>
-        <span class="num" style="flex:0 0 26px;text-align:right">${a.thr.toFixed(2)}</span></div>
-      <div class="ag-trait" style="margin-top:9px">
-        <span class="tag gray">偏好 ${a.pref}</span>
-        <span class="tag blue">协同权重 ${(a.sens * a.acc).toFixed(2)}</span>
+      <div class="ag-trait">
+        <span class="tag gray">偏好 ${prefNames}</span>
+        <span class="tag blue">协同 ${(a.sens * a.acc).toFixed(2)}</span>
+        <span class="tag ${v && v.kmhSrc === 'route' ? 'teal' : 'gray'}">${v && v.kmhSrc === 'route' ? '导航路线' : '仿真轨迹'}</span>
+        ${v && v.routeKm ? `<span class="tag gray">${v.routeKm.toFixed(1)} km · ${Math.round(v.routeMin)} min</span>` : ''}
       </div>
-    </div>`).join('');
+      <div class="ag-expand">
+        ${thinkHtml}
+        ${memHtml}
+        <div class="ag-bio">${a.bio}</div>
+        ${traitHtml}
+        <div class="ag-lit">文献依据：${a.literature}</div>
+        <button class="ag-route-btn" data-route="${a.id}">查看当日行驶路径</button>
+      </div>
+    </div>`;
+  }).join('');
+  /* 恢复展开态 */
+  if (AG_OPEN_ID) {
+    const keep = document.querySelector('.ag-card[data-id="' + AG_OPEN_ID + '"]');
+    if (keep) keep.classList.add('open', 'hot');
+  }
+  /* 恢复聚类联动高亮（定时刷新重建卡片后不丢失） */
+  if (typeof CLUS !== 'undefined' && CLUS.sel !== null && CLUS.data && CLUS.data[CLUS.sel]) {
+    const g = CLUS.data[CLUS.sel];
+    document.querySelectorAll('.ag-card').forEach(c => {
+      if (g.members.some(m => m.id === c.dataset.id)) c.classList.add('hot');
+    });
+  }
+  /* 卡片点击展开/收起 */
+  $$('.ag-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.ag-route-btn')) return;
+      const aid = card.dataset.id;
+      const wasOpen = card.classList.contains('open');
+      if (wasOpen) {
+        AG_OPEN_ID = null;
+        renderAgents();   /* 统一重建，保留聚类联动高亮 */
+        return;
+      }
+      /* 展开：先刷新数据，确保显示该司机最新的 LLM 思考过程 */
+      AG_OPEN_ID = aid;
+      renderAgents();
+      selectVehicleByAgent(aid);
+    });
+  });
+  /* 路线按钮 */
+  $$('.ag-route-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      showDriverRoute(btn.dataset.route);
+    });
+  });
+}
+
+/* 根据司机 ID 选中对应车辆 */
+function selectVehicleByAgent(aid) {
+  const v = VEHICLES.find(x => x.agentId === aid);
+  if (v) selectVehicle(v.id);
+}
+
+/* ============================================================
+   司机详情弹层（调度图点击车辆弹出）
+   ------------------------------------------------------------
+   一屏内同时给出：
+   · 思考过程 —— 本地链式推理三步 + 在线大模型原文 + 思考历史
+   · 记忆模块 —— 轨迹点 / 今日去过区域 / 决策记忆 / 收入流水
+   · 性格设定 —— 文献原型、行为特质、偏好区域
+   弹层打开期间每 1.6s 自刷新一次，保留当前 tab 与滚动位置。
+   ============================================================ */
+const DRV = { id: null, tab: 'think', timer: null, built: false, seed: false };
+
+function openDriverModal(aid) {
+  if (!AGENT_BY_ID[aid]) return;
+  DRV.id = aid;
+  buildDriverModal();
+  $('#drvMask').classList.add('show');
+  renderDriverModal();
+  if (!DRV.timer) DRV.timer = setInterval(() => { if (DRV.id) renderDriverModal(); }, 1600);
+}
+
+function closeDriverModal() {
+  const m = $('#drvMask');
+  if (m) m.classList.remove('show');
+  DRV.id = null;
+  if (DRV.timer) { clearInterval(DRV.timer); DRV.timer = null; }
+}
+
+function buildDriverModal() {
+  if (DRV.built) return;
+  const m = document.createElement('div');
+  m.className = 'dr-mask';
+  m.id = 'drvMask';
+  m.innerHTML = `
+    <div class="dr-panel" role="dialog" aria-modal="true" aria-label="司机智能体详情">
+      <div class="dr-hd">
+        <div class="dr-av" id="drvAv">A1</div>
+        <div style="flex:1;min-width:0">
+          <div class="dr-name" id="drvName">司机</div>
+          <div class="dr-meta" id="drvMeta"></div>
+        </div>
+        <button class="dr-x" id="drvClose" aria-label="关闭">×</button>
+      </div>
+      <div class="dr-kpis" id="drvKpis"></div>
+      <div class="dr-tabs" id="drvTabs"></div>
+      <div class="dr-body" id="drvBody"></div>
+      <div class="dr-foot">
+        <span class="dr-hint"><i></i>记忆随仿真实时写入</span>
+        <button class="btn" id="drvRoute">查看当日路径</button>
+        <button class="btn" id="drvProfile">完整档案</button>
+        <button class="btn primary" id="drvOk">关闭</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  DRV.built = true;
+
+  m.addEventListener('click', e => { if (e.target === m) closeDriverModal(); });
+  $('#drvClose').addEventListener('click', closeDriverModal);
+  $('#drvOk').addEventListener('click', closeDriverModal);
+  $('#drvTabs').addEventListener('click', e => {
+    const b = e.target.closest('[data-tab]');
+    if (!b) return;
+    DRV.tab = b.dataset.tab;
+    renderDriverModal();
+  });
+  $('#drvRoute').addEventListener('click', () => {
+    const id = DRV.id;
+    closeDriverModal();
+    showDriverRoute(id);
+  });
+  $('#drvProfile').addEventListener('click', () => {
+    const id = DRV.id;
+    closeDriverModal();
+    if (S.mod !== 'agents') switchModule('agents');
+    AG_OPEN_ID = id;
+    renderAgents();
+    selectVehicleByAgent(id);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && DRV.id) closeDriverModal();
+  });
+}
+
+function renderDriverModal() {
+  const a = AGENT_BY_ID[DRV.id];
+  if (!a) return;
+  const v = VEHICLES.find(x => x.agentId === a.id);
+  const body = $('#drvBody');
+  const keep = body ? body.scrollTop : 0;
+  const prefNames = a.prefZones.map(zid => (ZMAP[zid] ? ZMAP[zid].name : zid)).join('、');
+  const stColor = v ? STATUS_COLOR[v.status] : '#94a3b8';
+  const stText = v ? STATUS_TEXT[v.status] : '离线';
+
+  $('#drvAv').textContent = a.id.slice(1);
+  $('#drvAv').style.background = a.color;
+  $('#drvName').innerHTML = `${a.name}
+    <span class="dr-id">${a.id}</span>
+    <span class="dr-live"><i style="background:${stColor}"></i>${stText}</span>`;
+  $('#drvMeta').textContent = `${a.plate} · ${a.type} · 偏好 ${prefNames}`;
+
+  $('#drvKpis').innerHTML = `
+    <div class="dr-kpi"><b>¥${a.earn.toFixed(0)}</b><span>今日收益</span></div>
+    <div class="dr-kpi"><b>${a.runs}</b><span>完成单</span></div>
+    <div class="dr-kpi"><b>${a.acc.toFixed(2)}</b><span>接受率</span></div>
+    <div class="dr-kpi"><b style="color:${v && v.kmh > 0 ? '#0f766e' : '#94a3b8'}">${v && v.kmh > 0 ? Math.round(v.kmh) : '—'}</b><span>实时车速</span></div>
+    <div class="dr-kpi"><b>${a.memory.trajectory.length}</b><span>记忆轨迹点</span></div>`;
+
+  const tabs = [
+    ['think', '思考过程', a.memory.thoughtHistory.length],
+    ['memory', '记忆', a.memory.trajectory.length],
+    ['traits', '性格设定', 0]
+  ];
+  $('#drvTabs').innerHTML = tabs.map(([k, label, n]) =>
+    `<button class="dr-tab ${DRV.tab === k ? 'on' : ''}" data-tab="${k}">${label}${n ? `<i>${n}</i>` : ''}</button>`).join('');
+
+  $('#drvBody').innerHTML = DRV.tab === 'memory' ? drvMemoryHtml(a, v)
+    : DRV.tab === 'traits' ? drvTraitsHtml(a)
+      : drvThinkHtml(a, v);
+
+  if (body) body.scrollTop = keep;
+}
+
+/* ---------- 思考过程 ---------- */
+function drvThinkHtml(a, v) {
+  const th = driverLastThought(a);
+  const prefs = a.prefZones.map(zid => (ZMAP[zid] ? ZMAP[zid].name : zid)).join('、');
+  let h = '';
+
+  if (!th) {
+    h += `<div class="dr-empty">尚未收到平台派单，暂无新的推理记录。<br>车辆正在${prefs}一带巡游候客。</div>`;
+  } else {
+    const src = th.order && th.order.zone ? '派单推理' : '巡游推理';
+    h += `<div class="dr-block">
+      <div class="dr-block-hd"><span class="llm-badge">LLM</span>${src} · ${th.time}
+        <span class="dr-order">${th.order.zone} · ¥${th.order.estimate} · 空驶 ${th.order.deadhead} km</span>
+        <span class="dr-verdict ${th.accept ? 'ok' : 'no'}">${th.accept ? '接受' : '拒绝'}</span>
+      </div>
+      <div class="dr-steps">${th.steps.map((s, i) => `
+        <div class="dr-step ${i === 2 ? 'decide' : ''} ${i === 2 && !th.accept ? 'reject' : ''}">
+          <span class="ds-n">${i + 1}</span>
+          <div class="ds-c"><div class="ds-p">${s.phase}</div><div class="ds-t">${s.text}</div></div>
+        </div>`).join('')}</div>
+    </div>`;
+  }
+
+  if (a.memory.llm) {
+    const l = a.memory.llm;
+    const ok = l.src === 'online';
+    h += `<div class="ag-llm-real" style="border:1px solid ${ok ? '#b6e5dd' : '#f5c2cc'};background:${ok ? '#f2fbfa' : '#fff7f8'};border-radius:10px;padding:9px 11px;margin-bottom:10px">
+      <div class="alr-hd">${ok ? '在线模型思考' : '模型调用失败'} · ${escHtml(l.model)} · ${l.latency}ms${l.tokens ? ' · ' + l.tokens + ' tok' : ''} · ${l.time}</div>
+      <div class="alr-txt">${escHtml(l.text)}</div>
+    </div>`;
+  }
+
+  const hist = a.memory.thoughtHistory.slice(-10).reverse();
+  h += `<div class="dr-sec">思考历史<span>最近 ${hist.length} 条 · 记忆容量 20</span></div>`;
+  if (!hist.length) {
+    h += `<div class="dr-empty">还没有历史推理，等待下一轮派单。</div>`;
+  } else {
+    h += hist.map(t => `
+      <div class="dr-li">
+        <span class="dl-t">${t.time}</span>
+        <div class="dl-m">${escHtml(t.order.zone)} · ¥${t.order.estimate}
+          <em>${escHtml(t.steps[2] ? t.steps[2].text : '')}</em>
+        </div>
+        <span class="dr-verdict ${t.accept ? 'ok' : 'no'}">${t.accept ? '接' : '拒'}</span>
+      </div>`).join('');
+  }
+  h += `<div class="dr-note">决策规则由「性格原型 + 收益阈值 + 平台评分」给出；接入在线模型后，模型只负责把推理过程讲清楚，不改变决策。</div>`;
+  return h;
+}
+
+/* ---------- 记忆模块 ---------- */
+function drvMemoryHtml(a, v) {
+  const m = a.memory;
+  const zones = Object.entries(m.visitedZones).sort((x, y) => y[1] - x[1]);
+  const maxCnt = zones.length ? zones[0][1] : 1;
+  const earnSum = m.earningsLog.reduce((s, x) => s + x.amount, 0);
+  const lastRoute = m.dailyRoute.length ? fmtClock(m.dailyRoute[m.dailyRoute.length - 1].t) : '—';
+  const kmh = v && v.kmh ? Math.round(v.kmh) + ' km/h' : '—';
+
+  let h = `<div class="dr-mg">
+    <div class="dr-kpi"><b>${m.trajectory.length}</b><span>轨迹点（上限 200）</span></div>
+    <div class="dr-kpi"><b>${zones.length}</b><span>去过区域</span></div>
+    <div class="dr-kpi"><b>${m.decisions.length}</b><span>决策记忆（上限 50）</span></div>
+    <div class="dr-kpi"><b>¥${earnSum.toFixed(0)}</b><span>记忆收入合计</span></div>
+  </div>`;
+
+  h += `<div class="dr-sec">今日去过<span>按到访次数排序 · 最近更新 ${lastRoute}</span></div>`;
+  if (!zones.length) {
+    h += `<div class="dr-empty">记忆里还没有到访记录，车辆刚出车。</div>`;
+  } else {
+    h += zones.slice(0, 6).map(([name, cnt]) => `
+      <div class="dr-zone">
+        <span class="dz-n">${escHtml(name)}</span>
+        <span class="dz-b"><i style="width:${Math.max(8, (cnt / maxCnt) * 100).toFixed(0)}%"></i></span>
+        <span class="dz-v">${cnt} 次</span>
+      </div>`).join('');
+  }
+  const order = v && v.order;
+  h += `<div class="dr-sec">当前行程<span>${order ? order.id + ' · ' + STATUS_TEXT[v.status] : '实时'}</span></div>
+    ${order ? `<div class="reason-box">${order.zone.name} → ${order.dropoff.name} · 预估 ¥${order.fare}</div>` : ''}
+    <div class="dr-trip">
+      <div><span>当前位置</span><b>${v ? POS_ZONE_NAME(v) : '—'}</b></div>
+      <div><span>当前车速</span><b>${kmh}</b></div>
+      <div><span>路径来源</span><b class="${v && v.kmhSrc === 'route' ? 'ok' : ''}">${v && v.routeKm ? 'AMap.Driving' : '内置估算'}</b></div>
+      <div><span>记忆轨迹</span><b>${m.dailyRoute.length} 点</b></div>
+    </div>`;
+
+  const dec = m.decisions.slice(-8).reverse();
+  h += `<div class="dr-sec">决策记忆<span>最近 ${dec.length} 条 · 共 ${m.decisions.length} 条</span></div>`;
+  if (!dec.length) {
+    h += `<div class="dr-empty">尚未形成决策记忆，等待平台派单。</div>`;
+  } else {
+    h += dec.map(d => `
+      <div class="dr-li">
+        <span class="dl-t">${fmtClock(d.t)}</span>
+        <div class="dl-m">${escHtml(d.order)}<em>${escHtml(d.reason || '')}</em></div>
+        <span class="dr-verdict ${d.decision === '接受' ? 'ok' : 'no'}">${d.decision === '接受' ? '接' : '拒'}</span>
+      </div>`).join('');
+  }
+
+  const logs = m.earningsLog.slice(-8).reverse();
+  h += `<div class="dr-sec">收入记忆<span>最近 ${logs.length} 笔</span></div>`;
+  if (!logs.length) {
+    h += `<div class="dr-empty">还没有完成订单的收入记录。</div>`;
+  } else {
+    h += logs.map(e => `
+      <div class="dr-li">
+        <span class="dl-t">${fmtClock(e.t)}</span>
+        <div class="dl-m">${escHtml(e.zone || '—')}<em>完成订单</em></div>
+        <span class="dl-x">+¥${Number(e.amount).toFixed(1)}</span>
+      </div>`).join('');
+  }
+
+  h += `<div class="dr-note">记忆只保留滑动窗口内的最近数据：轨迹 200 点、决策 50 条、收入与思考各 20 条以上，避免无限膨胀。司机换区域、接单、送达都会写入记忆。</div>`;
+  return h;
+}
+
+/* ---------- 性格设定 ---------- */
+function drvTraitsHtml(a) {
+  const tr = a.traits;
+  const prefNames = a.prefZones.map(zid => (ZMAP[zid] ? ZMAP[zid].name : zid)).join('、');
+  const bar = (label, val, color) => `<div class="ag-trait-row"><span class="tr-l">${label}</span><div class="tr-bar"><i style="width:${val * 100}%;background:${color}"></i></div><span class="dr-tv">${val.toFixed(2)}</span></div>`;
+  const timePref = tr.timeHorizon === 'short' ? '短期（分钟级）' : tr.timeHorizon === 'long' ? '长期（班次级）' : '中期（小时级）';
+  return `
+    <div class="dr-bio">${a.bio}</div>
+    <div class="dr-sec">行为特质<span>文献标定</span></div>
+    <div class="ag-trait-grid" style="gap:7px 14px">
+      ${bar('风险容忍', tr.riskTolerance, '#e11d48')}
+      ${bar('收益敏感', tr.profitSensitivity, '#2563eb')}
+      ${bar('区域忠诚', tr.spatialLoyalty, '#0d9488')}
+      ${bar('合规倾向', tr.complianceRate, '#7c3aed')}
+      ${bar('经验值', tr.experienceLevel, '#d97706')}
+      ${bar('接受率', a.acc, '#0891b2')}
+    </div>
+    <div class="dr-tags">
+      <span class="tag gray">性格原型 ${a.type}</span>
+      <span class="tag gray">时间偏好 ${timePref}</span>
+      <span class="tag blue">协同指数 ${(a.sens * a.acc).toFixed(2)}</span>
+      <span class="tag teal">偏好区域 ${prefNames}</span>
+    </div>
+    <div class="dr-sec">文献依据<span>性格与偏好的来源</span></div>
+    <div class="dr-lit">${a.literature}</div>
+    <div class="dr-note">每位司机的 system prompt 都由这里的性格、偏好区域与收益敏感度拼成，因此同一个派单在不同司机那里会得到不同推理。</div>`;
+}
+
+/* 车辆当前所在区域名（按最近区域点距离判断） */
+function POS_ZONE_NAME(v) {
+  const p = posAt(v);
+  let best = null, bd = Infinity;
+  ZONES.forEach(z => {
+    const d = (z.lat - p[0]) ** 2 + (z.lng - p[1]) ** 2;
+    if (d < bd) { bd = d; best = z; }
+  });
+  return best ? best.name : '—';
+}
+
+/* ============================================================
+   早班记忆预热
+   ------------------------------------------------------------
+   仿真从 08:00 起跑，若不预热，首次点开弹层记忆是空的。
+   这里按每位司机的偏好区域合成 07:00–08:00 的出车记忆：
+   一段跨区巡游轨迹、到访区域、两单收入与两条决策。
+   ============================================================ */
+function seedDriverMemory() {
+  if (DRV.seed) return;
+  DRV.seed = true;
+  const R = (a, b) => a + Math.random() * (b - a);
+  AGENTS.forEach((ag, i) => {
+    const m = ag.memory;
+    if (m.trajectory.length) return;
+    const zs = ag.prefZones.map(z => ZMAP[z]).filter(Boolean);
+    const home = zs[0] || ZONES[i % ZONES.length];
+    const away = zs[1] || ZONES[(i + 3) % ZONES.length];
+    const N = 10 + (i % 4) * 3;
+    const pts = [];
+    for (let k = 0; k < N; k++) {
+      const f = k / (N - 1);
+      const w = 0.12 + Math.sin(f * Math.PI) * 0.78;      /* 出车 → 跨区 → 回程 */
+      pts.push({
+        t: Math.round(420 + f * 56),
+        lng: home.lng + (away.lng - home.lng) * w + R(-0.0016, 0.0016),
+        lat: home.lat + (away.lat - home.lat) * w + R(-0.0016, 0.0016),
+        zone: f < 0.4 ? home.name : f < 0.72 ? away.name : home.name
+      });
+    }
+    m.trajectory = pts.slice(-200);
+    m.dailyRoute = pts.map(p => ({ t: p.t, lng: p.lng, lat: p.lat }));
+    m.visitedZones[home.name] = 2 + (i % 3);
+    m.visitedZones[away.name] = 1 + (i % 2);
+
+    const e1 = Math.round(R(12, 19)), e2 = Math.round(R(16, 27));
+    m.earningsLog.push({ t: 449, amount: e1, zone: home.name });
+    m.earningsLog.push({ t: 466, amount: e2, zone: away.name });
+    ag.earn += e1 + e2;
+    ag.runs += 2;
+
+    m.decisions.push({
+      t: 447, order: home.name + ' ¥' + e1, decision: '接受',
+      reason: `早班首单就在${home.name}附近，空驶短，¥${e1} 划算，先把流水跑起来。`
+    });
+    m.decisions.push({
+      t: 464, order: away.name + ' ¥' + e2, decision: '接受',
+      reason: `${away.name}早高峰前需求已抬头，顺路过去还能接着派单，不亏。`
+    });
+
+    const seedTh = {
+      time: fmtClock(464),
+      steps: [
+        { phase: '态势评估', text: `${fmtClock(464)} 早班，现在在${home.name}一带，平台推荐去${away.name}，预估 ¥${e2}，空驶 2.4 km。` },
+        { phase: '选项分析', text: `${away.name}${ag.prefZones.length > 1 ? '属于我常跑的片区' : '在导航可达范围内'}，早高峰前过去正好赶上需求抬头，比原地等更划算。` },
+        { phase: '决策输出', text: '接，先把早班流水做起来。' }
+      ],
+      accept: true,
+      order: { zone: away.name, estimate: e2, deadhead: 2.4 },
+      archetype: ag.archetype
+    };
+    m.thoughtHistory.push(seedTh);
+    m.currentThought = seedTh;
+  });
+}
+
+
+/* 在地图上显示司机当日行驶路径 */
+function showDriverRoute(aid) {
+  const a = AGENT_BY_ID[aid];
+  if (!a) return;
+  const pts = a.memory.dailyRoute;
+  if (pts.length < 2) {
+    pushEvent(`<b>${a.name}</b> 今日轨迹点不足，尚无法绘制行驶路径`, {});
+    return;
+  }
+  if (S.mod !== 'map') switchModule('map');
+  setTimeout(() => {
+    /* 高德底图就绪：用 Polyline 绘制并自适应视野 */
+    if (typeof AMap !== 'undefined' && mapReady && map) {
+      if (selLine) map.remove(selLine);
+      const path = pts.map(p => [p.lng, p.lat]);
+      selLine = new AMap.Polyline({
+        path, strokeColor: a.color, strokeWeight: 4, strokeOpacity: 0.75,
+        lineJoin: 'round', lineCap: 'round', zIndex: 200, showDir: true
+      });
+      map.add(selLine);
+      map.setFitView([selLine], false, [80, 80, 80, 80]);
+      pushEvent(`<b>${a.name}</b> 当日行驶路径已绘制：${pts.length} 个轨迹点，途经 ${driverVisitedSummary(a).join('、')}`, {});
+      return;
+    }
+    /* 离线 SVG 底图降级：把路径写入底图状态并重绘 */
+    FB_DRIVER_ROUTE = { aid: aid, pts: pts.slice() };
+    initFallback();
+    pushEvent(`<b>${a.name}</b> 当日行驶路径已绘制（离线底图）：${pts.length} 个轨迹点，途经 ${driverVisitedSummary(a).join('、')}`, {});
+  }, 200);
 }
 
 /* ============================================================
@@ -3918,56 +5445,79 @@ function renderBarChart() {
    协同状态 / 行为日志
    ============================================================ */
 function renderCollabPanel() {
+  const dispatch = S.dispatch;
   const el = $('#collabPanel');
-  if (!el) return;
-  const rec = Math.round(FLEET_SIZE * 0.05) + (S.tick % 5);   /* 每轮推荐量随车队规模缩放 */
-  const accRate = 0.62 + ((S.tick * 3) % 9) * 0.012;
-  const acc = Math.round(rec * accRate);
-  const conf = 0.82 + ((S.tick * 7) % 6) * 0.008;
-  const suppress = 1 + (S.tick % 3);
-  const gapAvg = (0.34 + ((S.tick * 2) % 5) * 0.006).toFixed(2);
+  const inService = VEHICLES.flatMap(v => v.order ? [v.order] : []);
+  const pickup = inService.filter(o => o.stage === 'pickup').length;
+  const states = {
+    pending: ['amber', '待派单'], pickup: ['blue', '接驾中'], trip: ['violet', '载客中'],
+    completed: ['teal', '已结算'], expired: ['gray', '已关闭']
+  };
+  const rows = [...inService, ...dispatch.pending.slice(0, 2), ...dispatch.history.slice(0, 2)].map(o => {
+    const [color, label] = states[o.stage];
+    const vehicle = VEHICLES.find(v => v.id === o.vehicleId);
+    const driver = vehicle && AGENT_BY_ID[vehicle.agentId];
+    const detail = driver ? `${driver.name} · ${driver.plate}`
+      : o.declined.size ? `${o.declined.size} 次拒单` : '等待空闲司机';
+    return `<li class="board-order">
+      <div><strong>${o.id} · ${o.zone.name} → ${o.dropoff.name}</strong>
+        <small>¥${o.fare} · ${o.stage === 'expired' ? '停止派单' : detail}
+          ${vehicle && (o.stage === 'pickup' || o.stage === 'trip') ? ` · <button type="button" data-vehicle="${vehicle.id}" aria-label="在地图查看 ${o.id}">在地图查看 ↗</button>` : ''}
+        </small></div>
+      <span class="tag ${color}">${label}</span>
+    </li>`;
+  }).join('');
+  const heading = dispatch.batch
+    ? `第 ${dispatch.batch} 批 · 累计接单 ${dispatch.accepted} · 拒单 ${dispatch.rejected} · 关闭 ${dispatch.expired}`
+    : '等待首批订单';
   const tag = $('#roundTag');
-  if (tag) tag.textContent = '第 ' + S.round + ' 轮';
-  el.innerHTML = `
-    <div class="kv"><span>本轮推荐车辆</span><b>${rec} 辆</b></div>
-    <div class="kv"><span>司机接受 / 拒绝</span><b>${acc} / ${rec - acc}</b></div>
-    <div class="gap-row" style="padding:9px 0 4px">
-      <div class="gap-name" style="width:52px;flex:0 0 52px;font-size:11.5px">接受率</div>
-      <div class="gap-bar"><div class="gap-fill" style="width:${(accRate * 100).toFixed(0)}%;background:#0d9488"></div></div>
-      <div class="gap-val">${(accRate * 100).toFixed(0)}%</div>
-    </div>
-    <div class="kv"><span>聚集抑制触发</span><b style="color:#d97706">${suppress} 次</b></div>
-    <div class="kv"><span>平均决策置信度</span><b>${conf.toFixed(2)}</b></div>
-    <div class="kv"><span>区域失衡度</span><b style="color:#0d9488">${gapAvg}</b></div>
-    <div class="kv"><span>策略记忆版本</span><b>v12.${S.tick % 9}</b></div>`;
+  if (tag.textContent !== heading) tag.textContent = heading;
+  const metrics = [
+    ['待派单', dispatch.pending.length], ['接驾中', pickup],
+    ['载客中', inService.length - pickup], ['累计结算', dispatch.completed]
+  ];
+  const html = `
+    <div class="board-summary">${metrics.map(([label, value]) =>
+      `<div class="board-metric">${label}<b>${value}</b></div>`
+    ).join('')}</div>
+    ${rows ? `<ul class="board-orders">${rows}</ul>`
+      : '<p class="muted">仿真开始后，平台会按区域供需生成首批订单。</p>'}`;
+  if (html === el.dataset.content) return;
+  const focusedVehicle = el.contains(document.activeElement) && document.activeElement.dataset.vehicle;
+  const scrollTop = el.querySelector('.board-orders')?.scrollTop || 0;
+  el.innerHTML = html;
+  el.dataset.content = html;
+  const list = el.querySelector('.board-orders');
+  if (list) list.scrollTop = scrollTop;
+  if (focusedVehicle) el.querySelector(`button[data-vehicle="${focusedVehicle}"]`)?.focus({ preventScroll: true });
 }
 
-const AGENT_LOGS = [
-  ['08:04', '#0d9488', 'A01', '接受建议 → 前往 <b>郑东CBD</b>，预计 6 min 到达，预期净收益 ¥24.6'],
-  ['08:03', '#e11d48', 'A04', '拒绝建议（阈值 0.72 &gt; 置信度 0.66），保持 <b>郑州东站</b> 原地候客'],
-  ['08:02', '#d97706', 'A07', '部分接受 → 前往 <b>二七广场</b>，途中接单概率 0.41，先沿主干道巡游'],
-  ['08:01', '#7c3aed', 'A03', '接受建议 → 前往 <b>花园路商圈</b>，收益敏感度 0.92，对高客单区域响应快'],
-  ['08:00', '#2563eb', 'A06', '接受建议 → 前往 <b>龙子湖</b>，该区域在途车辆 3 辆，未触发聚集抑制'],
-  ['07:59', '#0d9488', 'A05', '拒绝建议（路线偏好不符，倾向惠济区熟路），记录偏好权重 +0.05'],
-  ['07:58', '#e11d48', 'A02', '接受建议 → 前往 <b>郑州东站</b>，等待时间预计 4.2 min']
-];
-
+/* 行为日志：从司机记忆模块实时生成 */
 function renderAgentLog() {
   const el = $('#agentLog');
   if (!el) return;
-  el.innerHTML = AGENT_LOGS.map(l => {
-    const a = AGENTS.find(x => x.id === l[2]);
+  /* 收集所有司机最近的决策记录 */
+  const logs = [];
+  AGENTS.forEach(a => {
+    a.memory.decisions.slice(-3).forEach(d => {
+      logs.push({ time: fmtClock(d.t), agent: a, decision: d.decision, order: d.order, reason: d.reason });
+    });
+  });
+  logs.sort((a, b) => b.time.localeCompare(a.time));
+  el.innerHTML = logs.slice(0, 10).map(l => {
+    const isAccept = l.decision === '接受';
     return `<div class="feed-item">
-      <div class="feed-time">${l[0]}</div>
-      <i class="feed-dot" style="background:${l[1]}"></i>
-      <div class="feed-text"><b>${a ? a.name : l[2]}</b>（${a ? a.plate : ''}）${l[3]}</div>
+      <div class="feed-time">${l.time}</div>
+      <i class="feed-dot" style="background:${isAccept ? '#0d9488' : '#e11d48'}"></i>
+      <div class="feed-text"><b>${l.agent.name}</b>（${l.agent.type}）${isAccept ? '✅' : '❌'} ${l.decision} → ${l.order}</div>
     </div>`;
-  }).join('');
+  }).join('') || '<div class="feed-item"><div class="feed-text" style="color:#94a3b8">等待平台派单…</div></div>';
 }
 
 /* ============================================================
    启动
    ============================================================ */
+seedDriverMemory();   /* 预热 07:00–08:00 的早班记忆，首次打开弹层即有内容 */
 renderKPIs();
 renderDemandChart();
 renderGapList();
@@ -3980,19 +5530,37 @@ renderCollabPanel();
 renderAgentLog();
 renderDispatchPanel();
 updateClock();
+renderLLMBar();
 
 /* 车队规模与历史轨迹控件 */
 $('#tbVeh').textContent = FLEET_SIZE;
+const pillFleetEl = $('#pillFleet');
+if (pillFleetEl) pillFleetEl.textContent = `1 平台 + ${FLEET_SIZE} 司机 Agent`;
 const expFleetEl = $('#expFleet');
 if (expFleetEl) expFleetEl.textContent = FLEET_SIZE;
 renderHistUI();
 
-pushEvent(`系统启动：加载郑州市主城区出行仿真环境，在线车辆 <b>${FLEET_SIZE}</b> 辆`, {});
-pushEvent('调度 Agent 已就绪，策略记忆载入 <b>12</b> 条区域权重', {});
+pushEvent(`系统启动：<b>${FLEET_SIZE}</b> 名司机智能体上线，每人均接入 LLM 链式思考引擎`, {});
+pushEvent(`平台调度智能体已就绪：车多乘客少场景（${FLEET_SIZE} 车 / 每轮 2~3 单），开始多智能体博弈`, {});
 pushEvent('轨迹回放模块就绪：可导入 CSV / JSON 逐车轨迹，或加载内置郑州示例', {});
 
-const startMod = ((typeof location !== 'undefined' && location.hash) || '').replace('#', '');
-switchModule(MODULE_META[startMod] ? startMod : 'map');
+/* 演示深链参数：?heat=1 开热力 / ?open=A01 展开某位司机 / ?mod=agents 直达模块 */
+const Q = new URLSearchParams((typeof location !== 'undefined' && location.search) || '');
+if (Q.get('heat') === '1') S.layers.heat = true;
+if (Q.get('spd') === '0') S.layers.spd = false;
+if (Q.get('open')) AG_OPEN_ID = Q.get('open');
+if (Q.get('llm') === '1') setTimeout(openLLMModal, 400);
+if (Q.get('drv')) setTimeout(() => {
+  const t = Q.get('dtab');
+  if (t === 'memory' || t === 'traits' || t === 'think') DRV.tab = t;
+  selectVehicleByAgent(Q.get('drv'));
+  openDriverModal(Q.get('drv'));
+}, 900);
+syncLayerChips();
+applyLayerVisibility();
+
+const startMod = ((typeof location !== 'undefined' && (location.hash || '#' + (Q.get('mod') || ''))) || '').replace('#', '');
+switchModule(Object.hasOwn(MODULE_META, startMod) ? startMod : 'overview');
 setTimeout(() => { initMap(); }, 80);
 setInterval(loop, 1000);
 startGraphLoop();
