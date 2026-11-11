@@ -210,6 +210,111 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 }
 .pill b{font-weight:600;color:var(--ink)}
 .pill .dot{background:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+/* 天气/日期合并组件：斜杠分隔符 */
+.pill-slash{color:#cbd5e1;margin:0 4px;font-weight:400;transform:translateY(-.5px)}
+/* ---------- 司机智能体「自动思考」总开关 ---------- */
+.auto-think{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+  padding:5px 10px 5px 9px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface);font-size:11.5px;color:var(--ink-2);
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.auto-think:hover{border-color:#bfd4ff;background:#f7faff}
+.auto-think input{position:absolute;opacity:0;width:1px;height:1px;margin:-1px;overflow:hidden}
+.at-track{
+  position:relative;flex:0 0 30px;width:30px;height:16px;border-radius:99px;
+  background:#dbe4ef;transition:background .2s ease;
+}
+.at-track i{
+  position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 2px rgba(13,21,38,.28);
+  transition:transform .22s cubic-bezier(.4,0,.2,1);
+}
+.auto-think input:checked + .at-track{background:linear-gradient(90deg,#38bdf8,#0284c7)}
+.auto-think input:checked + .at-track i{transform:translateX(14px)}
+.auto-think input:focus-visible + .at-track{outline:2px solid #bfd4ff;outline-offset:2px}
+.auto-think b{font-weight:650;color:var(--ink)}
+.auto-think em{font-style:normal;font-size:10.5px;color:var(--ink-3);font-family:var(--mono);white-space:nowrap}
+.auto-think.on{border-color:#bfd4ff;background:#f2f8ff;box-shadow:0 0 0 3px rgba(14,165,233,.08)}
+.auto-think.on em{color:#0284c7}
+.auto-think.on .at-track{animation:atPulse 2.4s ease-in-out infinite}
+@keyframes atPulse{0%,100%{box-shadow:0 0 0 0 rgba(14,165,233,.0)}50%{box-shadow:0 0 0 3px rgba(14,165,233,.16)}}
+
+/* ---------- 派单瞬间气泡（车标上方，1.75s 自动消失） ----------
+   层级 8：压在地图之上、所有浮层面板（性能条 9 / 浮层 10 / 调度面板 12）之下，
+   这样它永远不会盖住看板与图例；pointer-events:none 也不抢地图手势。 */
+.dp-pop-layer{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden;contain:layout style}
+.dp-pop{position:absolute;left:0;top:0;transform:translate(-50%,-100%);will-change:transform,opacity}
+.dp-pop-in{
+  position:relative;display:flex;align-items:center;gap:6px;
+  padding:5px 9px 5px 7px;border-radius:9px;white-space:nowrap;
+  background:rgba(255,255,255,.97);border:1px solid rgba(14,165,233,.38);
+  box-shadow:0 6px 18px rgba(8,47,73,.22),0 0 0 3px rgba(14,165,233,.10);
+  font-size:11px;color:#0f172a;line-height:1.2;
+  transform-origin:50% 100%;
+  animation:dpPop 1.75s cubic-bezier(.22,.9,.28,1) forwards;
+}
+.dp-pop-in b{
+  display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:5px;
+  background:linear-gradient(180deg,#38bdf8,#0ea5e9);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.3px;
+}
+.dp-pop-in span{font-weight:600;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+/* 小三角：指向下方车标 */
+.dp-pop-in::after{
+  content:'';position:absolute;left:50%;bottom:-5px;transform:translateX(-50%) rotate(45deg);
+  width:8px;height:8px;background:rgba(255,255,255,.97);
+  border-right:1px solid rgba(14,165,233,.38);border-bottom:1px solid rgba(14,165,233,.38);
+  border-bottom-right-radius:2px;
+}
+@keyframes dpPop{
+  0%{opacity:0;transform:translateY(9px) scale(.86)}
+  12%{opacity:1;transform:translateY(0) scale(1.03)}
+  22%{transform:translateY(-3px) scale(1)}
+  32%{transform:translateY(0) scale(1)}
+  74%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-9px) scale(.97)}
+}
+@media (prefers-reduced-motion:reduce){
+  .dp-pop-in{animation-duration:.01ms;animation-iteration-count:1}
+}
+
+/* ---------- 天气/日期智能体：地图左上 · 平台调度下方（默认收起，点击展开） ---------- */
+.wxd-dot{width:7px;height:7px;border-radius:50%;background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14);display:inline-block;flex:0 0 7px}
+/* 宽度/头部/内边距统一由文末「左侧浮层统一规格」段接管，此处只保留本框特有的滚动 */
+#wxDock .fold-body>.wx-in{
+  overflow-y:auto;overscroll-behavior:contain;
+  max-height:min(40vh,330px);
+  scrollbar-width:thin;
+}
+#wxDock .fold-body>.wx-in::-webkit-scrollbar{width:6px}
+#wxDock .fold-body>.wx-in::-webkit-scrollbar-thumb{background:#dbe4ef;border-radius:3px}
+#wxDock .fold-body>.wx-in::-webkit-scrollbar-thumb:hover{background:#c8d4e3}
+/* 抽屉第一行：一句话用途概括（单行、不换行，超出省略） */
+.wxd-lead{
+  display:flex;align-items:flex-start;gap:6px;
+  font-size:11.5px;font-weight:560;line-height:1.45;color:#1e293b;
+  padding:0 0 8px;margin:0 0 9px;border-bottom:1px solid #eef2f7;
+  min-width:0;
+}
+.wxd-lead > span{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.wxd-lead::before{
+  content:'';flex:0 0 3px;width:3px;height:11px;border-radius:2px;
+  background:linear-gradient(180deg,#38bdf8,#0ea5e9);margin-top:3px;
+}
+.wxd-line{font-size:12px;color:#334155;margin:2px 0;line-height:1.5}
+.wxd-line.sub{font-size:11px;color:#64748b}
+.wxd-sec{font-size:11px;font-weight:650;color:#0f172a;margin:9px 0 5px;letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.wxd-sec .wxd-tag{font-size:10px;font-weight:600;padding:1px 7px;border-radius:999px;background:#e0f2fe;color:#0369a1}
+.wxd-bars{display:flex;flex-direction:column;gap:4px}
+.wxd-bar{display:grid;grid-template-columns:70px 1fr 38px;align-items:center;gap:6px;font-size:11px;color:#475569}
+.wxd-bar .trk{height:6px;border-radius:3px;background:#eef2f7;overflow:hidden}
+.wxd-bar .trk i{display:block;height:100%;border-radius:3px}
+.wxd-bar em{font-style:normal;font-family:var(--mono);color:#64748b;text-align:right}
+.wxd-note{font-size:11px;color:#64748b;line-height:1.65;margin-top:7px;padding-top:7px;border-top:1px dashed #e2e8f0}
+.wxd-note b{color:#334155}
+.wxd-sel{width:100%;margin-top:8px;font-size:12px;padding:5px 8px;border:1px solid #dbe4ef;border-radius:8px;background:#fff;color:#334155}
 .sel{
   appearance:none;padding:6px 26px 6px 11px;border-radius:20px;border:1px solid var(--border);
   background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 4l3 3 3-3' fill='none' stroke='%238a97a8' stroke-width='1.4' stroke-linecap='round'/></svg>") no-repeat right 10px center;
@@ -270,7 +375,14 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 #map{position:absolute;inset:0}
 .map-shell .ol{position:absolute;z-index:10;pointer-events:none}
 .ol > *{pointer-events:auto}
-.ol-tl{top:14px;left:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+/* 统一栈高：上不越顶、下不压左下的「高API」浮层；万一内容过多则整列滚动（滚动条隐藏） */
+.ol-tl{
+  top:14px;left:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;
+  max-height:var(--tl-max,420px);overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:none;padding-bottom:2px;
+}
+.ol-tl::-webkit-scrollbar{width:0;height:0}
+.ol-tl > *{flex:0 0 auto}   /* 只滚动、不压缩：禁止子面板被挤扁裁行 */
 .ol-tc{top:88px;right:344px;display:flex;justify-content:flex-end}   /* 让开上方的性能读数条 */
 .ol[hidden]{display:none !important}   /* hidden 要压过 .ol-tc 的 display:flex，否则状态条会一直显示 */
 .fb-bar{max-width:520px}
@@ -328,6 +440,20 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .legend-row{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink-2);white-space:nowrap;flex:0 0 auto}
 .legend-key{width:16px;height:0;border-top-width:3px;border-top-style:solid;border-radius:2px;flex:0 0 16px}
 .legend-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+/* ---------- 图例悬浮说明（桌面 hover / 移动端点击） ---------- */
+.legend-row[data-tip]{cursor:help;border-radius:6px;padding:1px 4px;margin:-1px -4px;transition:background .15s,color .15s}
+.legend-row[data-tip]:hover,.legend-row[data-tip].tip-open{background:rgba(37,99,235,.09);color:var(--ink)}
+.lg-tip{position:fixed;z-index:1200;max-width:268px;width:max-content;background:#101827;color:#e6edf7;
+  font-size:11.5px;line-height:1.62;padding:9px 12px 8px;border-radius:9px;box-shadow:0 10px 30px rgba(2,8,23,.42);
+  opacity:0;transform:translateY(4px);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
+.lg-tip.show{opacity:1;transform:translateY(0)}
+.lg-tip::after{content:'';position:absolute;left:var(--ax,50%);bottom:-5px;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#101827;border-bottom-width:0}
+.lg-tip b{color:#fff;font-weight:640}
+.lg-tip .lg-chain{display:flex;align-items:center;gap:4px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.14);
+  font-size:10.5px;color:#93c5fd;white-space:nowrap}
+.lg-tip .lg-chain i{font-style:normal;color:#64748b;font-weight:700}
+@media (max-width:560px){.lg-tip{max-width:calc(100vw - 20px);font-size:11px;line-height:1.55;padding:8px 10px 7px}}
 
 /* ---------- 高德 API 清单 ---------- */
 .ol-bl{left:14px;bottom:14px}
@@ -875,6 +1001,37 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 @keyframes vtDispatch{0%{box-shadow:0 0 0 0 rgba(14,165,233,.30),0 2px 8px rgba(13,21,38,.16)}
   70%{box-shadow:0 0 0 7px rgba(14,165,233,0),0 2px 8px rgba(13,21,38,.16)}
   100%{box-shadow:0 0 0 0 rgba(14,165,233,0),0 2px 8px rgba(13,21,38,.16)}}
+
+/* ---------- v3.8 平台调度可视化 ----------
+   三层信息：① 车标脉冲双环（哪辆车被调度）② 虚线 + 目标圆点（去哪、走哪条路）
+   ③ 左上「平台调度」看板 + 追踪车任务牌（多少钱、剩多远、几分钟到） */
+@keyframes mkDpPulse{0%{transform:scale(.5);opacity:.9}72%{transform:scale(2.1);opacity:0}100%{opacity:0}}
+.mk-dp-ring{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;
+  border-radius:50%;border:2px solid #0ea5e9;pointer-events:none;animation:mkDpPulse 1.8s ease-out infinite}
+.mk-dp-ring.r2{animation-delay:.9s;border-color:rgba(14,165,233,.7)}
+/* 追踪车辆：派单任务牌（箭头最上方，只在平台调度中出现） */
+.vt-task{position:absolute;left:50%;bottom:140px;transform:translateX(-50%);z-index:3;
+  display:flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:6px;white-space:nowrap;
+  background:rgba(2,132,199,.95);border:1px solid rgba(255,255,255,.55);color:#fff;
+  font:600 10.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  box-shadow:0 3px 10px rgba(2,132,199,.34)}
+.vt-task[hidden]{display:none}
+.vt-task b{font-family:var(--mono);font-weight:700}
+/* 调度看板：一行一单，点一行即定位跟踪该车 */
+.dp-cnt{font-size:9.5px;font-weight:650;padding:1px 6px;border-radius:5px;
+  background:rgba(14,165,233,.13);color:#0284c7;white-space:nowrap}
+.dp-rows{display:flex;flex-direction:column;gap:1px;max-width:250px}
+.dp-row{display:grid;grid-template-columns:7px 64px minmax(0,1fr) auto;align-items:center;gap:5px;
+  padding:3px 5px;border-radius:6px;text-align:left;border:1px solid transparent;background:none;
+  font-size:10.5px;color:var(--ink-2);cursor:pointer}
+.dp-row:hover{background:#f1f7ff;border-color:#dbe9ff}
+.dp-row-dot{width:7px;height:7px;border-radius:50%;background:#0ea5e9;
+  box-shadow:0 0 0 2.5px rgba(14,165,233,.16);animation:vtWander 1.6s ease-in-out infinite}
+.dp-row b{font-family:var(--mono);font-size:10px;font-weight:650;color:var(--ink);white-space:nowrap}
+.dp-to{color:#0369a1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-meta{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);white-space:nowrap}
+.dp-empty{font-size:10.5px;color:var(--ink-3);padding:3px 2px}
+.dp-more{font-size:9.5px;color:var(--ink-3);padding:2px 5px}
 .dp-lc[data-lc="idle"]::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;
   background:currentColor;margin-right:4px;vertical-align:1.5px}
 .dp-lc[data-lc="paused"]::before{content:'‖';margin-right:3px;font-size:8.5px;letter-spacing:-1px}
@@ -1053,6 +1210,49 @@ body.rp-lock{overflow:hidden}
   .rp-side{border-left:none;border-top:1px solid var(--border)}
   .rp-tip{display:none}
 }
+/* ---------- 左侧浮层统一规格：现实数据接口 / 图层 / 平台调度 / 天气·日期 ----------
+   四框同宽、同头部高度、同圆角·边框·阴影·内边距、同标签规格，内容行列节奏一致，
+   消除"宽窄不一、疏密不均"的零散感。 */
+.ol-tl > .layer-box{
+  width:296px;max-width:calc(100vw - 40px);box-sizing:border-box;
+  padding:0;border-radius:12px;
+  background:rgba(255,255,255,.96);
+  border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(13,21,38,.09);
+}
+.ol-tl > .layer-box > .fold-hd{
+  height:38px;padding:0 12px;gap:7px;
+  border-radius:12px 12px 0 0;
+  border-bottom:1px solid transparent;
+  transition:background .18s ease,border-color .18s ease;
+}
+.ol-tl > .layer-box:not(.collapsed) > .fold-hd{background:#fbfdff;border-bottom-color:var(--border)}
+.ol-tl > .layer-box.collapsed > .fold-hd{border-radius:12px;background:#f8fafc}
+.ol-tl > .layer-box .fold-tt{
+  font-size:10.5px;font-weight:650;letter-spacing:.5px;text-transform:none;
+  color:var(--ink-2);display:flex;align-items:center;gap:6px;
+}
+.ol-tl > .layer-box.collapsed .fold-tt{color:#7c8ba1}
+.ol-tl > .layer-box > .fold-body > .fold-in{padding:9px 12px 11px;min-height:40px}
+/* 收起态：正文内边距一并归零，四框收起高度严格相等（38 头 + 2 边框 = 40px） */
+.ol-tl > .layer-box.collapsed > .fold-body > .fold-in{padding-top:0;padding-bottom:0;min-height:0}
+/* 标题行右侧状态标签（v2.0 / 空闲 / 工作日）统一同高同规格 */
+.ol-tl .ds-tag,.ol-tl .dp-cnt{
+  display:inline-flex;align-items:center;height:18px;padding:0 7px;
+  border-radius:5px;font-size:9.5px;font-weight:650;letter-spacing:.2px;line-height:1;
+  white-space:nowrap;background:#eef4ff;color:#1d4ed8;
+}
+.ol-tl .dp-cnt{background:rgba(14,165,233,.13);color:#0284c7}
+.ol-tl .spec-btn{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:5px;font-size:9.5px}
+/* 图层：胶囊改等宽两列网格，行列对齐，不再长短参差 */
+.ol-tl .chip-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:none}
+.ol-tl .chip{width:100%;min-width:0;justify-content:flex-start;border-radius:8px;padding:5px 9px;font-size:11px}
+/* 内容行统一节拍：接口行 / 调度空态 / 天气行 */
+.ol-tl .ds-row{padding:3.5px 0;font-size:11px}
+.ol-tl .dp-rows{max-width:none}
+.ol-tl .dp-empty{padding:3px 0;font-size:10.5px;line-height:1.6}
+.ol-tl .wxd-line{font-size:11.5px;margin:3px 0}
+.ol-tl .wxd-sec{margin:10px 0 6px}
 </style>
 </head>
 <body>
@@ -1131,7 +1331,12 @@ body.rp-lock{overflow:hidden}
       <div class="tb-right">
         <div class="pill"><i class="dot"></i>郑州市主城区</div>
         <div class="pill">在线 <b id="tbVeh">100</b> 辆</div>
-        <div class="pill" id="weatherPill"><i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>天气 <b>—</b></div>
+        <!-- 天气/日期：顶栏只做信息展示（第一排一眼看到今天是几月几号）；
+             可折叠的详情入口在地图左上「平台调度」下方 #wxDock，默认收起 -->
+        <div class="pill" id="wxDateInfo" title="天气/日期智能体（A0 · 环境输入层）：天气走高德 Weather 接口；日期/星期/节假日由本地系统时钟计算，不调用接口。详情见地图左上「天气/日期智能体」（平台调度下方）">
+          <i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>
+          <span id="wxTxt">天气 —</span><span class="pill-slash" aria-hidden="true">/</span><span id="dateTxt">今天是—</span>
+        </div>
         <div class="pill"><b>5 Agent 协同</b></div>
         <select class="sel" id="speedSel">
           <option value="1">仿真速度 1×</option>
@@ -1181,6 +1386,8 @@ body.rp-lock{overflow:hidden}
       <section class="module no-pad" data-mod="map">
         <div class="map-shell">
           <div id="map"></div>
+          <!-- 派单瞬间的气泡层：pointer-events:none，只做提示，不拦地图手势 -->
+          <div id="dpPopLayer" class="dp-pop-layer" aria-hidden="true"></div>
           <button class="follow-pill" id="followPill" type="button" hidden><i></i><span id="fpTxt">跟随中</span></button>
           <div class="perf-pill" id="perfPill" title="大规模地图渲染：视口裁剪 + 分级渲染 + 高德实时路况">
             <span><i class="dot off" id="perfDot"></i><b id="perfTraf">路况 —</b></span>
@@ -1214,7 +1421,7 @@ body.rp-lock{overflow:hidden}
               </div>
               <div class="hist-rows" id="histRows"></div>
             </div>
-            <div class="layer-box foldable" id="dsPanel">
+            <div class="layer-box foldable collapsed" id="dsPanel">
               <div class="fold-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="dsRows">
                 <span class="fold-tt">现实数据接口</span>
                 <span class="ds-tag" id="specVer">JS API 2.0</span>
@@ -1234,11 +1441,53 @@ body.rp-lock{overflow:hidden}
                 <div class="chip-row" id="layerChips">
                   <button class="chip on" data-layer="zone"><i style="color:#2563eb"></i>区域需求</button>
                   <button class="chip on" data-layer="veh"><i style="color:#0d9488"></i>车辆</button>
+                  <button class="chip on" data-layer="dispatch" title="平台派单可视化：车标脉冲环（哪辆被调度）+ 到目标片区的虚线路线与目标点（去哪）+ 左上调度看板（任务详情）"><i style="color:#0ea5e9"></i>派单可视化</button>
                   <button class="chip on" data-layer="traj"><i style="color:#7c3aed"></i>调度轨迹</button>
                   <button class="chip" data-layer="hist" title="显示当前追踪车辆的完整历史调度轨迹：按行程顺序编号，标注每段起点终点与候单过程"><i style="color:#7c3aed"></i>历史调度轨迹</button>
                   <button class="chip on" data-layer="label"><i style="color:#d97706"></i>区域标注</button>
                   <button class="chip on" data-layer="traffic" title="高德 TileLayer.Traffic 实时路况图层"><i style="color:#ef4444"></i>实时路况</button>
                 </div>
+              </div></div>
+            </div>
+            <!-- 天气/日期智能体：已从地图浮层迁到顶栏收纳区（#wxDock），默认收起，地图左侧不再常驻遮挡 -->
+            <!-- 平台调度看板：实时列出正在被调度的车 → 目标片区、剩余里程、预计到达 -->
+            <div class="layer-box foldable" id="dpBoard">
+              <div class="fold-hd" role="button" tabindex="0" aria-expanded="true" aria-controls="dpBoardRows">
+                <span class="fold-tt">平台调度</span>
+                <span class="dp-cnt" id="dpBoardCnt">空闲</span>
+                <span class="fold-sp"></span>
+                <i class="fold-chev" aria-hidden="true"></i>
+              </div>
+              <div class="fold-body"><div class="fold-in">
+                <div class="dp-rows" id="dpBoardRows"><div class="dp-empty">暂无调度任务 · 平台空闲</div></div>
+              </div></div>
+            </div>
+            <!-- 天气/日期智能体（A0 · 环境输入层）：位于地图左上、平台调度正下方，默认收起；
+                 点击标题行展开详情（日期 / 场景 / 通勤·游玩权重 / 节假日 / 与调度协作），再点收起 -->
+            <div class="layer-box foldable collapsed" id="wxDock">
+              <div class="fold-hd" role="button" tabindex="0" aria-expanded="false" aria-controls="wxDateRows"
+                   title="天气/日期智能体（A0 · 环境输入层）· 默认收起，点击展开详情：天气走高德 Weather 接口，日期/星期/节假日由本地系统时钟计算">
+                <span class="fold-tt"><i class="wxd-dot"></i>天气/日期智能体</span>
+                <span class="ds-tag" id="wxDTag">—</span>
+                <span class="fold-sp"></span>
+                <i class="fold-chev" aria-hidden="true"></i>
+              </div>
+              <div class="fold-body"><div class="fold-in wx-in" id="wxDateRows">
+                <div class="wxd-lead" id="wxDLead" title="天气/日期智能体的用途：读天气、认日期，判断今天打车需求的偏向，供调度智能体参考"><span>看天气、认日期，判断今天的打车需求偏向。</span></div>
+                <div class="wxd-line" id="wxDDate">今天是 —</div>
+                <div class="wxd-line sub" id="wxDDateSub">—</div>
+                <div class="wxd-sec">当前场景<span class="wxd-tag" id="wxDScene">—</span></div>
+                <div class="wxd-bars" id="wxDZones"></div>
+                <div class="wxd-note" id="wxDNext"></div>
+                <div class="wxd-note" id="wxDWhy"></div>
+                <div class="wxd-note"><b>与调度智能体的协作</b>：本智能体把「日期场景」折算成 18 个片区的需求权重（工作日→通勤区上调、周末与节假日→游玩区上调），经态势感知写入供需表；调度派单智能体按「缺口 + 订单池」排序热区、在 5.2km 半径内就近派车——场景一变，派单方向随之改变，无需改动调度算法本身。</div>
+                <select class="wxd-sel" id="wxDPreview" title="演示用：切换日期场景，观察全城打车需求与派单方向的变化">
+                  <option value="auto">场景预览 · 跟随真实今天</option>
+                  <option value="workday">场景预览 · 工作日（通勤主导）</option>
+                  <option value="weekend">场景预览 · 周末（游玩主导）</option>
+                  <option value="midautumn">场景预览 · 中秋节（游玩主导）</option>
+                  <option value="national">场景预览 · 国庆节（游玩主导）</option>
+                </select>
               </div></div>
             </div>
           </div>
@@ -1251,18 +1500,19 @@ body.rp-lock{overflow:hidden}
           </div>
           <div class="ol ol-bc">
             <div class="layer-box legend-h">
-              <div class="legend-row"><i class="legend-dot" style="background:rgba(225,29,72,.55);box-shadow:0 0 0 3px rgba(225,29,72,.14)"></i>缺口大</div>
-              <div class="legend-row"><i class="legend-dot" style="background:rgba(217,119,6,.55);box-shadow:0 0 0 3px rgba(217,119,6,.14)"></i>平衡</div>
-              <div class="legend-row"><i class="legend-dot" style="background:rgba(13,148,136,.55);box-shadow:0 0 0 3px rgba(13,148,136,.14)"></i>充足</div>
+              <div class="legend-row" data-tip="gap-big"><i class="legend-dot" style="background:rgba(225,29,72,.55);box-shadow:0 0 0 3px rgba(225,29,72,.14)"></i>缺口大</div>
+              <div class="legend-row" data-tip="gap-ok"><i class="legend-dot" style="background:rgba(217,119,6,.55);box-shadow:0 0 0 3px rgba(217,119,6,.14)"></i>平衡</div>
+              <div class="legend-row" data-tip="gap-rich"><i class="legend-dot" style="background:rgba(13,148,136,.55);box-shadow:0 0 0 3px rgba(13,148,136,.14)"></i>充足</div>
               <div class="legend-sep"></div>
-              <div class="legend-row"><i class="legend-key" style="border-top-color:#7c3aed"></i>已驶</div>
-              <div class="legend-row"><i class="legend-key" style="border-top-color:#22c55e"></i>未驶</div>
+              <div class="legend-row" data-tip="driven"><i class="legend-key" style="border-top-color:#7c3aed"></i>已驶</div>
+              <div class="legend-row" data-tip="ahead"><i class="legend-key" style="border-top-color:#22c55e"></i>未驶</div>
               <div class="legend-sep"></div>
-              <div class="legend-row" title="随机游走等待接单中"><i class="legend-dot legend-idle" style="background:#d97706;box-shadow:0 0 0 2px #fff inset"></i>游走</div>
-              <div class="legend-row" title="暂停等待省油中"><i class="legend-dot" style="background:#64748b;box-shadow:0 0 0 2px #fff inset"></i>暂停</div>
-              <div class="legend-row" title="平台调度中：平台把订单派给最近的空车，车正空驶去接客"><i class="legend-dot" style="background:#0ea5e9;box-shadow:0 0 0 2px #fff inset"></i>平台调度</div>
-              <div class="legend-row" title="已接单，准备启程"><i class="legend-dot" style="background:#2563eb;box-shadow:0 0 0 2px #fff inset"></i>启程</div>
-              <div class="legend-row" title="正在路上"><i class="legend-dot" style="background:#7c3aed;box-shadow:0 0 0 2px #fff inset"></i>在途</div>
+              <div class="legend-row" data-tip="idle"><i class="legend-dot legend-idle" style="background:#d97706;box-shadow:0 0 0 2px #fff inset"></i>游走</div>
+              <div class="legend-row" data-tip="paused"><i class="legend-dot" style="background:#64748b;box-shadow:0 0 0 2px #fff inset"></i>暂停</div>
+              <div class="legend-row" data-tip="dispatch"><i class="legend-dot" style="background:#0ea5e9;box-shadow:0 0 0 2px #fff inset,0 0 0 4px rgba(14,165,233,.22)"></i>平台调度</div>
+              <div class="legend-row" data-tip="route"><i class="legend-key" style="border-top-color:#0ea5e9;border-top-style:dashed"></i>派单路线</div>
+              <div class="legend-row" data-tip="start"><i class="legend-dot" style="background:#2563eb;box-shadow:0 0 0 2px #fff inset"></i>启程</div>
+              <div class="legend-row" data-tip="riding"><i class="legend-dot" style="background:#7c3aed;box-shadow:0 0 0 2px #fff inset"></i>在途</div>
             </div>
           </div>
           <div class="ol ol-bl">
@@ -1397,7 +1647,7 @@ body.rp-lock{overflow:hidden}
               <button class="gt-btn" id="gtFocus">只看主链路</button>
             </div>
             <div class="graph-legend">
-              <div class="gl-item"><i class="gl-sw" style="background:#0ea5e9"></i>A0 天气</div>
+              <div class="gl-item"><i class="gl-sw" style="background:#0ea5e9"></i>A0 天气/日期</div>
               <div class="gl-item"><i class="gl-sw" style="background:#2563eb"></i>A1 态势感知</div>
               <div class="gl-item"><i class="gl-sw" style="background:#0891b2"></i>A2 路径规划</div>
               <div class="gl-item"><i class="gl-sw" style="background:#7c3aed"></i>A3 调度派单</div>
@@ -1414,7 +1664,7 @@ body.rp-lock{overflow:hidden}
               <div class="gp-empty">
                 <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6h4.5a2.5 2.5 0 0 1 2.5 2.5v1M7 18h4.5a2.5 2.5 0 0 0 2.5-2.5v-1"/></svg>
                 <div>图中展示 <b>5 个智能体</b>如何接力完成一次调度：<br>
-                <b style="color:#0ea5e9">A0 天气</b> 提供环境修正，<br>
+                <b style="color:#0ea5e9">A0 天气/日期</b> 提供环境修正，<br>
                 <b style="color:#2563eb">A1 态势感知</b> → <b style="color:#0891b2">A2 路径规划</b> →
                 <b style="color:#7c3aed">A3 调度派单</b> → <b style="color:#d97706">A4 司机执行</b>，<br>
                 结果回写后闭环回到 A1。点击任意节点查看输入、输出与指标。</div>
@@ -1441,6 +1691,13 @@ body.rp-lock{overflow:hidden}
               <div class="ref-list" id="refList"></div>
             </details>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;align-items:center">
+              <label class="auto-think" id="autoThinkWrap"
+                     title="开启后每 10 秒自动换一位司机（约 6 仿真分钟），用他自己的 system prompt 做一次真实决策；关闭立即停止，且不再发起任何请求">
+                <input type="checkbox" id="autoThinkChk">
+                <span class="at-track"><i></i></span>
+                <b>自动思考</b>
+                <em id="autoThinkState">已关闭</em>
+              </label>
               <button class="agx-btn primary" id="btnWakeBatch" type="button">唤醒筛选结果（限 12 位 · 并发 3）</button>
               <span class="muted" style="font-size:10.5px" id="wakeHint">每位司机持有独立的 system prompt 与对话上下文</span>
             </div>
@@ -1647,7 +1904,7 @@ body.rp-lock{overflow:hidden}
             <div class="card-hd"><h3>五个智能体</h3><span class="muted">决策链</span></div>
             <div class="card-bd">
               <ul class="about-list">
-                <li><b style="color:#0ea5e9">A0 天气环境智能体</b>：取郑州实时天气，换算需求影响系数，作为环境输入修正 A1 需求与 A2 的 ETA。</li>
+                <li><b style="color:#0ea5e9">A0 天气/日期智能体</b>：天气取郑州实时天气（高德接口）换算需求影响系数，修正 A1 需求与 A2 的 ETA；日期由本地系统时钟 + 内置节假日表判断工作日/周末/节假日（不调用接口）——工作日通勤区打车需求为主，周末与节假日游玩地点为主，重标定片区需求后交给调度。</li>
                 <li><b style="color:#2563eb">A1 态势感知智能体</b>：融合片区订单热度、实时路况、车辆 GPS 与订单流，输出区域供需缺口。</li>
                 <li><b style="color:#0891b2">A2 路径规划智能体</b>：调用高德 Driving 接口做真实路网规划，输出距离、ETA 与空驶成本。</li>
                 <li><b style="color:#7c3aed">A3 调度派单智能体</b>：综合评分并做车辆-订单匹配，向司机下发派单指令与推荐路线。</li>
@@ -2194,7 +2451,7 @@ const GNODES = [
   mkStep(3, 2, 'e3', 'driver', '送达结算', '订单 · 收益 · 空驶'),
 
   { id: 'weather_agent', x: 20, y: 34, w: 920, h: 66, kind: 'weather', isAgent: true, wide: true,
-    code: 'A0', label: '天气智能体', sub: 'Weather Agent · 环境输入层' },
+    code: 'A0', label: '天气/日期智能体', sub: 'Weather & Date Agent · 环境输入层' },
 
   { id: 'result', x: 250, y: 494, w: 440, h: 58, kind: 'result', label: '执行结果汇总',
     sub: '订单完成 · 收益 · 空驶 · 等待时长' },
@@ -2234,10 +2491,10 @@ const GEDGES = [
 ];
 
 const NODE_DETAIL = {
-  weather_agent: { phase: 'A0 · 天气智能体', desc: '负责"看清天"。通过高德天气接口获取郑州实时天气，折算成需求影响系数与 ETA 修正因子，注入态势感知与路径规划。',
-    inputs: ['高德天气接口（实时 / 预报）', '行政区划 adcode 410100'],
-    outputs: ['天气现象 / 温度 / 风力 / 湿度', '需求影响系数', 'ETA 修正因子'],
-    metrics: [['接口', 'AMap.Weather'], ['影响系数', '×1.04']] },
+  weather_agent: { phase: 'A0 · 天气/日期智能体', desc: '负责"看清天、认准日"。天气：高德天气接口折算需求影响系数与 ETA 修正因子，注入态势感知与路径规划。日期：本地系统时钟 + 内置节假日表（不调用接口），判断工作日/周末/节假日——工作日通勤区打车需求为主，周末与节假日游玩地点为主，按郑州通勤区/游玩区分布重标定各片区需求权重，输出给态势感知与调度派单。',
+    inputs: ['高德天气接口（实时 / 预报）', '行政区划 adcode 410100', '本地系统时钟（日期/星期，不调用接口）', '内置节假日表（2025–2027）'],
+    outputs: ['天气现象 / 温度 / 风力 / 湿度', '需求影响系数', 'ETA 修正因子', '日期场景（通勤/游玩）与片区需求权重'],
+    metrics: [['接口', 'AMap.Weather'], ['影响系数', '×1.04'], ['日期来源', '本地时钟 · 0 次接口'], ['场景', '工作日 · 通勤']] },
 
   perception_agent: { phase: 'A1 · 态势感知智能体', desc: '负责"看清城市"。把片区订单热度、实时路况、车辆 GPS 与订单流融合成区域级的供需状态，是整条决策链的输入源。',
     inputs: ['片区内置坐标与订单热度', '高德实时路况图层', '车辆位置与载客状态', '订单流与上车点'],
@@ -2334,28 +2591,44 @@ function fmtClock(min) {
   const m = ((min % 1440) + 1440) % 1440;
   return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(Math.floor(m % 60)).padStart(2, '0');
 }
-/* 车辆位置：优先沿高德路径规划返回的真实路径插值推演，无真实路径时退回内置轨迹 */
+/* 车辆位置：优先沿高德路径规划返回的真实路径插值推演。
+   还在等路网规划的车没有 path，就停在出发片区中心（不会画出车在路外乱窜）。 */
 function posAt(v) {
   if (v.realPath && v.realPath.length > 1) {
     const rp = v.realPath, n = rp.length - 1;
     const f = clamp(v.t, 0, 0.9999) * n;
     const i = Math.floor(f), r = f - i;
     const a = rp[i], b = rp[i + 1];              /* realPath 为 [lng, lat] */
-    return [a[1] + (b[1] - a[1]) * r, a[0] + (b[0] - a[0]) * r];
+    const q = [a[1] + (b[1] - a[1]) * r, a[0] + (b[0] - a[0]) * r];
+    v.__lastPos = q;                             /* 记住最后一次有效位置 */
+    return q;
   }
-  const p = v.path, n = p.length - 1;
-  const f = clamp(v.t, 0, 0.9999) * n;
-  const i = Math.floor(f), r = f - i;
-  const a = p[Math.min(i, n)], b = p[Math.min(i + 1, n)];
-  return [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];
+  if (v.path && v.path.length > 1) {
+    const p = v.path, n = p.length - 1;
+    const f = clamp(v.t, 0, 0.9999) * n;
+    const i = Math.floor(f), r = f - i;
+    const a = p[Math.min(i, n)], b = p[Math.min(i + 1, n)];
+    const q = [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];
+    v.__lastPos = q;
+    return q;
+  }
+  /* 换段瞬间路径已被清空（等路网 / 正在套新路）：保持车头原位，
+     绝不回落到片区中心——那正是「接单后原地重新生成」的观感来源 */
+  if (v.__lastPos) return v.__lastPos;
+  const z = (typeof ZMAP !== 'undefined') && (ZMAP[v.from] || ZMAP[v.to]);
+  return z ? [z.lat, z.lng] : [CENTER ? CENTER.lat : 34.762, CENTER ? CENTER.lng : 113.688];
 }
 /* 车辆行驶路线（高德格式 [lng,lat]），供地图绘制使用 */
 function routeOf(v) {
   if (v.realPath && v.realPath.length > 1) return v.realPath;
-  return v.path.map(p => [p[1], p[0]]);
+  if (v.path && v.path.length > 1) return v.path.map(p => [p[1], p[0]]);
+  const p = posAt(v);                                   /* 无路：退化成同点，不画线 */
+  return [[p[1], p[0]], [p[1], p[0]]];
 }
 function routeSource(v) {
-  return (v.realPath && v.realPath.length > 1) ? 'plan' : 'sim';
+  if (v.realPath && v.realPath.length > 1) return 'plan';
+  if (v.__approx) return 'approx';
+  return 'sim';
 }
 
 /* 按里程把路径重采样成等距点（latLng=true 表示入参是 [lat,lng]）。
@@ -2484,7 +2757,7 @@ let map = null, mapReady = false, useFallback = false;
 let ovZone = null, ovTraj = null, ovVeh = null, ovLabel = null, ovRoute = null, ovHist = null, trafficLayer = null;
 let vehMarkers = {}, realRoute = null;
 /* 选中车辆后地图锁定该车：followOn 为开关，用户手动拖图即暂停，点胶囊恢复 */
-let followOn = true;
+let followOn = false;    /* 没有默认选中车辆，跟随从「关」开始；点车时 selectVehicle 会打开 */
 /* 是否已经"点过某辆车"：只有真的选过车才进入追踪，首屏仍然是全城主视图 */
 let trackArmed = false;
 
@@ -2525,7 +2798,221 @@ function weatherImpact(text) {
   return 1.0;
 }
 
-function carMarkerHtml(color, active, waiting, paused) {
+/* ============================================================
+   天气/日期智能体 · 日期场景部分（A0 环境输入层的另一半）
+   ------------------------------------------------------------
+   · 日期/星期/节假日：全部由本地系统时钟（Date）计算，【不调用任何接口】；
+     节假日用内置静态表（2025–2027，农历节日日期已折算为公历），
+     表里不含官方调休安排，需要时直接改 CN_HOLIDAYS 即可。
+   · 场景区分：周一至周五 → 上班通勤区打车需求为主；
+     周六日 → 游玩地点为主；法定节假日 → 游玩地点为主（且更强）。
+     结合郑州的实际分布：通勤区=郑东CBD/高新区/经开区/郑州东站/龙子湖
+     （写字楼、产业园区、枢纽），游玩区=植物园/南环公园/蝶湖/西流湖/
+     惠济区（沿黄）/大河村/二七广场（商圈+地标）。
+   · 落地方式：只重写 z.bd（片区需求基准），下游一切照旧——
+     需求随历史时段曲线围绕 bd 浮动、调度按「缺口+订单池」挑热区。
+     日期智能体与调度智能体的协作因此是纯数据面的：输入变、算法不变。
+   ============================================================ */
+const DATE_AGENT = {
+  d: null, y: 0, m: 0, day: 0, dow: 0,
+  isWeekend: false, holiday: null,        /* holiday: { n:'国庆节', s:'10-01', e:'10-07' } */
+  type: 'workday',                        /* workday | weekend | holiday */
+  scene: 'commute',                       /* commute | leisure */
+  label: '工作日 · 通勤主导',
+  preview: 'auto'                         /* auto | workday | weekend | midautumn | national */
+};
+const WEEK_CN = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const CN_HOLIDAYS = {
+  2025: [
+    { n: '元旦', s: '01-01', e: '01-01' }, { n: '春节', s: '01-28', e: '02-04' },
+    { n: '清明节', s: '04-04', e: '04-06' }, { n: '劳动节', s: '05-01', e: '05-05' },
+    { n: '端午节', s: '05-31', e: '06-02' }, { n: '中秋节·国庆节', s: '10-01', e: '10-08' }
+  ],
+  2026: [
+    { n: '元旦', s: '01-01', e: '01-03' }, { n: '春节', s: '02-16', e: '02-22' },
+    { n: '清明节', s: '04-04', e: '04-06' }, { n: '劳动节', s: '05-01', e: '05-05' },
+    { n: '端午节', s: '06-19', e: '06-21' }, { n: '中秋节', s: '09-25', e: '09-27' },
+    { n: '国庆节', s: '10-01', e: '10-07' }
+  ],
+  2027: [
+    { n: '元旦', s: '01-01', e: '01-03' }, { n: '春节', s: '02-05', e: '02-11' },
+    { n: '清明节', s: '04-04', e: '04-06' }, { n: '劳动节', s: '05-01', e: '05-05' },
+    { n: '端午节', s: '06-09', e: '06-11' }, { n: '中秋节', s: '09-15', e: '09-17' },
+    { n: '国庆节', s: '10-01', e: '10-07' }
+  ]
+};
+/* 郑州通勤/游玩分布 → 片区分组（两组互不重叠，其余片区为中性组） */
+const SCENE_ZONE = {
+  commute: { cbd: 1, gaoxin: 1, jingkai: 1, dongzhan: 1, longzihu: 1, hangkong: 1, huayuan: 1, heda: 1 },
+  leisure: { zhiwuyuan: 1, diehu: 1, nanhuan: 1, xiliuhu: 1, huiji: 1, erqi: 1, dahecun: 1, guxing: 1, bishagang: 1 }
+};
+/* 各日期类型的目标乘数：bd 压缩后量级只有 1~3，乘法差异会被取整吞掉，
+   所以这里直接按「组」给乘数，且允许 bd 为小数（下游需求漂移/池补充全是连续计算）。
+   量级经过校准：周末时游玩区最低 2.2 > 通勤区最高 1.95，方向确定性翻转。 */
+const SCENE_F = {
+  workday: { commute: 1.5,  leisure: 0.8,  neutral: 1.0 },
+  weekend: { commute: 0.65, leisure: 2.2,  neutral: 1.1 },
+  holiday: { commute: 0.55, leisure: 2.6,  neutral: 1.25 }
+};
+const SCENE_DESC = {
+  commute: '郑东CBD/高新区/经开区写字楼与产业园区、郑州东站商务枢纽、龙子湖智慧岛——上班通勤打车为主',
+  leisure: '郑州植物园/南环公园/蝶湖/西流湖/惠济沿黄/大河村/二七广场商圈——游玩休闲打车为主'
+};
+
+function cnHolidayOf(y, m, day) {
+  const list = CN_HOLIDAYS[y] || [];
+  const md = String(m).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+  for (const h of list) {
+    if (md >= h.s && md <= h.e) return h;
+  }
+  return null;
+}
+/* 下一个节假日（含今天），供面板展示倒计时 */
+function nextHoliday(from) {
+  for (let y = from.getFullYear(); y <= from.getFullYear() + 2; y++) {
+    for (const h of (CN_HOLIDAYS[y] || [])) {
+      const a = new Date(y, Number(h.s.slice(0, 2)) - 1, Number(h.s.slice(3, 5)));
+      const b = new Date(y, Number(h.e.slice(0, 2)) - 1, Number(h.e.slice(3, 5)));
+      if (from <= b) return { h, d: Math.max(0, Math.ceil((a - from) / 86400000)) };
+    }
+  }
+  return null;
+}
+/* 计算当前日期上下文；preview 模式用于演示工作日/周末/节假日场景 */
+function computeDateAgent() {
+  let d = new Date();
+  const pv = DATE_AGENT.preview;
+  if (pv === 'workday') { while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); }
+  else if (pv === 'weekend') { while (d.getDay() !== 6) d.setDate(d.getDate() + 1); }
+  else if (pv === 'midautumn' || pv === 'national') {
+    const want = pv === 'midautumn' ? '中秋节' : '国庆节';
+    outer:
+    for (let y = d.getFullYear(); y <= d.getFullYear() + 2; y++) {
+      for (const h of (CN_HOLIDAYS[y] || [])) {
+        if (h.n.indexOf(want) >= 0) {
+          d = new Date(y, Number(h.s.slice(0, 2)) - 1, Number(h.s.slice(3, 5)));
+          break outer;
+        }
+      }
+    }
+  }
+  const hol = cnHolidayOf(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  const dow = d.getDay();
+  DATE_AGENT.d = d;
+  DATE_AGENT.y = d.getFullYear();
+  DATE_AGENT.m = d.getMonth() + 1;
+  DATE_AGENT.day = d.getDate();
+  DATE_AGENT.dow = dow;
+  DATE_AGENT.holiday = hol;
+  DATE_AGENT.isWeekend = (dow === 0 || dow === 6);
+  DATE_AGENT.type = hol ? 'holiday' : (DATE_AGENT.isWeekend ? 'weekend' : 'workday');
+  DATE_AGENT.scene = hol || DATE_AGENT.isWeekend ? 'leisure' : 'commute';
+  DATE_AGENT.label = hol ? hol.n + ' · 游玩主导'
+    : DATE_AGENT.isWeekend ? '周末 · 游玩主导' : '工作日 · 通勤主导';
+}
+var MP_rescaleDem = null;   /* 仿真核心在 dem() 处回填：场景切换后重标定需求池上限 */
+/* 把日期场景落到 18 个片区的需求基准上（只动 bd，下游一切照旧）。
+   按片区分组套目标乘数：工作日通勤主导、周末游玩主导、节假日游玩最强。 */
+function applyDayScenario() {
+  const T = SCENE_F[DATE_AGENT.type] || SCENE_F.workday;
+  ZONES.forEach(z => {
+    const role = SCENE_ZONE.commute[z.id] ? 'commute' : SCENE_ZONE.leisure[z.id] ? 'leisure' : 'neutral';
+    z.bd = Math.max(1, +(z.bd0 * T[role]).toFixed(2));   /* 地板 1：地图标签不出现「需 0」 */
+  });
+  if (typeof MP_rescaleDem === 'function') MP_rescaleDem();
+}
+function fmtCnDate(d) { return (d.getMonth() + 1) + '月' + d.getDate() + '号'; }
+function fmtCnDateFull(d) {
+  return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + WEEK_CN[d.getDay()];
+}
+/* 场景预览切换（面板下拉框）：重算日期 → 重标定需求 → 刷 UI → 广播事件 */
+function onDayPreview(v) {
+  DATE_AGENT.preview = v;
+  computeDateAgent();
+  applyDayScenario();
+  renderDateAgent();
+  pushEvent('天气/日期智能体：日期场景切换为 <b>' + DATE_AGENT.label + '</b>，'
+    + '18 个片区需求权重已重标定，调度智能体将按新供需派单', {});
+}
+/* ---------- 天气/日期智能体面板：地图左上 · 平台调度正下方 ----------
+   与其它浮层共用 .foldable 折叠体系（点标题行切换、Enter/Space 可键盘操作），
+   HTML 上默认带 .collapsed —— 首屏只有一条 30px 窄条，不遮挡地图。 */
+function setWxDock(open) {   /* 供控制台/深链调试：setWxDock(true) 直接展开 */
+  const box = typeof document !== 'undefined' ? document.getElementById('wxDock') : null;
+  if (!box) return;
+  box.classList.toggle('collapsed', !open);
+  if (typeof applyFoldAria === 'function') applyFoldAria(box);
+}
+
+function renderDateAgent() {
+  const A = DATE_AGENT;
+  /* 顶栏信息位（第一排）：今天是X月X号 */
+  const dt = $('#dateTxt');
+  if (dt) dt.innerHTML = '今天是<b>' + fmtCnDate(A.d) + '</b>';
+  const info = $('#wxDateInfo');
+  if (info) info.title = fmtCnDateFull(A.d) + ' · ' + A.label
+    + '｜详情见地图左上「天气/日期智能体」（平台调度下方），点击标题行展开'
+    + '（天气走高德 Weather 接口；日期由本地系统时钟计算，不调用接口）';
+  /* 面板头部场景标签 */
+  const tag = $('#wxDTag');
+  if (tag) {
+    tag.textContent = A.type === 'holiday' ? '节假日' : (A.type === 'weekend' ? '周末' : '工作日');
+    tag.style.background = A.type === 'holiday' ? '#fee2e2' : (A.type === 'weekend' ? '#fef3c7' : '#e0f2fe');
+    tag.style.color = A.type === 'holiday' ? '#b91c1c' : (A.type === 'weekend' ? '#92400e' : '#0369a1');
+  }
+  const dd = $('#wxDDate');
+  if (dd) dd.innerHTML = '今天是 <b>' + A.y + '年' + A.m + '月' + A.day + '号</b> · ' + WEEK_CN[A.dow]
+    + (A.holiday ? ' · <b style="color:#b91c1c">' + A.holiday.n + '假期</b>' : '');
+  const ds = $('#wxDDateSub');
+  if (ds) ds.innerHTML = '日期来源：<span class="wxd-tag" style="background:#dcfce7;color:#166534">本地获取</span>'
+    + ' 系统时钟 + 内置节假日表（2025–2027）· <b>不调用任何接口</b>';
+  const sc = $('#wxDScene');
+  if (sc) sc.textContent = A.label;
+  /* 通勤 / 游玩两组热区权重条（当前日期类型的目标乘数） */
+  const box = $('#wxDZones');
+  if (box) {
+    const T = SCENE_F[DATE_AGENT.type] || SCENE_F.workday;
+    const FMAX = 3;
+    const row = (z, f, active) => {
+      const c = A.scene === 'commute' ? '#2563eb' : '#d97706';
+      return '<div class="wxd-bar"><span>' + z.name + '</span>'
+        + '<span class="trk"><i style="width:' + Math.min(100, Math.round(f / FMAX * 100)) + '%;background:'
+        + (active ? c : '#cbd5e1') + '"></i></span><em>×' + f.toFixed(2) + '</em></div>';
+    };
+    const tops = (group) => Object.keys(SCENE_ZONE[group]).map(id => ({ z: ZMAP[id], f: T[group] }))
+      .filter(x => x.z).sort((a, b) => b.f - a.f);
+    const cAct = A.scene === 'commute', lAct = !cAct;
+    box.innerHTML =
+      '<div class="wxd-sec" style="margin:2px 0 4px">上班通勤区' + (cAct ? '<span class="wxd-tag">当前主导</span>' : '') + '</div>'
+      + tops('commute').map(x => row(x.z, x.f, cAct)).join('')
+      + '<div class="wxd-sec">游玩地点' + (lAct ? '<span class="wxd-tag">当前主导</span>' : '') + '</div>'
+      + tops('leisure').map(x => row(x.z, x.f, lAct)).join('');
+  }
+  const nx = $('#wxDNext');
+  if (nx) {
+    const t = new Date(A.y, A.m - 1, A.day);
+    const n = nextHoliday(t);
+    nx.innerHTML = n
+      ? ('<b>最近节假日</b>：' + n.h.n + '（' + n.h.s.replace('-', '月') + '日起）'
+        + (n.d === 0 ? ' · <b style="color:#b91c1c">假期进行中</b>' : ' · 还有 <b>' + n.d + '</b> 天，届时自动切换为游玩场景'))
+      : '<b>最近节假日</b>：内置节假日表仅覆盖 2025–2027 年';
+  }
+  const why = $('#wxDWhy');
+  if (why) {
+    why.innerHTML = '<b>作用</b>：负责"看清天、认准日"。天气走高德 Weather 接口折算需求/ETA 修正；'
+      + '日期判断当前是工作日、周末还是节假日——' + SCENE_DESC[A.scene] + '。';
+  }
+  const sel = $('#wxDPreview');
+  if (sel && sel.value !== A.preview) sel.value = A.preview;
+}
+/* 记录片区基准原值（DEMAND_SCALE 压缩后的 bd），场景权重乘在它上面 */
+ZONES.forEach(z => { z.bd0 = z.bd; });
+
+function carMarkerHtml(color, active, waiting, paused, dispatched) {
+  /* 平台调度中：两圈错峰脉冲，扫一眼就能从 100 辆车里挑出"平台正在派的车" */
+  const dpRing = dispatched
+    ? `<span class="mk-dp-ring"></span><span class="mk-dp-ring r2"></span>`
+    : '';
   const ring = active
     ? `<span style="position:absolute;inset:-5px;border:2px solid ${color};border-radius:50%;opacity:.5"></span>`
     : '';
@@ -2542,7 +3029,7 @@ function carMarkerHtml(color, active, waiting, paused) {
     : '';
   const d = active ? 13 : 10;
   return `<div style="position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center">
-    ${ring}${wring}
+    ${dpRing}${ring}${wring}
     <span style="position:absolute;inset:1px;border-radius:50%;background:${color};opacity:.13"></span>
     <span style="position:relative;width:${d}px;height:${d}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(15,23,42,.55)"></span>
     ${bars}
@@ -2614,6 +3101,7 @@ function toggleFold(box) {
 }
 function initFoldPanels() {
   document.addEventListener('click', (e) => {
+    if (e.target && e.target.closest && e.target.closest('.spec-btn')) return;  /* 头部「方案」按钮：只开弹层，不带折叠 */
     const hd = e.target && e.target.closest ? e.target.closest('.fold-hd') : null;
     if (!hd) return;
     toggleFold(hd.closest('.foldable'));
@@ -2632,6 +3120,33 @@ function initFoldPanels() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFoldPanels);
 else initFoldPanels();
+
+/* ---------- 左列限高：按左下方「高API」浮层的真实位置动态避让 ----------
+   不写死高度：不同视口/不同内容下，左列末端（天气/日期智能体）都必须完整露出，
+   永不与左下浮层叠压。超出时整列可滚动（滚动条隐藏）。 */
+function fitMapLeftStack() {
+  const tl = document.querySelector('.ol-tl');
+  const api = document.getElementById('apiPanel');
+  if (!tl || !api) return;
+  const shell = tl.parentElement;
+  if (!shell) return;
+  const shellTop = shell.getBoundingClientRect().top;
+  const apiTop = api.getBoundingClientRect().top;
+  const stackTop = shellTop + tl.offsetTop;              /* top:14px */
+  const avail = Math.max(180, Math.round(apiTop - stackTop - 12));
+  tl.style.setProperty('--tl-max', avail + 'px');
+}
+function initMapLeftStack() {
+  fitMapLeftStack();
+  window.addEventListener('resize', fitMapLeftStack);
+  const api = document.getElementById('apiPanel');
+  if (api && typeof ResizeObserver !== 'undefined') new ResizeObserver(fitMapLeftStack).observe(api);
+  [300, 1200, 3000].forEach(t => setTimeout(fitMapLeftStack, t));   /* 首屏浮层高度稳定后复校 */
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMapLeftStack);
+  else initMapLeftStack();
+}
 
 /* ---------- 接入方案弹层 ---------- */
 /* 说明放在弹层里而不是常驻浮层：地图上已经有 4 组浮层，
@@ -2659,6 +3174,87 @@ function initSpecModal() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSpecModal);
 else initSpecModal();
+
+/* ============================================================
+   图例悬浮说明：桌面 hover 显隐、移动端点击开合
+   - 单一全局气泡 #lg-tip，定位在图例项上方并自动防出屏
+   - 重点讲清「平台调度 → 启程 → 在途」同一订单的三阶段衔接
+   ------------------------------------------------------------
+*/
+(function () {
+  const chain = cur =>
+    `<div class="lg-chain">同一订单三阶段：${
+      cur === 'dispatch' ? '<b>平台调度</b><i>→</i>启程<i>→</i>在途'
+      : cur === 'start' ? '平台调度<i>→</i><b>启程</b><i>→</i>在途'
+      : '平台调度<i>→</i>启程<i>→</i><b>在途</b>'}</div>`;
+  const TIPS = {
+    'gap-big': '该区域<b>需求远大于空车</b>：等车人多、叫车难；底色越红缺口越大。',
+    'gap-ok': '需求与空车<b>大致相当</b>，供需基本匹配。',
+    'gap-rich': '空车<b>富余</b>，基本即叫即走。',
+    'driven': '本单<b>已经走过</b>的路线（紫色实线），随行驶不断延长。',
+    'ahead': '本单<b>剩余将要走</b>的路线（绿色实线），随行驶逐渐转为「已驶」。',
+    'idle': '空车<b>随机游走</b>等待接单，会向需求高的片区靠拢；被平台派单即转「平台调度」，路过有单片区也可能被路边招手直接拦下（转「启程」）。',
+    'paused': '空车<b>原地暂停省油</b>，不推进里程；被平台派单或附近出现订单时会被唤醒。',
+    'dispatch': '平台把订单派给<b>距离最近的空车</b>，车正<b>空驶赶往乘客上车点</b>——天蓝虚线即「派单路线」，终点圆点为上车片区。到达上车点转「启程」，乘客上车转「在途」；若订单取消则回到「游走」。',
+    'route': '「平台调度」的空驶路线：虚线从车头指向<b>乘客上车片区</b>。乘客上车后虚线<b>消失</b>，地图改显该单的已驶/未驶路线。',
+    'start': '车已<b>到达上车点</b>，订单生效、即将出发。此阶段原地不动（不推进里程），派单虚线已消失；乘客上车即转「在途」。',
+    'riding': '<b>乘客已上车</b>，正载客驶往目的地：紫色线为已驶、绿色线为未驶。到站完成订单后，车辆回到「游走」或「暂停」继续等单。'
+  };
+  if (!TIPS.dispatch) return;
+
+  const tip = document.createElement('div');
+  tip.className = 'lg-tip';
+  tip.setAttribute('role', 'tooltip');
+  tip.id = 'lg-tip';
+  document.body.appendChild(tip);
+  let cur = null;
+
+  function show(row) {
+    const html = TIPS[row.dataset.tip];
+    if (!html) return;
+    tip.innerHTML = html + (row.dataset.tip === 'dispatch' || row.dataset.tip === 'start' || row.dataset.tip === 'riding' ? chain(row.dataset.tip) : '');
+    tip.style.visibility = 'hidden';
+    tip.classList.add('show');
+    const r = row.getBoundingClientRect();
+    const tr = tip.getBoundingClientRect();
+    let left = r.left + r.width / 2 - tr.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - tr.width - 8));
+    let top = r.top - tr.height - 9;
+    if (top < 8) top = r.bottom + 9;                       /* 上方放不下翻到下方 */
+    tip.style.left = Math.round(left) + 'px';
+    tip.style.top = Math.round(top) + 'px';
+    tip.style.setProperty('--ax',
+      Math.round(Math.max(12, Math.min(r.left + r.width / 2 - left, tr.width - 12))) + 'px');
+    tip.style.visibility = '';
+    if (cur && cur !== row) cur.classList.remove('tip-open');
+    cur = row;
+    row.classList.add('tip-open');
+  }
+  function hide() {
+    if (!cur) return;
+    cur.classList.remove('tip-open');
+    cur = null;
+    tip.classList.remove('show');
+  }
+
+  const hoverable = !!(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches);
+  document.addEventListener('mouseover', e => {
+    if (!hoverable) return;
+    const row = e.target.closest && e.target.closest('.legend-row[data-tip]');
+    if (row && row !== cur) { hide(); show(row); }
+    else if (!row && cur && !(cur.contains(e.target) || (e.target.closest && e.target.closest('.lg-tip')))) hide();
+  });
+  document.addEventListener('click', e => {
+    const row = e.target.closest && e.target.closest('.legend-row[data-tip]');
+    if (row) {                                             /* 移动端点击开合；桌面点击=切换 */
+      e.preventDefault();
+      if (row === cur) hide(); else { hide(); show(row); }
+    } else if (cur && !(e.target.closest && e.target.closest('.lg-tip'))) hide();
+  });
+  window.addEventListener('resize', hide);
+  window.addEventListener('scroll', hide, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+})();
 
 /* ============================================================
    高德 API 观测层（只计数，不改调用）
@@ -2876,7 +3472,7 @@ function amkRows() {
     { n: '天气', a: 'Weather', ok: RD.weather,
       v: RD.weather ? (WEATHER.text + ' ' + WEATHER.temp) : '降级模拟',
       sub: wxSub,
-      tip: '天气智能体的环境修正数据源；当前来源 ' + (WEATHER.src || '内置模拟') + '，每 10 分钟重新拉一次' }
+      tip: '天气/日期智能体的环境修正数据源；天气走高德接口（当前来源 ' + (WEATHER.src || '内置模拟') + '，每 10 分钟重新拉一次），日期为本地系统时钟计算、不调用接口' }
   ];
 }
 
@@ -3040,7 +3636,9 @@ function createMap() {
 /* 用当前 ZONES / VEHICLES 数据重建全部覆盖物 */
 function buildOverlays() {
   if (!map) return;
-  map.remove([ovZone, ovTraj, ovVeh, ovLabel, ovHist].filter(Boolean));
+  map.remove([ovZone, ovTraj, ovVeh, ovLabel, ovHist, ovDispatch].filter(Boolean));
+  /* 派单图层跟着一起重建：旧对象已随 group 销毁，句柄必须清空 */
+  ovDispatch = null; dpLines = {}; dpPins = {};
 
   /* 区域需求圈 */
   ovZone = new AMap.OverlayGroup();
@@ -3117,7 +3715,8 @@ function buildOverlays() {
           : ((LC && LC.colorOf) ? LC.colorOf(v) : STATUS_COLOR[v.status]),
         v.id === S.selVeh,
         !!(LC && v.lc === 'idle'),
-        !!(LC && v.lc === 'paused')
+        !!(LC && v.lc === 'paused'),
+        !!(LC && v.lc === 'dispatched')
       ),
       offset: new AMap.Pixel(-15, -15),
       zIndex: v.id === S.selVeh ? 200 : 150,
@@ -3129,13 +3728,252 @@ function buildOverlays() {
   });
   map.add(ovVeh);
 
-  /* 选中车辆追踪箭头 */
-  buildTrackArrow();
+  /* 选中车辆追踪箭头：只在跟踪中（点过车）时出现，取消跟踪后随之消失 */
+  if (trackArmed) buildTrackArrow();
   buildTrace();
+
+  /* 平台调度可视化：重建完成后按当前状态补齐派单虚线与看板 */
+  syncDispatchLayer();
+  renderDpBoard();
+}
+
+/* ============================================================
+   平台调度可视化（v3.8）
+   ------------------------------------------------------------
+   一条调度任务在地图上同时给出三样东西，缺一不可：
+     ① 位置标识  —— 车标外两圈错峰脉冲（区别于游走/在途的实心圆点）
+     ② 任务路线  —— 车当前位置 → 目标片区中心 的天蓝虚线 + 终点圆点
+     ③ 任务详情  —— 左上「平台调度」看板（车号/目标片区/剩余/ETA），
+                    追踪中的车另在箭头上方挂一块任务牌
+   数据全部来自车辆自身的 lc / to / path，随状态机每秒同步：
+   派单一发生 → 虚线出现；到达换状态 → 虚线自动消失，不会留残影。
+   ============================================================ */
+const DP_COLOR = '#0ea5e9';
+/* 派单指引（虚线 + 目标圆点）只闪一次：3 秒真实时间后自动收掉。
+   换算：SIM_MIN_PER_SEC=0.6 → 3s ≈ 1.8 仿真分钟；若想按「4 仿真分钟」口径，
+   把这里改成 4 / 0.6 * 1000 ≈ 6667 即可（两种口径不可兼得，取可感知的真实 3 秒）。 */
+const DP_LINE_TTL = 3000;
+const DP_MAX_ROWS = 3;   /* 左列高度节奏固定：3 行 + 「另有 N 辆在途…」 */
+var ovDispatch = null;      /* 派单可视化图层（虚线 + 目标点） */
+var dpLines = {};           /* 车辆 id → 派单虚线 */
+var dpPins = {};            /* 车辆 id → 目标片区圆点 */
+var DP_VIS = true;          /* 图层开关（左上「派单可视化」chip） */
+
+/* 平台调度中的车，目的地就是 v.to 对应的片区（模拟以片区中心为接客点） */
+function dispatchTarget(v) {
+  if (!v || v.lc !== 'dispatched') return null;
+  return ZMAP[v.to] || null;
+}
+
+/* 沿车辆自己的路径算「到终点还剩多少米」——比直线距离准，和地图上的线一致 */
+function pathRemainM(v) {
+  const path = routeOf(v);
+  const n = path ? path.length - 1 : 0;
+  if (n < 1) return 0;
+  const t = Math.min(1, Math.max(0, v.t || 0));
+  const f = t * n, i0 = Math.min(n - 1, Math.floor(f));
+  const p = posAt(v);
+  let m = havM([p[1], p[0]], path[i0 + 1]);
+  for (let i = i0 + 1; i < n; i++) m += havM(path[i], path[i + 1]);
+  return m;
+}
+
+/* 空驶 ETA：按该状态限速（dispatched=34km/h）估，至少 1 分 */
+function dispatchEtaMin(v, meters) {
+  const kmh = (LC && LC.capKmh) ? Math.max(1, LC.capKmh(v)) : 34;
+  return Math.max(1, Math.round((meters / 1000) / kmh * 60));
+}
+
+/* 剩余距离文案：最后 100m 说"即将到达"，别让牌上出现 0.0km 这种没有信息量的数字 */
+function dpDistText(m) {
+  return m < 100 ? '即将到达' : ((m / 1000).toFixed(1) + ' km');
+}
+
+/* 派单图层同步：新增的补线、撤单/到达的删线，路径每秒跟车走 */
+function syncDispatchLayer() {
+  if (!map || !mapReady) return;
+  if (!ovDispatch) { ovDispatch = new AMap.OverlayGroup(); map.add(ovDispatch); }
+  const live = Object.create(null);
+
+  const drop = (id) => {
+    if (dpLines[id]) { try { ovDispatch.removeOverlay(dpLines[id]); } catch (e) { } delete dpLines[id]; }
+    if (dpPins[id]) { try { ovDispatch.removeOverlay(dpPins[id]); } catch (e) { } delete dpPins[id]; }
+  };
+
+  if (DP_VIS) VEHICLES.forEach(v => {
+    const z = dispatchTarget(v);
+    if (!z) return;
+    const seq = v.__dpSeq || 0;
+    /* 换了一单（seq 变了）：上一单的线立即作废，重新计时 */
+    if (dpLines[v.id] && dpLines[v.id].__seq !== seq) drop(v.id);
+    /* 这一单的指引已经展示满 TTL 并收掉了：不再出现，直到下一次派单 */
+    if (v.__dpShownSeq === seq && !dpLines[v.id]) return;
+
+    live[v.id] = 1;
+    const p = posAt(v);
+    const path = [[p[1], p[0]], [z.lng, z.lat]];
+
+    let line = dpLines[v.id];
+    if (!line) {
+      line = new AMap.Polyline({
+        path, strokeColor: DP_COLOR, strokeWeight: 2.4, strokeOpacity: .92,
+        strokeStyle: 'dashed', strokeDasharray: [7, 5],
+        lineJoin: 'round', lineCap: 'round', showDir: true,
+        zIndex: 68, bubble: true
+      });
+      line.__seq = seq;
+      line.__born = Date.now();
+      ovDispatch.addOverlay(line);
+      dpLines[v.id] = line;
+
+      const pin = new AMap.CircleMarker({
+        center: [z.lng, z.lat], radius: 8,
+        strokeColor: DP_COLOR, strokeWeight: 2, strokeOpacity: .95,
+        fillColor: '#fff', fillOpacity: .92, zIndex: 66, bubble: true
+      });
+      ovDispatch.addOverlay(pin);
+      dpPins[v.id] = pin;
+    } else {
+      if (line.setPath) line.setPath(path);
+      const pin = dpPins[v.id];
+      if (pin && pin.setCenter) pin.setCenter([z.lng, z.lat]);
+    }
+
+    /* TTL 到点：虚线与目标圆点一起收掉（车标上的双圈脉冲与调度看板继续指示任务） */
+    if (Date.now() - line.__born > DP_LINE_TTL) {
+      drop(v.id);
+      v.__dpShownSeq = seq;
+      delete live[v.id];
+    }
+  });
+
+  /* 状态已不是 dispatched（到达/接单），或已过 TTL：把该车的线摘掉 */
+  Object.keys(dpLines).forEach(id => { if (!live[id]) drop(id); });
+  Object.keys(dpPins).forEach(id => { if (!live[id]) drop(id); });
+}
+
+/* ---------- 派单瞬间气泡（v3.12） ----------
+   为什么不用车标自身的 content：车标每秒会按 lc 变化重设 content，
+   CSS 动画会被打断、重来。这里用独立的 DOM 层，只改 left/top，
+   动画与地图渲染互不干扰，也不占用一个 AMap.Marker。 */
+const DP_POP = { ttl: 1800, max: 3, live: new Map() };
+
+/* 把气泡放到车的正上方（AMap 走容器坐标；兜底模式走 SVG screenCTM） */
+function dpPopPlace(rec) {
+  if (!rec || !rec.el) return;
+  const p = posAt(rec.v);
+  if (!p) return;
+  let x = 0, y = 0, ok = false;
+  if (mapReady && map && map.lngLatToContainer) {
+    const q = map.lngLatToContainer([p[1], p[0]]);
+    if (q && isFinite(q.x) && isFinite(q.y)) { x = q.x; y = q.y; ok = true; }
+  }
+  if (!ok) {
+    const svg = $('#fbSvg'), host = document.querySelector('.map-shell');
+    if (!svg || !host || !svg.getScreenCTM) return;
+    const q = fbProj(p[1], p[0]);
+    const pt = svg.createSVGPoint();
+    pt.x = q.x; pt.y = q.y;
+    const sp = pt.matrixTransform(svg.getScreenCTM());
+    const hr = host.getBoundingClientRect();
+    x = sp.x - hr.left; y = sp.y - hr.top;
+  }
+  /* 车标 30×30、中心即坐标点：气泡底边压在车标上沿外 2px，箭头正好指向车 */
+  rec.el.style.left = x.toFixed(1) + 'px';
+  rec.el.style.top = (y - 17).toFixed(1) + 'px';
+}
+
+function dpPopClose(id) {
+  const rec = DP_POP.live.get(id);
+  if (!rec) return;
+  if (rec.timer) { clearTimeout(rec.timer); rec.timer = 0; }
+  try { if (rec.el && rec.el.parentNode) rec.el.parentNode.removeChild(rec.el); } catch (e) { }
+  DP_POP.live.delete(id);
+}
+
+/* 触发点：平台派单成功的那一帧（dispatchNearest 内调用） */
+function dpPop(v) {
+  if (!v || !DP_VIS) return;                       /* 「派单可视化」关掉就不弹 */
+  if (!(mapReady && map) && !useFallback) return;  /* 地图还没好，静默跳过 */
+  const layer = $('#dpPopLayer');
+  if (!layer) return;
+  dpPopClose(v.id);                                 /* 同一辆车始终只保留一个 */
+  while (DP_POP.live.size >= DP_POP.max) {          /* 同屏最多 3 个：先到的让位，避免糊成一片 */
+    dpPopClose(DP_POP.live.keys().next().value);
+  }
+  const z = ZMAP[v.to];
+  const el = document.createElement('div');
+  el.className = 'dp-pop';
+  el.innerHTML = '<div class="dp-pop-in"><b>新单</b><span>' + (z ? z.name : '新订单') + '</span></div>';
+  layer.appendChild(el);
+  const rec = { v: v, el: el, at: Date.now(), timer: 0 };
+  DP_POP.live.set(v.id, rec);
+  dpPopPlace(rec);
+  rec.timer = setTimeout(() => dpPopClose(v.id), DP_POP.ttl);
+}
+
+/* 气泡存活期间跟着车走（地图平移/缩放也会跟着） */
+function dpPopTick() {
+  if (!DP_POP.live.size) return;
+  DP_POP.live.forEach(rec => dpPopPlace(rec));
+}
+
+/* 当前所有派单任务：按剩余里程从近到远排（最近要接客的排最上面） */
+function dpTasks() {
+  return VEHICLES
+    .filter(v => v.lc === 'dispatched' && ZMAP[v.to])
+    .map(v => {
+      const m = pathRemainM(v);
+      return { v, z: ZMAP[v.to], m, km: m / 1000, eta: dispatchEtaMin(v, m) };
+    })
+    .sort((a, b) => a.m - b.m);
+}
+
+const DPB = { sig: '', bound: false };
+
+function renderDpBoard() {
+  const box = $('#dpBoardRows'), cnt = $('#dpBoardCnt');
+  if (!box) return;
+  if (!DPB.bound) initDpBoard();
+  const list = DP_VIS ? dpTasks() : [];
+  if (cnt) {
+    const t = list.length ? (list.length + ' 单') : '空闲';
+    if (cnt.textContent !== t) cnt.textContent = t;
+  }
+  const show = list.slice(0, DP_MAX_ROWS);
+  /* 签名差量：里程/ETA 没变就不碰 DOM，避免每秒重建打断 hover 与点击 */
+  const sig = show.map(x => x.v.id + '~' + x.km.toFixed(1) + '~' + x.eta).join('|') + '#' + list.length + (DP_VIS ? '' : 'off');
+  if (sig === DPB.sig) return;
+  DPB.sig = sig;
+
+  if (!show.length) {
+    box.innerHTML = '<div class="dp-empty">' + (DP_VIS ? '暂无调度任务 · 平台空闲' : '派单可视化已关闭') + '</div>';
+    return;
+  }
+  box.innerHTML = show.map(x => `<button class="dp-row" type="button" data-id="${x.v.id}"
+      title="${x.v.plate}：空驶前往 ${x.z.name}，${x.m < 100 ? '即将到达' : '剩余约 ' + x.km.toFixed(1) + ' km · ' + x.eta + ' 分钟'}（点击定位并跟踪）">
+      <i class="dp-row-dot"></i><b>${x.v.plate}</b>
+      <span class="dp-to">${x.z.name}</span>
+      <span class="dp-meta">${x.m < 100 ? '即将到达' : x.km.toFixed(1) + 'km · ' + x.eta + '分'}</span>
+    </button>`).join('')
+    + (list.length > show.length ? `<div class="dp-more">另有 ${list.length - show.length} 辆在途…</div>` : '');
+}
+
+function initDpBoard() {
+  const box = $('#dpBoardRows');
+  if (!box || DPB.bound) return;
+  DPB.bound = true;
+  /* 事件委托：行是每秒重建的，绑在容器上才不会被重复绑定/丢失 */
+  box.addEventListener('click', e => {
+    const row = e.target && e.target.closest ? e.target.closest('.dp-row') : null;
+    if (!row) return;
+    const id = row.dataset.id;
+    if (id) selectVehicle(id);
+  });
 }
 
 function syncMap(force, smooth) {
-  if (useFallback) { updateFallback(); if (followOn && trackArmed) fbFollow(); return; }
+  if (useFallback) { updateFallback(); renderDpBoard(); syncDispatchLayer(); if (followOn && trackArmed) fbFollow(); return; }
   if (!mapReady || !map) return;
   VEHICLES.forEach(v => {
     const p = posAt(v);
@@ -3151,13 +3989,17 @@ function syncMap(force, smooth) {
           v.id === S.selVeh ? '#2563eb' : ((LC && LC.colorOf) ? LC.colorOf(v) : STATUS_COLOR[v.status]),
           v.id === S.selVeh,
           !!(LC && v.lc === 'idle'),
-          !!(LC && v.lc === 'paused')
+          !!(LC && v.lc === 'paused'),
+          !!(LC && v.lc === 'dispatched')
         ));
       } catch (e) { }
     }
   });
   syncTrackArrow();
   syncTrace();
+  syncDispatchLayer();      /* 派单虚线随车走：派单/到达当帧就增删 */
+  renderDpBoard();          /* 看板数字同步刷新 */
+  dpPopTick();              /* 派单气泡跟随车头（含地图平移/缩放） */
   if (followOn && trackArmed) followCamera(smooth);
 }
 
@@ -3253,6 +4095,7 @@ function cancelTracking() {
     trackMarker = null;
     trackEl = null;
   }
+  clearTrace();          /* 轨迹（已驶紫线 + 路线）一并清除，不留残余线迹 */
   syncMap(true, false);
 }
 
@@ -3367,7 +4210,7 @@ function applyWeather(w) {
   renderWeather();
   updateDataSourceUI();
   if (S.mod === 'graph' && graphDrawn) drawGraph();
-  pushEvent(`天气智能体：${w.text} ${w.temp}，需求影响系数 <b>×${WEATHER.impact.toFixed(2)}</b>，已同步至态势感知与路径规划`, {});
+  pushEvent(`天气/日期智能体：${w.text} ${w.temp}，需求影响系数 <b>×${WEATHER.impact.toFixed(2)}</b>，已同步至态势感知与路径规划`, {});
 }
 
 function applyWeatherFallback() {
@@ -3381,9 +4224,9 @@ function applyWeatherFallback() {
 }
 
 function renderWeather() {
-  const el = $('#weatherPill');
+  const el = $('#wxTxt');
   if (el) {
-    el.innerHTML = `<i class="dot" style="background:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.14)"></i>${WEATHER.text} <b>${WEATHER.temp}</b>`;
+    el.innerHTML = `${WEATHER.text} <b>${WEATHER.temp}</b>`;
   }
   const card = $('#weatherCard');
   if (card) {
@@ -3416,6 +4259,31 @@ function weatherIcon(text) {
 /* ============================================================
    用路径规划数据推演车辆位置（无实时 GPS 时的替代方案）
    ============================================================ */
+/* 本地服务可能监听的端口：双击 .cmd 默认 8766，python serve.py 默认 8791 */
+window.MP_LOCAL_PORTS = window.MP_LOCAL_PORTS || [8766, 8791, 8000, 5000];
+
+/* 静态资源取址：file:// 直接打开时相对路径读不到本地文件，改从本地服务根目录取 */
+function routeCacheUrls() {
+  const fileMode = (typeof location !== 'undefined' && location.protocol === 'file:');
+  if (!fileMode) return ['routecache.json'];
+  const out = ['routecache.json'];
+  (window.MP_LOCAL_PORTS || []).forEach(p => out.push('http://127.0.0.1:' + p + '/routecache.json'));
+  return out;
+}
+
+/* 依序试多个地址，返回第一个成功的 JSON */
+async function fetchFirstJSON(urls, opts) {
+  let last = null;
+  for (let i = 0; i < urls.length; i++) {
+    try {
+      const r = await fetch(urls[i], opts || { cache: 'no-cache' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { last = e; }
+  }
+  throw last || new Error('没有可用地址');
+}
+
 function planVehicleRoutes() {
   if (typeof AMap === 'undefined' || !map) return;
   AMap.plugin(['AMap.Driving'], () => {
@@ -3423,80 +4291,64 @@ function planVehicleRoutes() {
     RD.vehHit = 0;
     RD.veh = false;
 
-    const CONC = 3;          /* 同时 3 路：太低串行太久，太高容易被限流 */
-    const FIRST = 12;        /* 只规划首屏这 12 辆 */
     let finished = false;
 
-    /* 选中车优先，其次按顺序取满 12 辆 —— 首屏立刻有真实路径可看 */
-    const sel = VEHICLES.find(v => v.id === S.selVeh);
-    const head = [];
-    if (sel) head.push(sel);
-    for (let i = 0; i < VEHICLES.length && head.length < FIRST; i++) {
-      if (head.indexOf(VEHICLES[i]) < 0) head.push(VEHICLES[i]);
-    }
-
-    /* 单条路线：8 秒兜底超时，避免一个慢请求拖住整个池 */
-    function planOne(v) {
-      return new Promise(resolve => {
-        const from = ZMAP[v.from], to = ZMAP[v.to];
-        if (!from || !to) { resolve(false); return; }
-        let settled = false;
-        const done = ok => { if (settled) return; settled = true; resolve(ok); };
-        const timer = setTimeout(() => done(false), 8000);
-        const driving = new AMap.Driving({
-          policy: AMap.DrivingPolicy.LEAST_TIME,
-          hideMarkers: true, showTraffic: false
-        });
-        driving.search(
-          new AMap.LngLat(from.lng, from.lat),
-          new AMap.LngLat(to.lng, to.lat),
-          (status, result) => {
-            clearTimeout(timer);
-            if (status === 'complete' && result.routes && result.routes.length) {
-              const r = result.routes[0];
-              const path = [];
-              (r.steps || []).forEach(st => (st.path || []).forEach(pt => path.push([pt.lng, pt.lat])));
-              if (path.length > 1) {
-                v.realPath = equalizePath(path, false);
-                v.routeInfo = { distance: r.distance, time: r.time };
-                RD.vehHit++;
-                done(true); return;
-              }
-            }
-            done(false);
-          }
-        );
-      });
-    }
-
-    function pool(list, conc) {
-      let i = 0;
-      const worker = () => {
-        if (i >= list.length) return Promise.resolve();
-        return planOne(list[i++]).then(worker);
-      };
-      return Promise.all(Array.from({ length: Math.min(conc, list.length) }, worker));
-    }
-
-    function finishAll() {
+    let ticks = 0;
+    const poll = () => {
       if (finished) return;
-      finished = true;
-      RD.veh = RD.vehHit > 0;
+      ticks++;
+      const hit = VEHICLES.filter(v => v.realPath && v.realPath.length > 1).length;
+      const need = VEHICLES.filter(v => v.__needRoad).length;
+      RD.vehHit = hit;
+      RD.veh = hit > 0;
       updateDataSourceUI();
-      buildOverlays();
-      syncMap(true);
-      pushEvent(`路径规划智能体：<b>${RD.vehHit}/${VEHICLES.length}</b> 辆已用高德真实路网，`
-        + `其余 <b>${VEHICLES.length - RD.vehHit}</b> 辆沿用本地弧线（按需再补，不做后台批量规划）`, {});
-    }
+      /* 95% 命中 / 队列清空 / 等满 30 秒 —— 三者任一即收尾 */
+      if (hit >= Math.ceil(VEHICLES.length * 0.95) || (need === 0 && !routeQueue.length) || ticks >= 20) {
+        finished = true;
+        buildOverlays();
+        syncMap(true);
+        const miss = VEHICLES.length - hit;
+        pushEvent(`路径规划智能体：<b>${hit}/${VEHICLES.length}</b> 辆已用高德真实路网，`
+          + `其余 <b>${miss}</b> 辆排队等规划（沿真实道路行驶，不再用本地弧线穿行）`, {});
+        return;
+      }
+      setTimeout(poll, 1500);
+    };
 
-    /* 只规划首屏这 12 辆；其余车辆用内置弧线（routeOf 会回落 v.path），
-       不再做 88 辆的后台慢补——实测对画面无影响，还省下约 88 次接口调用。 */
-    pool(head, CONC).then(() => {
+    /* 首屏启动：尽量让每辆车一上来就走真实道路 */
+    const boot = () => {
+      VEHICLES.forEach(v => {
+        if (v.realPath && v.realPath.length > 1) { RD.vehHit++; return; }
+        v.__needRoad = true;
+        requestVehicleRoute(v);      /* 缓存命中立即 applyRoute，未命中才排队 */
+      });
       updateDataSourceUI();
       buildOverlays();
       syncMap(true);
-      finishAll();
-    });
+      setTimeout(poll, 1500);
+    };
+
+    /* 预生成的片区路网缓存（verify/build-route-cache.js 一次产出 306 个 OD）。
+       有它首屏就不用现场请求，车一上来就沿真实道路走；没有就走排队逻辑。
+       file:// 直接打开时相对路径读不到本地文件，自动改从本地服务的根目录取。 */
+    fetchFirstJSON(routeCacheUrls(), { cache: 'no-cache' })
+      .then(d => {
+        if (d && d.od) {
+          let n = 0;
+          Object.keys(d.od).forEach(k => {
+            if (routeCache[k]) return;
+            const it = d.od[k];
+            if (it && it.p && it.p.length > 1) {
+              routeCache[k] = { p: it.p, distance: it.d || 0, time: it.t || 0 };
+              n++;
+            }
+          });
+          ROUTE_CACHE_META = { at: d.at || '', count: n };
+        }
+      })
+      .catch(() => { /* 没有缓存文件就走在线规划 */ })
+      .then(boot);
+
   });
 }
 
@@ -3708,6 +4560,7 @@ function fbPaint() {
     return `<path d="${d(v.path)}" fill="none" stroke="${hi ? '#10b981' : 'rgba(124,58,237,0.30)'}"
       stroke-width="${hi ? 3 : 1.6}" stroke-linecap="round" stroke-dasharray="${hi ? '0' : '6 4'}"/>`;
   }).join('');
+  html += '<g id="fbDispatch"></g>';
   html += '<g id="fbTrack"></g>';
   html += ZONES.map(z => {
     const p = fbProj(z.lng + (z.lb ? z.lb[1] : 0), z.lat + (z.lb ? z.lb[0] : 0.011));
@@ -3830,30 +4683,51 @@ function updateFallback() {
   const tg = $('#fbTrack');
   if (tg) {
     const sv = VEHICLES.find(x => x.id === S.selVeh);
-    const sp = sv ? splitPath(sv.path, sv.t) : null;
+    const sp = (sv && trackArmed) ? splitPath(sv.path, sv.t) : null;   /* 取消跟踪：轨迹一并消失 */
     tg.innerHTML = sp
       ? `<path d="${d(sp.done)}" fill="none" stroke="#7c3aed" stroke-width="3.2" stroke-linecap="round"/>`
         + `<path d="${d(sp.ahead)}" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" opacity=".92"/>`
       : '';
   }
+  /* 平台调度可视化（降级链路）：派单虚线 + 目标圆点，和 JS API 链路同一套语义 */
+  const dg = $('#fbDispatch');
+  if (dg) {
+    dg.innerHTML = (!DP_VIS) ? '' : VEHICLES.filter(v => v.lc === 'dispatched' && ZMAP[v.to]).map(v => {
+      const p = posAt(v), q = fbProj(p[1], p[0]);
+      const z = ZMAP[v.to], qz = fbProj(z.lng, z.lat);
+      return `<path d="M${q.x.toFixed(1)},${q.y.toFixed(1)} L${qz.x.toFixed(1)},${qz.y.toFixed(1)}"
+          fill="none" stroke="${DP_COLOR}" stroke-width="1.8" stroke-dasharray="6 4" opacity=".85"/>
+        <circle cx="${qz.x.toFixed(1)}" cy="${qz.y.toFixed(1)}" r="6" fill="#fff"
+          stroke="${DP_COLOR}" stroke-width="2" opacity=".95"/>`;
+    }).join('');
+  }
   g.innerHTML = VEHICLES.map(v => {
     const p = posAt(v), q = fbProj(p[1], p[0]), x = q.x, y = q.y;
     const sel = v.id === S.selVeh;
     /* 追踪车辆：箭头上方挂速度牌（近 2 分钟均值），与 JS API 底图保持一致 */
-    const avg = sel ? spdAvg() : null;
-    const spd = sel
+    const avg = (sel && trackArmed) ? spdAvg() : null;
+    const spd = (sel && trackArmed)
       ? `<g><rect x="${(x - 27).toFixed(1)}" y="${(y - 54).toFixed(1)}" width="54" height="18" rx="5"
             fill="#fff" stroke="rgba(37,99,235,.32)"/>
           <text x="${x.toFixed(1)}" y="${(y - 41).toFixed(1)}" text-anchor="middle" font-size="11"
             font-weight="650" fill="#0d1526">${avg == null ? '—' : Math.round(avg)}<tspan font-size="8"
             fill="#8a97a8"> km/h</tspan></text></g>`
       : '';
-    return `<g><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 13 : 9}" fill="${STATUS_COLOR[v.status]}" fill-opacity=".16"/>
+    const base = sel ? '#2563eb'
+      : ((LC && LC.colorOf) ? LC.colorOf(v) : STATUS_COLOR[v.status]);
+    /* 平台调度中：一圈向外扩散的脉冲（SMIL），与 JS API 链路的双环同义 */
+    const dpPulse = (!sel && v.lc === 'dispatched')
+      ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="none" stroke="${DP_COLOR}" stroke-width="1.8" opacity=".9">
+          <animate attributeName="r" values="6;17;17" dur="1.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".9;0;0" dur="1.8s" repeatCount="indefinite"/></circle>`
+      : '';
+    return `<g>${dpPulse}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 13 : 9}" fill="${base}" fill-opacity=".16"/>
       ${sel && trackArmed ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="15" fill="none" stroke="#2563eb" stroke-width="1.4" opacity=".6"/>
         <g class="fbArrow"><animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="1.2s" repeatCount="indefinite"/>
         <path d="M${x.toFixed(1)} ${(y - 19).toFixed(1)} l-6.5 -11 h13 z" fill="#2563eb" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></g>${spd}` : ''}
-      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 6 : 4.5}" fill="${sel ? '#2563eb' : STATUS_COLOR[v.status]}" stroke="#fff" stroke-width="2"/></g>`;
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sel ? 6 : 4.5}" fill="${base}" stroke="#fff" stroke-width="2"/></g>`;
   }).join('');
+  dpPopTick();      /* 兜底链路：派单气泡同样跟随车辆 */
 }
 
 /* ---------- 车辆选择 / 调度面板 ---------- */
@@ -3884,7 +4758,20 @@ function selectVehicle(id) {
 
 function renderDispatchPanel() {
   const v = VEHICLES.find(x => x.id === S.selVeh);
-  if (!v) return;
+  if (!v) {
+    /* 首屏/取消选中：面板不再停留在某辆车的旧内容上，给一个明确入口 */
+    const t0 = $('#dpTitle');
+    if (t0) t0.innerHTML = '未选择车辆 <span class="tag gray">点地图上的车</span>';
+    const b0 = $('#dpBody');
+    if (b0 && b0.dataset.empty !== '1') {
+      b0.dataset.empty = '1';
+      b0.innerHTML = '<div class="dp-empty" style="padding:16px 6px;line-height:1.75">'
+        + '地图上点选任意一辆车（或用下方「上一辆」切换），<br>这里会显示它的推荐派单、评分依据与实时状态。</div>';
+    }
+    return;
+  }
+  const body0 = $('#dpBody');
+  if (body0) body0.dataset.empty = '';
   const best = v.cands[0];
   const z = best.z;
   const gap = Math.round(z.demand - z.supply);
@@ -4270,10 +5157,15 @@ const MOVE = {
 
 /* 本程几何缓存：pts 统一成 [lat,lng] + 总里程；换程（键变）才重建 */
 function legGeo(v) {
-  const key = v.from + '>' + v.to + '|' + (v.realPath ? 'P' + v.realPath.length : 'S');
+  const key = v.from + '>' + v.to + '|' + (v.realPath ? 'P' + v.realPath.length : (v.path ? 'S' + v.path.length : 'N'));
   if (v._geoKey === key && v._geo) return v._geo;
   const real = !!(v.realPath && v.realPath.length > 1);
-  const src = real ? v.realPath : v.path;
+  const src = real ? v.realPath : (v.path && v.path.length > 1 ? v.path : null);
+  if (!src) {                                   /* 等路网：给一个 len=1 的占位，tick 不会推进 */
+    v._geoKey = key;
+    v._geo = { pts: [], len: 1 };
+    return v._geo;
+  }
   const pts = new Array(src.length);
   for (let i = 0; i < src.length; i++) {
     const p = src[i];
@@ -4376,10 +5268,31 @@ function tickOnce() {
 
   VEHICLES.forEach(v => {
     stepSpeed(v, sfac);          /* 先更新瞬时车速（加速/减速/阻力/扰动） */
+    /* 等路网的兜底重试：失败后 20 秒再试一次，路网恢复就自动接上 */
+    if (v.__needRoad && v.__routeRetryAt && Date.now() > v.__routeRetryAt) {
+      v.__routeRetryAt = 0;
+      requestVehicleRoute(v);
+    }
+    /* 等太久（8 秒）还没规划出来：先用近似路网（阶梯折线，不斜穿地块）让车动起来，
+       避免整城停摆；真实路径一到，下面的「近似升级」会自动把它换掉。 */
+    if (v.__needRoad && v.__needSince && Date.now() - v.__needSince > 12000 && !routeNetOK()) {
+      applyApproxPath(v, posAt(v));
+    }
+    /* 近似路径升级：只要有高德能力，每 3 秒尝试把近似换成真实路网（最多 3 次，
+       避免规划不出来的 OD 被无限重试白烧额度） */
+    if (v.__approx && hasRoadCapability() && !v.__inRouteQueue &&
+        (v.__upTries || 0) < 3 && Date.now() - (v.__upAt || 0) > 3000) {
+      v.__upAt = Date.now();
+      v.__upTries = (v.__upTries || 0) + 1;
+      requestVehicleRoute(v);
+    }
     /* 行驶：起始 / 正在路上 / 游走 / 平台调度 都推进里程；
-       暂停、已到达、准备启程原地不动 */
-    const moving = !v.lc || v.lc === 'riding' || v.lc === 'starting'
-      || v.lc === 'idle' || v.lc === 'dispatched';
+       暂停、已到达、准备启程原地不动。
+       ⚠ 没有可用路径（还在等路网）时一律不推进 —— 一旦推进就等于
+       按假路径往前开，这正是「车穿小区」的成因。 */
+    const hasPath = (v.realPath && v.realPath.length > 1) || (v.path && v.path.length > 1);
+    const moving = hasPath && (!v.lc || v.lc === 'riding' || v.lc === 'starting'
+      || v.lc === 'idle' || v.lc === 'dispatched');
     if (moving) {
       v.t += moveStep(v);
       if (v.t >= 1) {
@@ -4387,6 +5300,9 @@ function tickOnce() {
         else if (v.lc === 'dispatched') LC.onDispatchArrive(v); /* 到需求点，乘客上车 */
         else advanceVehicle(v);
       }
+    } else if (v.__needRoad) {
+      v.kmh = 0;                 /* 等路网：车靠边停着，别显示还在溜 */
+      v.spd2 = 0;
     } else {
       v.kmh = Math.max(0, v.kmh - 10);   /* 停车时车速自然回落到 0 */
     }
@@ -4441,7 +5357,9 @@ $('#btnToggleSim').addEventListener('click', () => { S.paused = !S.paused; updat
 $('#speedSel').addEventListener('change', e => { S.speed = Number(e.target.value); });
 $('#btnPrevVeh').addEventListener('click', () => {
   const i = VEHICLES.findIndex(v => v.id === S.selVeh);
-  selectVehicle(VEHICLES[(i - 1 + VEHICLES.length) % VEHICLES.length].id);
+  /* 还没选车时从第一辆开始，避免「上一辆」跳到末尾 */
+  const next = i < 0 ? VEHICLES[0] : VEHICLES[(i - 1 + VEHICLES.length) % VEHICLES.length];
+  if (next) selectVehicle(next.id);
 });
 /* 跟随胶囊：一键暂停 / 恢复锁定居中 */
 $('#followPill').addEventListener('click', () => setFollow(!followOn));
@@ -4496,6 +5414,15 @@ $$('.chip[data-layer]').forEach(btn => {
       if (useFallback) initFallback();
       return;
     }
+    /* 平台派单可视化是「按实时状态动态构建」的图层，同样不走静态 show/hide */
+    if (k === 'dispatch') {
+      DP_VIS = on;
+      DPB.sig = '';                       /* 强制看板重画（关闭时显示"已关闭"） */
+      if (mapReady) syncDispatchLayer();
+      if (useFallback) updateFallback();
+      renderDpBoard();
+      return;
+    }
     const l = layers[k];
     if (l && mapReady) { on ? l.show() : l.hide(); }
     if (k === 'traffic') {
@@ -4507,7 +5434,7 @@ $$('.chip[data-layer]').forEach(btn => {
       }
       renderApiPanel();
     }
-    if (useFallback && (k === 'zone' || k === 'label' || k === 'traj' || k === 'hist')) {
+    if (useFallback && (k === 'zone' || k === 'label' || k === 'traj' || k === 'hist' || k === 'dispatch')) {
       /* 离线底图整层重绘 */
       initFallback();
     }
@@ -4584,7 +5511,7 @@ $$('.nav-item').forEach(b => b.addEventListener('click', () => switchModule(b.da
    ============================================================ */
 const S = {
   mod: 'overview', tick: 0, clock: 8 * 60, paused: false, speed: 1,
-  selVeh: 'V1', selNode: null, showFlow: true, focusMain: false,
+  selVeh: null, selNode: null, showFlow: true, focusMain: false,   /* 首屏无追踪目标：由用户点选 */
   events: [], round: 1
 };
 
@@ -4758,6 +5685,7 @@ var layers = {
   get traj() { return ovTraj; },
   get veh() { return ovVeh; },
   get label() { return ovLabel; },
+  get dispatch() { return ovDispatch; },   /* 平台派单可视化：虚线 + 目标点 */
   get traffic() { return trafficLayer; }   /* 高德 TileLayer.Traffic 实时路况图层 */
 };
 
@@ -4777,6 +5705,7 @@ function trackArrowHtml() {
     + '<span class="vt-halo"></span>'
     + '<button class="vt-cancel" type="button" title="取消跟踪该车" aria-label="取消跟踪">×</button>'
     + '<div class="vt-lc">—</div>'
+    + '<div class="vt-task" hidden>—</div>'   /* 平台调度中：派往哪、剩多远、几分钟到 */
     + '<div class="vt-chip" title="状态 + 近 2 分钟平均车速（按真实比例尺与仿真时钟计算）">'
     + '<i class="vt-dot"></i><b class="vt-num">—</b>'
     + '<span class="vt-unit">km/h</span><span class="vt-win">2min</span>'
@@ -5131,6 +6060,24 @@ function spdPaint(v) {
     if (chip.title !== tt) chip.title = tt;
   }
   if (dot) dot.dataset.src = SPD.src || '';
+
+  /* 派单任务牌：只在「平台调度中」出现，写清去哪、剩多远、几分钟到；
+     状态一变（到达/接单/取消）立刻隐藏，不会留一块过期信息在车上 */
+  const taskEl = trkNode('.vt-task');
+  if (taskEl) {
+    const z = dispatchTarget(v);
+    if (!z) {
+      if (!taskEl.hidden) taskEl.hidden = true;
+    } else {
+      const m = pathRemainM(v);
+      const eta = dispatchEtaMin(v, m);
+      const txt = `派往 ${z.name} · ` + (m < 100 ? '即将到达' : `${(m / 1000).toFixed(1)} km · 约 ${eta} 分`);
+      if (taskEl.textContent !== txt) taskEl.textContent = txt;
+      taskEl.title = `平台调度：空驶前往 ${z.name} 接客（` +
+        (m < 100 ? '已到目标片区附近' : `剩余 ${(m / 1000).toFixed(1)} km，按 34km/h 空驶限速约 ${eta} 分钟到达`) + '）';
+      if (taskEl.hidden) taskEl.hidden = false;
+    }
+  }
 }
 
 /* 每秒推进一次：按节拍取路况、落采样点、刷新速度牌 */
@@ -5152,9 +6099,10 @@ function tickSpeed() {
    ============================================================ */
 var vehPolys = {};
 var routeQueue = [];
-var routeBusy = false;
+var routeBusy = 0;              /* 当前在途的路网请求数（并发上限 ROUTE_CONC） */
 var routeFail = 0;
 var routeCache = {};          /* 'from>to' → 真实路径；18 个区域最多 306 种组合，每种只请求一次 */
+var ROUTE_CACHE_META = null;  /* 预生成缓存的信息（生成日期 / 条数），便于排查"为什么没走真实路网" */
 
 /* 按区域供需缺口加权随机挑下一个去处：缺口越大越容易被选中，但全城区域都会被走到 */
 function pickNextZone(curId, prevId) {
@@ -5169,25 +6117,76 @@ function pickNextZone(curId, prevId) {
   return pool[pool.length - 1];
 }
 
-/* 本地生成拱形航点（[lat, lng]），高德路径未返回时使用 */
+/* 离线近似路网（只在完全拿不到高德路网时兜底）
+   ------------------------------------------------------------
+   旧版是一条正弦拱形：从 A 斜着画到 B，中间只加了个弧度。两点之间没有
+   任何道路约束，于是整段直接穿过街区、小区、公园 —— 「车穿小区」的
+   直接来源就是它。
+   现在改成沿经纬网格走的阶梯折线：先走东西向、再走南北向，拐点都是
+   90°，和真实路口同构；车在拐角处还会因为弯道系数自然减速。
+   仍然不是真实路网，但不会再出现斜切地块的对角线；真实路网一到位
+   就会被 applyRoute() 整段替换掉。 */
 function makePath(from, to) {
-  const N = 7;
   const dLat = to.lat - from.lat, dLng = to.lng - from.lng;
-  const L = Math.hypot(dLat, dLng) || 1;
-  const ny = dLng / L, nx = -dLat / L;          /* 垂直于航向的单位向量 */
-  const amp = Math.min(L * 0.14, 0.010);
-  const pts = [];
-  for (let i = 0; i < N; i++) {
-    const t = i / (N - 1);
-    const bow = Math.sin(Math.PI * t) * amp;
-    pts.push([
-      +(from.lat + dLat * t + ny * bow).toFixed(4),
-      +(from.lng + dLng * t + nx * bow).toFixed(4)
-    ]);
+  const L = havM([from.lng, from.lat], [to.lng, to.lat]);
+  if (L < 60) return [[from.lat, from.lng], [to.lat, to.lng]];
+  const firstLng = Math.random() < 0.5;          /* 随机决定先横后竖，避免全城同款折线 */
+  const corners = [[from.lat, from.lng]];
+  if (firstLng) {
+    corners.push([from.lat, to.lng]);
+  } else {
+    corners.push([to.lat, from.lng]);
   }
-  pts[0] = [from.lat, from.lng];
-  pts[N - 1] = [to.lat, to.lng];
-  return pts;
+  corners.push([to.lat, to.lng]);
+  /* 每腿按长度补点：让 equalizePath 的等距重采样有足够样本 */
+  const out = [];
+  for (let i = 0; i < corners.length - 1; i++) {
+    const a = corners[i], b = corners[i + 1];
+    const seg = havM([a[1], a[0]], [b[1], b[0]]);
+    const k = seg > 1200 ? 3 : (seg > 500 ? 2 : 1);
+    for (let j = 0; j < k; j++) {
+      const t = j / k;
+      out.push([+(a[0] + (b[0] - a[0]) * t).toFixed(5), +(a[1] + (b[1] - a[1]) * t).toFixed(5)]);
+    }
+  }
+  out.push([to.lat, to.lng]);
+  return out;
+}
+
+/* 新路径必须以车辆「当前真实位置」为起点（[lat,lng] 或 [lng,lat]，见 lngLat）
+   ------------------------------------------------------------
+   片区中心只代表"这辆车名义上在哪"。游走途中被平台派单、或路过有单片区
+   顺手接单时，车其实还在上一段路上（t 可能在 0.2~0.9 之间）。
+   如果新路径仍以片区中心为起点、同时把 t 归零，posAt() 会立刻返回路径
+   起点 —— 画面上就是一次几百米到几公里的瞬移。
+   ⚠ at 必须在改 t / realPath 之前用 posAt(v) 取好，否则拿到的是新起点。
+
+   2026-11 修：原来把车头 A 直接连到最近路径点，这条「接驳直线」本身
+   就是一条穿墙线（车在半路时尤其明显）。现在改为把车吸附到路径折线上的
+   最近投影点（含线段内部投影），从那儿往后走，不再画接驳直线。
+   车一直沿真实路网跑时，投影距离≈0，看不出变化。 */
+function anchorPath(at, path, lngLat) {
+  if (!path || path.length < 2 || !at) return path;
+  const A = [at[1], at[0]];                       /* 统一用 [lng,lat] 算距离 */
+  const P = lngLat ? path : path.map(p => [p[1], p[0]]);
+  if (havM(A, P[0]) < 60) return path;            /* 车已站在路径起点附近 */
+  let bi = 0, bd = Infinity, bt = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const L2 = dx * dx + dy * dy;
+    let t = L2 > 0 ? ((A[0] - a[0]) * dx + (A[1] - a[1]) * dy) / L2 : 0;
+    t = t < 0 ? 0 : (t > 1 ? 1 : t);
+    const d = havM(A, [a[0] + dx * t, a[1] + dy * t]);
+    if (d < bd) { bd = d; bi = i; bt = t; }
+  }
+  const snap = [P[bi][0] + (P[bi + 1][0] - P[bi][0]) * bt,
+                P[bi][1] + (P[bi + 1][1] - P[bi][1]) * bt];
+  let rest = bt > 0.02 ? P.slice(bi + 1) : P.slice(bi);
+  if (rest.length < 1) rest = [P[P.length - 1]];
+  if (rest.length < 2) rest = [snap].concat(rest);
+  const out = [snap].concat(rest);
+  return lngLat ? out : out.map(p => [p[1], p[0]]);
 }
 
 /* ============================================================
@@ -5324,10 +6323,24 @@ function renderHistList(v) {
   }).join('');
 }
 
+/* 取消跟踪：把追踪产生的轨迹全部从地图移除（已驶紫线 + 选中车的路线），
+   状态归零；重新点车跟踪时由 buildOverlays 重建覆盖物 → buildTrace 正常重绘 */
+function clearTrace() {
+  if (traceDone) {
+    try { if (ovTraj) ovTraj.removeOverlay(traceDone); else if (map) map.remove(traceDone); } catch (err) { }
+    traceDone = null;
+  }
+  traceFor = null;
+  const line = vehPolys[S.selVeh];
+  if (line) {
+    try { if (ovTraj) ovTraj.removeOverlay(line); else if (map) map.remove(line); } catch (err) { }
+  }
+}
+
 function buildTrace() {
   traceDone = null;
   traceFor = null;
-  if (!map || !mapReady || !ovTraj) return;
+  if (!map || !mapReady || !ovTraj || !trackArmed) return;   /* 未跟踪状态不画轨迹，防止路线重规划把它复活 */
   const v = VEHICLES.find(x => x.id === S.selVeh);
   if (!v) return;
   const sp = splitPath(routeOf(v), v.t);
@@ -5345,6 +6358,7 @@ function buildTrace() {
 /* 每秒刷新：车往前挪一点，紫色就往前长一点 */
 function syncTrace() {
   if (!mapReady || !map || useFallback) return;
+  if (!trackArmed) return;                     /* 已取消跟踪：不再刷新轨迹 */
   const v = VEHICLES.find(x => x.id === S.selVeh);
   if (!v) return;
   if (traceFor !== v.id || !traceDone) { buildTrace(); return; }
@@ -5367,52 +6381,201 @@ function advanceVehicle(v) {
   const cur = ZMAP[curId];
   const nxt = pickNextZone(curId, prevId);
   if (!cur || !nxt) { v.t = 0; return; }
-  v.from = curId;
-  v.to = nxt.id;
-  v.t = 0;
-  v.gain = 0;
-  v.realPath = null;
-  v.routeInfo = null;
-  v.path = equalizePath(makePath(cur, nxt), true);
-  genCands(v);
-  refreshVehicleRoute(v);
-  requestVehicleRoute(v);
+  beginLeg(v, nxt.id, posAt(v));
 }
 
-/* 把一条路径应用到车辆上 */
-function applyRoute(v, item) {
+/* 取当前路径「还没走完」的那一段（统一为 [lng,lat]）。
+   换段时把它接在新路径前面 = 车沿原路开到路口/片区再转向，
+   既不瞬移，也不需要一条穿楼的接驳直线。 */
+function pathTail(v) {
+  const p = v.realPath || v.path;
+  if (!p || p.length < 3) return null;
+  const pts = v.realPath ? p : p.map(q => [q[1], q[0]]);   /* v.path 是 [lat,lng] */
+  const nn = pts.length - 1;
+  const f = clamp(v.t, 0, 0.9999) * nn;
+  const i = Math.min(Math.floor(f), nn - 1), r = f - i;
+  const a = pts[i], b = pts[i + 1];
+  const cur = [a[0] + (b[0] - a[0]) * r, a[1] + (b[1] - a[1]) * r];  /* 从车头这一点接起 */
+  const rest = [cur].concat(pts.slice(i + 1));
+  return rest.length > 1 ? rest : null;
+}
+/* 尾巴 + 新路径：接头处 25m 内视为同一点，去掉重复点 */
+function joinTail(tail, p) {
+  if (!tail || tail.length < 2) return p;
+  const out = tail.slice();
+  const last = out[out.length - 1];
+  return out.concat(havM(last, p[0]) < 25 ? p.slice(1) : p);
+}
+
+/* 把一条路径应用到车辆上
+   高德规划用的是「片区中心 → 片区中心」，而车可能在半路（游走途中接单、
+   平台中途派单）。realPath 优先级高于 v.path，直接套用会让车瞬移到
+   规划起点，所以先按车头吸附对齐；真做了对齐就从头走这段新路。 */
+function applyRoute(v, item, at, tail) {
   if (!item || !item.p || item.p.length < 2) return false;
-  v.realPath = equalizePath(item.p, false);
+  const pre = (tail && tail.length > 1) ? tail : (v.__legTail || null);
+  /* 锚点优先级：调用方显式传入 → 当前路径上的真实位置 → 本段起步位置 → 最后已知位置。
+     绝不能在没有路径时用 posAt() 的片区中心兜底，否则车会瞬移到片区中心。 */
+  const anchor = at
+    || ((v.realPath && v.realPath.length > 1) || (v.path && v.path.length > 1) ? posAt(v)
+        : (v.__legAt || v.__lastPos || posAt(v)));
+  /* 有「未走完的尾巴」→ 尾巴 + 新路径（车先沿原路走到片区再转向）；
+     没有尾巴（刚出发/原地接单）→ 才做起点吸附。 */
+  const p = pre ? joinTail(pre, item.p) : anchorPath(anchor, item.p, true);
+  if (pre || p !== item.p) v.t = 0;          /* 本段从头开始（起点就是车头） */
+  v.realPath = equalizePath(p, false);
+  v.__legTail = null;
+  v.path = null;                             /* 真实路网到位，丢掉离线近似 */
   v.routeInfo = { distance: item.distance, time: item.time };
+  v.__needRoad = false;
+  v.__approx = false;
+  v.__inRouteQueue = false;
   refreshVehicleRoute(v);
   if (v.id === S.selVeh) buildTrace();
   return true;
 }
 
-/* 用高德 Driving 规划这一程；同一 OD 对只请求一次，失败则保留本地航点 */
+/* 离线近似：只在完全拿不到高德路网时用（阶梯折线，不斜穿地块） */
+function applyApproxPath(v, at) {
+  const from = ZMAP[v.from], to = ZMAP[v.to];
+  if (!from || !to) return false;
+  /* 近似路径同样支持「未走完的尾巴」：没有高德能力时也不能一换段就跳位置 */
+  const pre = v.__legTail;
+  if (pre && from.id !== to.id) {
+    const base2 = makePath(from, to).map(q => [q[1], q[0]]);   /* 转 [lng,lat] 与尾巴对齐 */
+    v.path = equalizePath(joinTail(pre, base2).map(q => [q[1], q[0]]), true);
+  } else {
+    v.path = equalizePath(anchorPath(at || v.__legAt || posAt(v), makePath(from, to)), true);
+  }
+  v.__legTail = null;
+  v.realPath = null;
+  v.__approx = true;
+  v.__needRoad = false;
+  v.__inRouteQueue = false;
+  refreshVehicleRoute(v);
+  return true;
+}
+
+/* ============================================================
+   路网优先（road-first）
+   ------------------------------------------------------------
+   旧逻辑：先按 makePath 的假路径开跑，再异步等高德真实路径替换。
+   100 辆车 × 每段一次 Driving，串行队列（380ms/次）根本追不上换段速度，
+   于是大量车辆整段都跑在假路径上 —— 画面上就是斜穿小区。
+   新逻辑：路径没到就不发车。缓存命中立即走；未命中排队；
+   规划失败的车「靠边待命」（paused），绝不用假路径顶替。
+   ============================================================ */
+var routeCooldownUntil = 0;     /* 连续失败后的冷却截止（毫秒），冷却期内不再打上游 */
+var ROUTE_FAIL_MAX = 10;
+
+/* 「有没有路网能力」和「现在能不能请求」是两件事：
+   · 没有能力（没 AMap / 走的瓦片兜底）→ 只能用近似路网，没有别的选择
+   · 有能力但地图/插件还没就绪（启动头一两秒）→ 应该等，不能降级
+   早期版本把这两件事混成一个判断，结果启动瞬间几十辆车被判成"没能力"
+   直接上了近似路径，之后再没人把它们换回来。 */
+function hasRoadCapability() {
+  return typeof AMap !== 'undefined' && !useFallback;
+}
+
+function routeNetOK() {
+  /* 注意：这里不检查 AMap.Driving 是否已加载。插件是异步的，
+     首帧常常还没就绪；那种情况要让请求排队等插件，而不是降级成假路径。 */
+  if (!hasRoadCapability() || !map) return false;
+  return Date.now() >= routeCooldownUntil;
+}
+
+/* 统一建路入口：所有换段都必须经过这里，避免再出现「先跑直线再纠正」 */
+function beginLeg(v, toId, at) {
+  /* ⚠ 必须在清空 realPath / path、把 t 归零之前取车头位置：
+     posAt() 一旦拿不到路径就会退回片区中心，那一步就是瞬移的起点。 */
+  const at0 = at || posAt(v);
+  v.__legAt = at0;
+  /* 半路换段：把当前这段没走完的路接在新路前面，避免吸附点跳到几公里外 */
+  const tail0 = pathTail(v);
+  v.__legTail = tail0;
+  v.from = v.to;
+  v.to = toId;
+  v.t = 0;
+  v.gain = 0;
+  v.realPath = null;
+  v.routeInfo = null;
+  v.path = null;
+  v.__approx = false;
+  v.__needRoad = true;          /* 默认：等路网 */
+  v.__needSince = Date.now();   /* 等太久（见 tickOnce）就先按近似路网跑，之后自动升级 */
+  v.__upTries = 0;              /* 新一段重新给 3 次升级机会 */
+  const key = v.from + '>' + v.to;
+  if (routeCache[key]) {
+    applyRoute(v, routeCache[key], at0, tail0);   /* 关键：把车头位置与尾巴一起带进去 */
+  } else if (!hasRoadCapability()) {
+    applyApproxPath(v, at0);              /* 确实没有高德能力，才用近似路网 */
+  } else {
+    requestVehicleRoute(v);               /* 有高德：哪怕地图还没就绪也排队等 */
+  }
+  genCands(v);
+  refreshVehicleRoute(v);
+  return !!(v.realPath && v.realPath.length > 1);
+}
+
+/* 用高德 Driving 规划这一程；同一 OD 对只请求一次，失败则重试/冷却 */
 function requestVehicleRoute(v) {
   const key = v.from + '>' + v.to;
-  if (routeCache[key]) { applyRoute(v, routeCache[key]); return; }
-  if (typeof AMap === 'undefined' || !map || !AMap.Driving || routeFail >= 6) return;
-  routeQueue.push(v);
+  if (routeCache[key]) { applyRoute(v, routeCache[key], v.__legAt || posAt(v)); return; }
+  if (!hasRoadCapability()) { applyApproxPath(v, v.__legAt || posAt(v)); return; }
+  if (routeBad[key] && Date.now() < routeBad[key]) { applyApproxPath(v, v.__legAt || posAt(v)); return; }
+  if (v.__inRouteQueue) return;                    /* 同一辆车不重复排队 */
+  if (routeQueue.indexOf(v) >= 0) return;          /* 队列里已有这辆车 */
+  v.__inRouteQueue = true;
+  if (v.__needRoad) routeQueue.unshift(v);          /* 等路网的车插队，先让它们动起来 */
+  else routeQueue.push(v);
   pumpRouteQueue();
 }
 
 var routeTry = {};      /* 同一 OD 的失败重试次数 */
+var routeBad = {};      /* 规划不出来的 OD → 解禁时间戳（5 分钟内不再重试，避免拖垮队列） */
+var ROUTE_CONC = 1;     /* Driving 对并发敏感：串行 + 120ms 间隔实测不限流、总吞吐最高 */
+var routePluginAsked = false;
+
 function pumpRouteQueue() {
-  if (routeBusy || !routeQueue.length) return;
-  routeBusy = true;
+  if (!routeQueue.length) return;
+  /* 地图/插件还没就绪：原地等，别急着降级 */
+  if (!map) { setTimeout(pumpRouteQueue, 400); return; }
+  /* 冷却期：暂停打上游，冷却结束后自动继续 */
+  if (Date.now() < routeCooldownUntil) { setTimeout(pumpRouteQueue, 2500); return; }
+  /* Driving 是插件，首帧可能还没加载：这时候要「等」，不能降级成近似路径，
+     否则正好在最需要真实路网的启动阶段把一半车扔到假路上 */
+  if (typeof AMap === 'undefined' || !AMap.Driving) {
+    if (typeof AMap !== 'undefined' && AMap.plugin && !routePluginAsked) {
+      routePluginAsked = true;
+      AMap.plugin(['AMap.Driving'], () => { routePluginAsked = false; pumpRouteQueue(); });
+    }
+    return;
+  }
+  if (routeBusy >= ROUTE_CONC) return;              /* 等 done 回调再泵 */
+  startRouteOne();
+}
+
+function startRouteOne() {
   const v = routeQueue.shift();
+  if (!v) return;
   const key = v.from + '>' + v.to;
-  if (routeCache[key]) { applyRoute(v, routeCache[key]); routeBusy = false; setTimeout(pumpRouteQueue, 60); return; }
+  if (routeCache[key]) { applyRoute(v, routeCache[key], v.__legAt || posAt(v)); setTimeout(pumpRouteQueue, 30); return; }
+  /* 这个 OD 已被判定规划不出来：直接近似，别再排队 */
+  if (routeBad[key] && Date.now() < routeBad[key]) {
+    v.__inRouteQueue = false;
+    applyApproxPath(v, v.__legAt || posAt(v));
+    setTimeout(pumpRouteQueue, 30);
+    return;
+  }
   const from = ZMAP[v.from], to = ZMAP[v.to];
-  if (!from || !to) { routeBusy = false; setTimeout(pumpRouteQueue, 200); return; }
+  if (!from || !to) { v.__inRouteQueue = false; setTimeout(pumpRouteQueue, 200); return; }
+  routeBusy++;
   let settled = false;
   const done = () => {
     if (settled) return;
     settled = true;
-    routeBusy = false;
-    setTimeout(pumpRouteQueue, 380);
+    routeBusy = Math.max(0, routeBusy - 1);
+    setTimeout(pumpRouteQueue, 120);
   };
   try {
     const d = new AMap.Driving({ policy: AMap.DrivingPolicy.LEAST_TIME, hideMarkers: true, showTraffic: false });
@@ -5422,27 +6585,57 @@ function pumpRouteQueue() {
         (r.steps || []).forEach(s => (s.path || []).forEach(q => p.push([q.lng, q.lat])));
         if (p.length > 1) {
           routeCache[key] = { p: p, distance: r.distance, time: r.time };
-          applyRoute(v, routeCache[key]);
-          AMK.trip.ok++;
+          routeTry[key] = 0;
           routeFail = 0;
+          routeCooldownUntil = 0;
+          /* 只有这辆车还在等这一程时才套用，避免把旧段路径塞给已换段的车 */
+          if (v.from + '>' + v.to === key) applyRoute(v, routeCache[key], v.__legAt || posAt(v));
+          AMK.trip.ok++;
         }
       } else {
-        /* 限流/偶发失败：同一 OD 重试最多 2 次，仍失败才计入失败并退回本地航点 */
+        /* 限流/偶发失败：同一 OD 重试最多 2 次，仍失败就拉黑 5 分钟并让车靠边待命 */
         routeTry[key] = (routeTry[key] || 0) + 1;
         if (routeTry[key] <= 2) {
-          setTimeout(() => { routeQueue.push(v); pumpRouteQueue(); }, 600);
+          v.__inRouteQueue = false;
+          setTimeout(() => { if (v.from + '>' + v.to === key) requestVehicleRoute(v); }, 1200);
         } else {
+          routeBad[key] = Date.now() + 300000;
           routeFail++;
           AMK.trip.fail++;
+          v.__inRouteQueue = false;
+          if (v.__needRoad) parkForRoute(v);       /* 绝不用假路径顶替，靠边等下一轮 */
+          if (routeFail >= ROUTE_FAIL_MAX) {
+            routeCooldownUntil = Date.now() + 30000;   /* 冷却 30s 而不是永久放弃 */
+            VEHICLES.forEach(x => { if (x.__needRoad) parkForRoute(x); });
+          }
         }
       }
       done();
     });
   } catch (e) {
     routeFail++;
+    routeTry[key] = (routeTry[key] || 0) + 1;
+    v.__inRouteQueue = false;
+    if (v.__needRoad) parkForRoute(v);
     done();
   }
   setTimeout(done, 8000);   /* 兜底：请求无响应也不阻塞队列 */
+}
+
+/* 路网规划失败 → 靠边待命（真实世界里空车停在路边等单，最合理）
+   不切 paused 状态机（那是"主动省油"，语义不同），保持 idle 但原地不走，
+   20 秒后自动重试一次；期间牌子上显示「路网规划失败，靠边待命」。 */
+function parkForRoute(v) {
+  if (v.lc === 'idle' || !v.lc) {
+    v.__needRoad = true;
+    v.__waitReason = '路网规划失败，靠边待命';
+    v.kmh = 0;
+    v.spd2 = 0;
+    v.__routeRetryAt = Date.now() + 20000;
+  } else {
+    /* 派单/载客中不能让乘客干等：退回阶梯近似，把这一程走完 */
+    applyApproxPath(v, posAt(v));
+  }
 }
 
 /* ============================================================
@@ -6158,9 +7351,17 @@ updateClock();
 pushEvent('系统启动：加载郑州市主城区出行仿真环境，在线车辆 <b>100</b> 辆', {});
 pushEvent('调度 Agent 已就绪，策略记忆载入 <b>12</b> 条区域权重', {});
 
+/* 天气/日期智能体：本地算日期 → 重标定片区需求 → 渲染入口面板（不调用任何接口） */
+computeDateAgent();
+applyDayScenario();
+renderDateAgent();
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'wxDPreview') onDayPreview(e.target.value);
+});
+
 const startMod = ((typeof location !== 'undefined' && location.hash) || '').replace('#', '');
 switchModule(MODULE_META[startMod] ? startMod : 'map');
-setTimeout(() => { initMap(); }, 80);
+setTimeout(() => { initMap(); renderDpBoard(); }, 80);
 updateFollowPill();
 /* 若首屏退到了瓦片兜底，定时静默重试，抢回完整的高德 JS API */
 setInterval(() => { if (useFallback && !mapReady) retryAMap(); }, 15000);
@@ -6654,19 +7855,30 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     ].join('\n');
   }
 
-  /* ---------------- 4.5 DeepSeek 通道（走同源代理，Key 不进前端） ---------------- */
-  /* 按当前需求：本轮暂不接入 DeepSeek。代码链路保留，把这里改成 false 即可启用 */
-  const LLM_DISABLED = true;
+  /* ---------------- 4.5 大模型通道（走同源代理 /api/llm，Key 只在服务端） ---------------- */
+  /* 上游已切换为 https://maas.qianwenaiapi.com/compatible-mode/v1（OpenAI 兼容）；
+     服务端没配 Key 时自动回落本地人格推理，页面不会报错，只如实显示状态 */
+  const LLM_DISABLED = false;
 
   const LLM_STATE = {
-    configured: false, disabled: LLM_DISABLED, source: '', model: 'deepseek-chat', upstream: '',
-    mode: 'local', label: '本地人格推理', err: '', at: 0
+    configured: false, disabled: LLM_DISABLED, source: '', model: 'qwen-plus', upstream: '',
+    mode: 'local', label: '本地人格推理', err: '', at: 0, models: []
   };
   const LLM_DEFAULT = '/api/llm';
 
+  /* file:// 直接双击打开时没有同源后端，但服务端开了 CORS（ACAO: *），
+     所以可以跨域直连本机代理。这里自动探常见端口，探到就用，探不到给提示并持续重试。 */
+  const FILE_PORTS = window.MP_LOCAL_PORTS || [8766, 8791, 8000, 5000];
+  let LLM_BASE = null;                 /* 已探明的绝对基址，如 http://127.0.0.1:8766/api/llm */
+  const IS_FILE = (typeof location !== 'undefined' && location.protocol === 'file:');
+
+  function fileBases() { return FILE_PORTS.map(p => 'http://127.0.0.1:' + p + '/api/llm'); }
+  function baseCandidates() { return IS_FILE ? fileBases() : [LLM_DEFAULT]; }
+
   function llmEndpoint() {
     const c = window.MP_LLM_CONFIG;
-    return (c && c.endpoint) ? c.endpoint : LLM_DEFAULT;
+    if (c && c.endpoint) return c.endpoint;
+    return LLM_BASE || (IS_FILE ? fileBases()[0] : LLM_DEFAULT);
   }
 
   function paintLLMBadge() {
@@ -6674,18 +7886,20 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     if (!b) return;
     if (LLM_STATE.disabled) {
       b.className = 'llm-badge off';
-      b.textContent = 'DeepSeek 暂未接入（按需求）';
-      b.title = '代码链路已就绪：在 serve.py 侧配置 DEEPSEEK_API_KEY 并把 LLM_DISABLED 改为 false 即可启用';
+      b.textContent = '大模型通道已关闭';
+      b.title = '在页面里把 LLM_DISABLED 改为 false 即可启用';
       return;
     }
     if (LLM_STATE.configured) {
       b.className = 'llm-badge';
-      b.innerHTML = 'DeepSeek 已连接 · <b>' + LLM_STATE.model + '</b>';
-      b.title = '上游 ' + (LLM_STATE.upstream || '—') + '　Key 来源 ' + (LLM_STATE.source || '—');
+      b.innerHTML = '大模型已连接 · <b>' + LLM_STATE.model + '</b>';
+      b.title = '上游 ' + (LLM_STATE.upstream || '—') + '　Key 来源 ' + (LLM_STATE.source || '—')
+        + (LLM_STATE.models && LLM_STATE.models.length ? '　可用模型 ' + LLM_STATE.models.length + ' 个' : '');
     } else if (LLM_STATE.err) {
       b.className = 'llm-badge warn';
-      b.textContent = '未连接 DeepSeek · 本地推理兜底';
-      b.title = LLM_STATE.err;
+      b.textContent = IS_FILE ? '未连接大模型 · 请启动 MobilityPilot.cmd' : '未连接大模型 · 本地推理兜底';
+      b.title = LLM_STATE.err + (IS_FILE ? '\n（点这里重试一次）' : '');
+      b.style.cursor = 'pointer';
     } else {
       b.className = 'llm-badge off';
       b.textContent = '本地人格推理';
@@ -6697,7 +7911,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     if (LLM_DISABLED) {
       LLM_STATE.configured = false;
       LLM_STATE.disabled = true;
-      LLM_STATE.err = '按当前需求，本轮暂不接入 DeepSeek';
+      LLM_STATE.err = '大模型通道已在页面里关闭';
       paintLLMBadge();
       return LLM_STATE;
     }
@@ -6711,28 +7925,76 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
       paintLLMBadge();
       return LLM_STATE;
     }
-    try {
-      const r = await fetch(LLM_DEFAULT + '/health', { cache: 'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const d = await r.json();
-      LLM_STATE.configured = !!d.configured;
+    let hit = null, lastErr = null;
+    const bases = baseCandidates();
+    for (let i = 0; i < bases.length; i++) {
+      try {
+        const r = await fetch(bases[i] + '/health', { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        hit = { base: bases[i], d: await r.json() };
+        break;
+      } catch (e) {
+        lastErr = e;
+        if (!IS_FILE) break;               /* 同源只试一次，别让启动干等 */
+      }
+    }
+    if (hit) {
+      LLM_BASE = hit.base;
+      const d = hit.d || {};
+      const hasKey = !!d.configured;
+      const badKey = hasKey && d.valid === false;   /* 上游明确拒绝（401/403） */
+      LLM_STATE.configured = hasKey && !badKey;
       LLM_STATE.source = d.source || '';
-      LLM_STATE.model = d.model || 'deepseek-chat';
+      LLM_STATE.model = d.model || 'qwen-plus';
       LLM_STATE.upstream = d.upstream || '';
-      LLM_STATE.err = d.configured ? '' : '服务端未配置 DEEPSEEK_API_KEY';
-      LLM_STATE.mode = d.configured ? 'llm' : 'local';
-    } catch (e) {
+      LLM_STATE.models = d.models || [];
+      LLM_STATE.err = !hasKey
+        ? '服务端未配置 API Key（LLM_API_KEY / DEEPSEEK_API_KEY / deepseek.key）'
+        : (badKey ? 'API Key 被上游拒绝（HTTP ' + (d.probe || 401) + '），已回落本地推理' : '');
+      LLM_STATE.mode = LLM_STATE.configured ? 'llm' : 'local';
+    } else {
       LLM_STATE.configured = false;
-      LLM_STATE.err = '未通过 serve.py 打开页面，或代理未启动（' + String(e.message || e) + '）';
+      LLM_STATE.mode = 'local';
+      const msg = String((lastErr && lastErr.message) || lastErr || '');
+      const code = (msg.match(/HTTP (\d{3})/) || [])[1];
+      LLM_STATE.err = code === '429'
+        ? '本地代理限流（每分钟调用上限），等一分钟刷新即可'
+        : code === '403'
+          ? '本地代理只接受局域网内的页面访问'
+          : IS_FILE
+            ? '当前是双击打开的本地文件，需要本地服务：双击 MobilityPilot.cmd 启动（自动查找 8766/8791/8000/5000），服务起来后本页会自己连上，不用刷新'
+            : '未通过 serve.py / serve_lan.py 打开页面，或代理未启动（' + msg + '）';
+      if (IS_FILE) armLLMRetry();
     }
     paintLLMBadge();
     return LLM_STATE;
   }
 
-  async function llmCall(payload) {
+  /* file:// 模式下的自动重连：每 3 秒探一次，服务一起来就自动接上（最多约 6 分钟） */
+  let llmPoll = { on: false, n: 0 };
+  function armLLMRetry() {
+    if (llmPoll.on) return;
+    llmPoll.on = true;
+    llmPoll.n = 0;
+    const tick = async () => {
+      if (LLM_DISABLED || LLM_STATE.configured) { llmPoll.on = false; return; }
+      llmPoll.n++;
+      await llmHealth();
+      if (LLM_STATE.configured || llmPoll.n >= 120) { llmPoll.on = false; return; }
+      setTimeout(tick, 3000);
+    };
+    setTimeout(tick, 3000);
+  }
+
+  async function llmCall(payload, extSignal) {
     const c = window.MP_LLM_CONFIG || {};
     const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = setTimeout(() => { try { ac && ac.abort(); } catch (e) { } }, c.timeout || 60000);
+    /* 外部可中断：关掉「自动思考」或关页面时，立刻断开这条请求 */
+    if (extSignal && ac) {
+      try { extSignal.addEventListener('abort', () => { try { ac.abort(); } catch (e) { } }, { once: true }); } catch (e) { }
+      if (extSignal.aborted) { try { ac.abort(); } catch (e) { } }
+    }
     let res;
     try {
       res = await fetch(llmEndpoint(), {
@@ -6768,7 +8030,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     const rt = rtOf(a);
     if (rt.busy) return rt.last;
     if (!LLM_STATE.configured) {
-      const err = new Error(LLM_STATE.err || 'DeepSeek 未配置');
+      const err = new Error(LLM_STATE.err || '大模型通道未配置');
       rt.err = err.message;
       throw err;
     }
@@ -6782,11 +8044,11 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
         .concat(rt.msgs.slice(-6))
         .concat([{ role: 'user', content: user }]);
       const data = await llmCall({
-        model: LLM_STATE.model || 'deepseek-chat',
+        model: LLM_STATE.model || 'qwen-plus',
         messages,
         temperature: opts.temperature == null ? 0.85 : opts.temperature,
         max_tokens: opts.maxTokens || 420
-      });
+      }, opts.signal);
       const txt = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
       const obj = parseAgentJSON(txt);
       if (!obj) throw new Error('模型返回无法解析为 JSON：' + String(txt).slice(0, 90));
@@ -6844,17 +8106,17 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     }
     try {
       const obj = await agentAsk(a, {});
-      LLM_STATE.label = 'DeepSeek · ' + LLM_STATE.model;
+      LLM_STATE.label = '大模型 · ' + LLM_STATE.model;
       local.steps.push({
-        stage: '⑥ DeepSeek 决策',
+        stage: '⑥ 大模型决策',
         tx: `${obj.accept ? '接受' : '拒绝'}（置信度 ${Number(obj.confidence).toFixed(2)}）：${obj.reason || '—'}　自省：${obj.reflect || '—'}`,
         kv: [['route', obj.route || '—'], ['mood', obj.mood || '—'], ['model', LLM_STATE.model], ['耗时', (rtOf(a).latency / 1000).toFixed(1) + 's']]
       });
       return local;
     } catch (e) {
-      LLM_STATE.label = '本地人格推理（DeepSeek 回退）';
+      LLM_STATE.label = '本地人格推理（大模型不可用）';
       local.steps.push({
-        stage: '⑥ DeepSeek 调用失败',
+        stage: '⑥ 大模型调用失败',
         tx: String((e && e.message) || e),
         kv: [['model', LLM_STATE.model], ['已回退', '本地推理']]
       });
@@ -6912,7 +8174,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
       </div>
       <div class="agx-body"></div>
       <div class="agx-foot">
-        <button class="agx-btn primary" data-act="wake">唤醒该智能体（DeepSeek）</button>
+        <button class="agx-btn primary" data-act="wake">唤醒该智能体（大模型）</button>
         <button class="agx-btn" data-act="play">在地图回放</button>
         <button class="agx-btn" data-act="focus">地图定位</button>
         <span class="ai-mode local" data-mode>${LLM_STATE.label}</span>
@@ -6924,7 +8186,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
   function agentHTML(a) {
     const rt = rtOf(a);
     const b = LLM_STATE.configured
-      ? `<span class="llm-badge">DeepSeek · <b>${LLM_STATE.model}</b></span>`
+      ? `<span class="llm-badge">大模型 · <b>${LLM_STATE.model}</b></span>`
       : `<span class="llm-badge warn">未连接 · 本地推理</span>`;
     const last = rt.last ? `<div class="ag-dec">
         <div><span class="${rt.last.accept ? 'ok' : 'no'}">${rt.last.accept ? '接受' : '拒绝'}</span>
@@ -7075,7 +8337,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
         thinkRenderWithLLM(card, box, a, rt.last);
       } else if (LLM_STATE.configured && !rt.busy) {
         box.insertAdjacentHTML('beforeend',
-          `<div class="ag-wait">该司机尚未被唤醒。切到「智能体」页签可查看他的 system prompt 并真实调用一次 DeepSeek。</div>`);
+          `<div class="ag-wait">该司机尚未被唤醒。切到「智能体」页签可查看他的 system prompt 并真实调用一次大模型。</div>`);
       }
     }
   }
@@ -7084,7 +8346,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
   function thinkRenderWithLLM(card, box, a, obj) {
     const res = paThinkLocal(a);
     res.steps.push({
-      stage: '⑥ DeepSeek 决策',
+      stage: '⑥ 大模型决策',
       tx: `${obj.accept ? '接受' : '拒绝'}（置信度 ${Number(obj.confidence).toFixed(2)}）：${obj.reason || '—'}　自省：${obj.reflect || '—'}`,
       kv: [['route', obj.route || '—'], ['mood', obj.mood || '—'], ['model', LLM_STATE.model]]
     });
@@ -7907,16 +9169,21 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
           actBtn.disabled = true;
           const old = actBtn.textContent;
           actBtn.textContent = '思考中…';
-          agentAsk(a, {}).then(() => {
-            actBtn.disabled = false;
-            actBtn.textContent = old;
-            if (card.dataset.tab === 'agent') renderAgxBody(card, a, 'agent');
-            else renderAgxBody(card, a, 'think');
-          }).catch(() => {
-            actBtn.disabled = false;
-            actBtn.textContent = old;
-            renderAgxBody(card, a, card.dataset.tab || 'agent');
-          });
+          /* 点之前先确保通道可用（file:// 打开时可能才刚启动服务） */
+          (async () => {
+            if (!LLM_STATE.configured) await llmHealth();
+            try {
+              await agentAsk(a, {});
+              actBtn.disabled = false;
+              actBtn.textContent = old;
+              if (card.dataset.tab === 'agent') renderAgxBody(card, a, 'agent');
+              else renderAgxBody(card, a, 'think');
+            } catch (e) {
+              actBtn.disabled = false;
+              actBtn.textContent = old;
+              renderAgxBody(card, a, card.dataset.tab || 'agent');
+            }
+          })();
         } else if (act === 'copysys') {
           const txt = rtOf(a).sys;
           if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -7977,20 +9244,134 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
   syncWeather();
   trafProbe();
 
-  /* DeepSeek 通道探活：本轮暂不接入，状态如实显示，不假装已连接 */
+  /* 大模型通道探活：如实显示状态，未配置时落本地人格推理，不假装已连接 */
   llmHealth().then(() => {
     const hint = el('wakeHint');
     const b = el('btnWakeBatch');
     if (LLM_DISABLED) {
       if (b) b.style.display = 'none';
-      if (hint) hint.textContent = '本轮暂不接入 DeepSeek · 司机使用本地人格推理（人格与轨迹逻辑不受影响）';
+      if (hint) hint.textContent = '大模型通道已在页面关闭 · 司机使用本地人格推理（人格与轨迹逻辑不受影响）';
       return;
     }
     if (!hint) return;
     hint.textContent = LLM_STATE.configured
-      ? `DeepSeek 已连接（${LLM_STATE.model}）· 每位司机持有独立 system prompt 与对话上下文`
-      : '未连接 DeepSeek · 司机使用本地人格推理（点「唤醒」会显示失败原因）';
+      ? `大模型已连接（${LLM_STATE.model}）· 每位司机持有独立 system prompt 与对话上下文`
+      : '未连接大模型 · 司机使用本地人格推理（点「唤醒」会显示失败原因）';
   });
+
+  /* ============================================================
+     自动抽样思考（v3.13）
+     ------------------------------------------------------------
+     每位司机本来就有自己的 runtime（独立 system prompt + 私有上下文），
+     这里只负责「按节奏轮换着叫醒」：
+       · 抽样间隔 10 秒真实时间（SIM_MIN_PER_SEC=0.6 → 约 6 仿真分钟一位）；
+       · 先轮一遍没被唤醒过的，再循环；受当前人格筛选影响；
+       · 同一时刻只允许一位在途（rt.busy 之外再加一层 inflight 闸）；
+       · 仿真暂停 / 标签页在后台时不抽，省额度；
+       · 连续失败 3 次自动关掉，避免空转刷 429；
+       · 关闭开关或关闭网页：清定时器 + abort 在途请求，立即停机。
+     ============================================================ */
+  const AUTO_THINK = {
+    on: false, timer: 0, gap: 10000, cursor: 0,
+    ok: 0, fail: 0, consecFail: 0, inflight: null, ctrl: null, note: ''
+  };
+
+  function autoThinkPool() {
+    const list = AGENTS.filter(a => !PA_STATE.filter || a.paKey === PA_STATE.filter);
+    return list.length ? list : AGENTS;
+  }
+  /* 优先「还没被唤醒过」的司机，一人轮完一圈再进入下一轮 */
+  function autoThinkNext() {
+    const pool = autoThinkPool();
+    if (!pool.length) return null;
+    for (let k = 0; k < pool.length; k++) {
+      const a = pool[(AUTO_THINK.cursor + k) % pool.length];
+      const rt = AGENT_RT[a.id];
+      if (!rt || !rt.last) {
+        AUTO_THINK.cursor = (AUTO_THINK.cursor + k + 1) % pool.length;
+        return a;
+      }
+    }
+    const a = pool[AUTO_THINK.cursor % pool.length];
+    AUTO_THINK.cursor = (AUTO_THINK.cursor + 1) % pool.length;
+    return a;
+  }
+  function autoThinkPaint() {
+    const em = el('autoThinkState'), wrap = el('autoThinkWrap');
+    if (wrap) wrap.classList.toggle('on', AUTO_THINK.on);
+    if (!em) return;
+    if (AUTO_THINK.note) { em.textContent = AUTO_THINK.note; return; }
+    if (!AUTO_THINK.on) { em.textContent = '已关闭'; return; }
+    if (AUTO_THINK.inflight) { em.textContent = '思考中：' + AUTO_THINK.inflight; return; }
+    if (S.paused) { em.textContent = '待机（仿真暂停）'; return; }
+    const woke = Object.keys(AGENT_RT).filter(id => AGENT_RT[id] && AGENT_RT[id].last).length;
+    em.textContent = '每 10 秒 1 位 · 已唤醒 ' + woke + '/' + AGENTS.length;
+  }
+  async function autoThinkStep() {
+    if (!AUTO_THINK.on || AUTO_THINK.inflight) return;
+    if (S.paused) { autoThinkPaint(); return; }
+    if (typeof document !== 'undefined' && document.hidden) return;   /* 后台标签页不烧额度 */
+    if (!LLM_STATE.configured) {
+      await llmHealth();
+      if (!LLM_STATE.configured) { AUTO_THINK.note = '大模型未连接，暂停抽取'; autoThinkPaint(); return; }
+      AUTO_THINK.note = '';
+    }
+    const a = autoThinkNext();
+    if (!a) return;
+    const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    AUTO_THINK.ctrl = ctrl;
+    AUTO_THINK.inflight = a.id;
+    AUTO_THINK.note = '';
+    autoThinkPaint();
+    try {
+      await agentAsk(a, { signal: ctrl ? ctrl.signal : undefined });
+      AUTO_THINK.ok++; AUTO_THINK.consecFail = 0;
+      /* 卡片正好打开着就顺手刷新，形成「一位接一位」的思考流 */
+      const card = document.querySelector('.ag-card[data-id="' + a.id + '"]');
+      if (card && PA_STATE.open === a.id) renderAgxBody(card, a, PA_STATE.tab || 'think');
+    } catch (e) {
+      AUTO_THINK.fail++; AUTO_THINK.consecFail++;
+      if (AUTO_THINK.consecFail >= 3) {
+        AUTO_THINK.note = '连续失败 3 次，已自动关闭（' + ((e && e.message) || '调用失败') + '）';
+        setAutoThink(false, true);
+        return;
+      }
+    } finally {
+      AUTO_THINK.inflight = null;
+      AUTO_THINK.ctrl = null;
+      autoThinkPaint();
+    }
+  }
+  /* keepNote=true：保留失败原因，不被「已关闭」覆盖 */
+  function setAutoThink(on, keepNote) {
+    AUTO_THINK.on = !!on;
+    if (!keepNote) AUTO_THINK.note = '';
+    const chk = el('autoThinkChk');
+    if (chk) chk.checked = AUTO_THINK.on;
+    if (AUTO_THINK.timer) { clearInterval(AUTO_THINK.timer); AUTO_THINK.timer = 0; }
+    if (AUTO_THINK.on) {
+      AUTO_THINK.timer = setInterval(autoThinkStep, AUTO_THINK.gap);
+      setTimeout(() => { if (AUTO_THINK.on) autoThinkStep(); }, 900);   /* 开启即刻抽一位 */
+    } else {
+      /* 关闭即停：断开在途请求，之后不再发起任何调用 */
+      if (AUTO_THINK.ctrl) { try { AUTO_THINK.ctrl.abort(); } catch (e) { } AUTO_THINK.ctrl = null; }
+      AUTO_THINK.inflight = null;
+    }
+    autoThinkPaint();
+  }
+  /* 关网页 / 刷新：清定时器 + 中断请求，资源随页面一起释放 */
+  function autoThinkTeardown() {
+    AUTO_THINK.on = false;
+    if (AUTO_THINK.timer) { clearInterval(AUTO_THINK.timer); AUTO_THINK.timer = 0; }
+    if (AUTO_THINK.ctrl) { try { AUTO_THINK.ctrl.abort(); } catch (e) { } AUTO_THINK.ctrl = null; }
+    AUTO_THINK.inflight = null;
+  }
+  window.addEventListener('pagehide', autoThinkTeardown);
+  window.addEventListener('beforeunload', autoThinkTeardown);
+
+  const chkAuto = el('autoThinkChk');
+  if (chkAuto) chkAuto.addEventListener('change', () => setAutoThink(chkAuto.checked));
+  autoThinkPaint();
 
   const btnWake = el('btnWakeBatch');
   if (btnWake && !LLM_DISABLED) {
@@ -8002,7 +9383,7 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
       if (!LLM_STATE.configured) await llmHealth();
       if (!LLM_STATE.configured) {
         const hint = el('wakeHint');
-        if (hint) hint.textContent = '未连接 DeepSeek：' + (LLM_STATE.err || '请用 serve.py 启动并配置 DEEPSEEK_API_KEY');
+        if (hint) hint.textContent = '未连接大模型：' + (LLM_STATE.err || '请用 serve.py 启动并配置 LLM_API_KEY');
         return;
       }
       btnWake.disabled = true;
@@ -8039,6 +9420,21 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     memOf(a).km += +(0.6 + Math.random() * 3.4).toFixed(1);
   }, 6000);
 
+  /* 状态徽标：点一下立刻重探本地服务（不用等自动重连） */
+  (function bindBadgeRetry() {
+    const b = el('llmBadge');
+    if (!b) return;
+    b.addEventListener('click', async () => {
+      if (LLM_STATE.configured) return;
+      b.textContent = '正在连接…';
+      await llmHealth();
+      if (!LLM_STATE.configured && IS_FILE) {
+        const hint = el('wakeHint');
+        if (hint) hint.textContent = LLM_STATE.err;
+      }
+    });
+  })();
+
   /* ---------- 轨迹回放与地图读数条的事件绑定 ---------- */
   const rpMaskEl = el('rpMask');
   if (rpMaskEl) rpMaskEl.addEventListener('click', e => { if (e.target === rpMaskEl) closeReplay(); });
@@ -8072,6 +9468,8 @@ var WX_DEMAND = { factor: 1, text: '—' };  /* 天气 → 乘客需求乘子 */
     sys: (id) => { const a = AGENTS.find(x => x.id === id); return a ? rtOf(a).sys : null; },
     ask: (id) => { const a = AGENTS.find(x => x.id === id); return a ? agentAsk(a, {}) : Promise.reject(new Error('无此司机')); },
     batch: (ids, n) => agentBatch(ids || AGENTS.slice(0, 12).map(a => a.id), n || 3),
+    autoThink: (on) => { setAutoThink(!!on); return AUTO_THINK.on; },   /* 控制台/深链开关 */
+    autoState: () => AUTO_THINK,
     runtime: () => AGENT_RT,
     health: () => llmHealth(),
     state: LLM_STATE,
@@ -8177,27 +9575,25 @@ var DRIVER_BRAIN = (function () {
     }
   };
 
-  /* ---------- DeepSeek 实现：预留骨架，配置后即生效 ---------- */
+  /* ---------- 大模型实现：OpenAI 兼容，经 /api/llm 走服务端密钥 ---------- */
   impls.deepseek = {
     name: 'deepseek',
-    label: 'DeepSeek',
+    label: 'MaaS 大模型',
     async: true,
     async decide(task, ctx) {
       const cfg = window.MP_BRAIN_CONFIG || {};
       const endpoint = cfg.endpoint || '/api/llm';
       const sys = '你是城市出租车司机智能体。只输出 JSON：{"action":"wander|pause|accept|reject","reason":"不超过30字","confidence":0到1}';
       const user = `任务：${task}\n情境：${JSON.stringify(ctx)}`;
+      const body = { temperature: 0.5, max_tokens: 160, messages: [{ role: 'system', content: sys }, { role: 'user', content: user }] };
+      if (cfg.model) body.model = cfg.model;      /* 不指定则用服务端默认模型 */
       const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
       const timer = setTimeout(() => { try { ac && ac.abort(); } catch (e) { } }, cfg.timeout || 9000);
       try {
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: Object.assign({ 'Content-Type': 'application/json' }, cfg.headers || {}),
-          body: JSON.stringify({
-            model: cfg.model || 'deepseek-chat',
-            temperature: 0.5, max_tokens: 160,
-            messages: [{ role: 'system', content: sys }, { role: 'user', content: user }]
-          }),
+          body: JSON.stringify(body),
           signal: ac ? ac.signal : undefined
         });
         const data = await res.json();
@@ -8309,13 +9705,26 @@ var LC = null;
     }
     return DEM[z.id];
   }
+  /* 天气/日期智能体：日期场景切换后重标定需求池上限（池内订单保留，只动水位线） */
+  MP_rescaleDem = function () {
+    Object.keys(DEM).forEach(id => {
+      const z = ZMAP[id]; if (!z) return;
+      const d = DEM[id];
+      d.cap = Math.max(1, Math.round(z.demand * 1.0));
+      if (d.pool > d.cap) d.pool = d.cap;
+    });
+  };
 
   /* ---------------- 速度：真实比例尺 + 仿真时钟 ---------------- */
   function trackSpeed(v) {
+    /* ⚠ posAt() 现在会顺手刷新 v.__lastPos（供换段期间保持原位），
+       所以必须先把它读出来再取新位置，否则永远拿到"自己刚写进去的新值"，
+       里程不增长、车速归零。 */
+    const prev = v.__lastPos;
     const p = posAt(v);
     if (p) {
-      if (v.__lastPos) {
-        const dd = havM(v.__lastPos, p);
+      if (prev) {
+        const dd = havM(prev, p);
         if (dd > 0 && dd < 3000) v.odo = (v.odo || 0) + dd;   /* 过滤换路跳变 */
       }
       v.__lastPos = p;
@@ -8370,7 +9779,8 @@ var LC = null;
       drive: dl,
       kmh: kmh,
       outer: isOuter(v),
-      note: (v.lc === 'paused' ? v.__pauseReason : (v.lc === 'idle' ? v.__waitReason : '')) || ''
+      note: (v.__needRoad ? '等待路网规划'
+        : ((v.lc === 'paused' ? v.__pauseReason : (v.lc === 'idle' ? v.__waitReason : '')) || ''))
     };
   }
 
@@ -8415,7 +9825,7 @@ var LC = null;
       v.idleAt = ST.t;
       v.waitStart = ST.t;
       LC_STAT.fixed++;
-      if (!v.t || v.t >= 1) { v.t = 0; wanderNext(v); }
+      if (!v.t || v.t >= 1) { const p = posAt(v); v.t = 0; wanderNext(v, p); }
     }
     /* arrived 卡死：正常 1.2 分钟就会转走，超过两倍说明这一轮没被处理 */
     if (v.lc === 'arrived' && ST.t - v.lcAt > stallA) {
@@ -8454,20 +9864,12 @@ var LC = null;
   }
 
   function startTrip(v) {
+    const at = posAt(v);            /* 先用旧进度取真实位置，再改状态（否则拿到的是新路径起点） */
     const prevId = v.from, curId = v.to;
     const cur = ZMAP[curId];
     const nxt = pickNextZone(curId, prevId);
     if (!cur || !nxt) { v.lc = 'idle'; v.lcAt = ST.t; return; }
-    v.from = curId;
-    v.to = nxt.id;
-    v.t = 0;
-    v.gain = 0;
-    v.realPath = null;
-    v.routeInfo = null;
-    v.path = equalizePath(makePath(cur, nxt), true);
-    genCands(v);
-    refreshVehicleRoute(v);
-    requestVehicleRoute(v);
+    beginLeg(v, nxt.id, at);        /* 统一建路：只认真实路网，没路就不发车 */
     v.lc = 'starting';
     v.lcAt = ST.t;
     ST.trips++;
@@ -8477,7 +9879,8 @@ var LC = null;
       seq: v.hseq, from: curId, to: nxt.id,
       t0: ST.t, t1: null, clk: S.clock, clk1: null,
       wait: Math.max(0, +(ST.t - (v.__arriveAt == null ? ST.t : v.__arriveAt)).toFixed(1)),
-      pth: v.path.slice()
+      /* 路径存 [lat,lng]：真实路网优先，近似路网兜底，等路网时留空 */
+      pth: v.realPath ? v.realPath.map(p => [p[1], p[0]]) : (v.path || []).slice()
     };
     v.hist.push(rec);
     if (v.hist.length > 40) v.hist.shift();
@@ -8492,7 +9895,9 @@ var LC = null;
      在 4.2km 半径内随机挑下一个片区，避免空车全城扎堆。
      游走段不进历史（历史只记载客段与派单段），也不扣任何订单池。
      ============================================================ */
-  function wanderNext(v) {
+  function wanderNext(v, at) {
+    /* 车头位置由调用方在改 t 之前取好；没传才就地取（此时 t 必须仍是旧值） */
+    const at0 = at || posAt(v);
     const curId = v.to;
     const cur = ZMAP[curId];
     if (!cur) return;
@@ -8503,20 +9908,15 @@ var LC = null;
     const nxt = pool[Math.floor(Math.random() * pool.length)];
     ST.wanderKm += havM([cur.lng, cur.lat], [nxt.lng, nxt.lat]) / 1000;
 
-    v.from = curId;
-    v.to = nxt.id;
-    v.t = 0;
-    v.gain = 0;
-    v.realPath = null;
-    v.routeInfo = null;
-    v.path = equalizePath(makePath(cur, nxt), true);
-    genCands(v);
-    refreshVehicleRoute(v);
+    /* 随机性完全保留：目标片区仍是 4.2km 内随机挑一个，
+       变的只是「怎么过去」—— 必须沿高德真实道路，不再斜穿街区。 */
+    beginLeg(v, nxt.id, at0);
     if (v.id === S.selVeh) buildTrace();
   }
 
   /* 从「已到达」或「平台调度」转入游走 */
   function goWander(v, reason) {
+    const at = posAt(v);             /* 必须在 v.t 归零之前取：否则拿到上一段的起点 */
     v.lc = 'idle';
     v.lcAt = ST.t;
     v.idleAt = ST.t;
@@ -8533,7 +9933,7 @@ var LC = null;
     v.__odo0 = v.odo || 0;
     v.__spdKey = Math.floor(S.clock / 2);
     v.__keyAt = ST.t;
-    wanderNext(v);
+    wanderNext(v, at);
   }
 
   /* 派单到达：乘客上车，进入「已接单，准备启程」 */
@@ -8588,9 +9988,16 @@ var LC = null;
       VEHICLES.forEach(v => {
         if (used[v.id]) return;
         if (v.lc !== 'idle' && v.lc !== 'paused') return;
+        /* 还在等路网规划的车先别派：它连"怎么过去"都还没算出来，
+           派出去只会让乘客一起等，还占掉名额 */
+        if (v.__needRoad) return;
         const cur = ZMAP[v.to];
         if (!cur) return;
-        const d = havM([cur.lng, cur.lat], [z.lng, z.lat]);
+        /* 距离必须按「车的真实位置」算：v.to 只代表这辆车名义上归哪个片区，
+           游走途中它可能离那个片区中心还有十几公里。用片区中心算会出现
+           "派一辆 20km 外的车去接客"，看板上就会显示 20km / 35 分。 */
+        const pp = posAt(v);
+        const d = havM([pp[1], pp[0]], [z.lng, z.lat]);
         if (d > DISPATCH_RADIUS) return;
         /* 暂停车加惩罚：同样距离时一定先派游走车 */
         const score = d + (v.lc === 'paused' ? 2600 : 0);
@@ -8601,15 +10008,15 @@ var LC = null;
 
       const cur = ZMAP[best.to];
       if (!cur) continue;
+      const at = posAt(best);                          /* 改 t 之前先取真实位置（游走途中派单时车在半路） */
       dem(z).pool = Math.max(0, dem(z).pool - 1);     /* 预占订单 */
 
-      best.from = best.to;
-      best.to = z.id;
-      best.t = 0;
+      /* ⚠ 不要再在这里预置 from/to：beginLeg 内部会先把旧 to 记成 from。
+         之前两边都赋一次，结果是 from === to（自环键 z>z），
+         缓存永远不命中、退化路径把车吸到片区中心——就是「原地重新生成」。
+         派单也要走真实道路：缓存有就立刻出发，没有就排队等规划。 */
       best.gain = 0;
-      best.realPath = null;
-      best.routeInfo = null;
-      best.path = equalizePath(makePath(cur, z), true);
+      beginLeg(best, z.id, at);
       best.lc = 'dispatched';
       best.lcAt = ST.t;
       best.kmh = Math.min(best.kmh || 0, DISPATCH_KMH);   /* 空驶限速，别显示超速 */
@@ -8617,13 +10024,15 @@ var LC = null;
       best.__dispatchFrom = cur.id;
       best.__dispatchKm = bestKm;
       best.__dispatchAt = ST.t;
-      genCands(best);
-      refreshVehicleRoute(best);
       if (best.id === S.selVeh) buildTrace();
 
       used[best.id] = 1;
       ST.dispatches++;
       ST.dispatchKm += bestKm;
+      /* 这一单的序号：换单时虚线重新计时，同一单只闪一次 */
+      best.__dpSeq = (best.__dpSeq || 0) + 1;
+      /* 司机收到平台推送的这一帧：车标上方弹一次「新单·目标片区」 */
+      dpPop(best);
       sent++;
       }
     }
